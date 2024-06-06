@@ -1,0 +1,59 @@
+
+; Space for convenience
+
+; name of the package
+#package AutoNode
+
+#identifier "Anvil_Node data string"
+#status "<size=0>" . {identifier}
+
+{lua(\
+  anvil = {}; --[[Root Variable]]\
+  anvil.nodes = {}; --[[Storage for nodes]]\
+  anvil.node_names = {}; --[[Storage for node names]]\
+  anvil.node_types = {}; --[[Keep one of the three node types]]\
+  anvil.node_coordinates = {}; --[[Storage of Orbit Specific Data]]\
+  anvil.name_max_size = 0;\
+  anvil.name_sizes = {};\
+  anvil.name_sizes.node = 0;\
+  anvil.name_sizes.node_types = 0;\
+\
+  function anvil.add_node(name, coordX, coordY, radius, speed, node_type, node_color)\
+    local node = {};\
+    node.id = #anvil.nodes + 1;\
+    if node.id > 35 then\
+      return "Too many nodes: Over the limit while adding " .. name;\
+    end\
+    node.name = name;\
+    node.color = node_color;\
+    node.coordinate_X = coordX;\
+    node.coordinate_Y = coordY;\
+    node.coordinate_radius = radius;\
+    node.coordinate_orbital_speed = speed;\
+    node.node_type = node_type;\
+    anvil.nodes[node.id] = node;\
+    anvil.node_names[node_type .. "_" .. name] = node;\
+    anvil.node_coordinates[node_type .. "_" .. name] = node;\
+    if #(node_type .. "_" .. name) > anvil.name_max_size then\
+      anvil.name_max_size = #(node_type .. "_" .. name);\
+    end\
+    return ":const int " .. node_type .. "_" .. name .. " " .. #anvil.nodes;\
+  end\
+)}
+
+; A node to increase damage of an element
+#damage(name, coordonateX, coordonateY, radius, speed, color) {lua(\
+  return anvil.add_node("{name}", {coordonateX}, {coordonateY}, {radius}, {speed}, "damage", {color})\
+)}
+
+; A node to increase resistance against an element
+#resistance(name, coordonateX, coordonateY, radius, speed, color) {lua(\
+  return anvil.add_node("{name}", {coordonateX}, {coordonateY}, {radius}, {speed}, "resistance", {color})\
+)}
+
+; A node to specify
+#special(name, coordonateX, coordonateY, radius, speed, color) {lua(\
+  return anvil.add_node("{name}", {coordonateX}, {coordonateY}, {radius}, {speed}, "special", {color})\
+)}
+
+; Space for convenience

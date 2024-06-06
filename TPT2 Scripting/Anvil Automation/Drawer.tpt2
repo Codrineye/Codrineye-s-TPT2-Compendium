@@ -1,0 +1,24 @@
+
+; Space for convenience
+
+:import Anvil Macros
+:name {package}:Drawer
+
+:global double selector
+:local vector direction
+
+gds ("incrementer" . {identifier}, 0.0)
+direction = if (gbg ("checker" . {identifier}), vec (1.0, 2.0), vec(2.0, 1.0))
+gbs ("checker" . {identifier}, true)
+canvas.rect (\
+  {pos.relative(\
+    (400.0 / 800.0) + sin (const.pi() * x (gvg ("vector" . d2i(selector) . {identifier}))) - (x (direction) % 2.0), \
+    (225.0 / 450.0) + cos (const.pi() * y (gvg ("vector" . d2i(selector) . {identifier}))) - (y (direction) % 2.0), \
+    0.5, \
+    0.5\
+  )}, \
+  {pos.relative(x(direction), y(direction), 0.0, 0.0)}, \
+  gsg ("color" . selector . {identifier})\
+)
+
+; Space for convenience

@@ -1,0 +1,17 @@
+
+; Space for convenience
+
+:import Anvil Macros
+:name {package}:Main
+
+:local string name
+
+execute (if (contains (impulse(), "init"), "{package}:Main", "{package}:Anvil Constants" . {status}))
+name = if (contains (impulse(), "init"), "incrementer" . {identifier}, "selector")
+gds (name, if (\
+  contains (name, {identifier}), \
+  (gdg (name) + 0.01) % 2.0, \
+  if (gdg ("incrementer" . {identifier}) > 0.0, gdg (name), (gdg (name) % 29.0) + 1.0)\
+))
+
+; Space for convenience

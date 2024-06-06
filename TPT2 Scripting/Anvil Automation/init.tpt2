@@ -1,0 +1,55 @@
+
+; Space for convenience
+
+:import Anvil Constants
+:name {package}:init
+
+:global int turbo.cycles.max
+:global int turbo.cycles
+:local int increment
+
+key.x()
+
+#get_data(target, end) sub (\
+  gsg ({status}), \
+  index (sub (gsg ({status}), index (gsg ({status}), "|" . increment, 0), 9999), {target}, 1), \
+  index (sub (gsg ({status}), index (gsg ({status}), "|" . increment, 0), 9999), {end}, 1) - \
+  index (sub (gsg ({status}), index (gsg ({status}), "|" . increment, 0), 9999), {target}, 1)\
+)
+
+
+executesync (if (gbg ("checker" . {identifier}), "TE2.2:stop", "TE2.2:start"))
+goto (if (\
+  gbg ("checker" . {identifier}), \
+  end, \
+  if (contains (gsg ("color29" . {identifier}), "#"), skip, continue)\
+))
+
+continue:
+canvas.clear()
+gss ({status}, {data_string})
+
+execute ("{package}:Drawer")
+execute ("{package}:Drawer")
+
+loop:
+turbo.cycles.max = max (turbo.cycles.max, turbo.cycles + 5000)
+
+increment = increment + 1
+gss ("color" . increment . {identifier}, {get_data("#", " ")})
+gvs ("vector" . increment . {identifier}, vec (\
+  s2d ({get_data("  ", "   ")}, 0.0), \
+  s2d ({get_data("   ", "    ")}, 0.0)\
+))
+gds ("radius" . increment . {identifier}, s2d ({get_data(" ", "  ")}, 0.0))
+gds ("orbit_speed" . increment . {identifier}, s2d ({get_data("    ", "|")}, 0.0))
+gotoif (loop, contains (gsg ({status}), "|" . increment))
+
+skip:
+gss ({status}, "</size>")
+execute ("{package}:Main")
+
+end:
+wait (0.0)
+
+; Space for convenience

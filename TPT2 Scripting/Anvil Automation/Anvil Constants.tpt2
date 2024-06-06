@@ -1,0 +1,56 @@
+
+; Space for convenience
+
+:import Anvil Macros
+
+{special(damage, 0.1, 0.1, 0.3, 604800, "#6042A6")}
+{special(resistance, 0.6, -0.35, 0.3, -172800, "#6042A6")}
+{special(range, -0.6, 0, 0.3, -21600, "#6042A6")}
+
+{damage(neutral, -0.45, 0.5, 0.15, 28800, "#808080")}
+{damage(fire, -0.35, 0.6752613187, 0.16, 32401, "#FF0000")}
+{damage(water, -0.25, 0.3311343193, 0.17, 36000, "#0080FF")}
+{damage(earth, -0.15, 0.487442106, 0.18, 39601, "#804000")}
+{damage(air, -0.05, 0.6809653044, 0.19, 43201, "#00FFFF")}
+{damage(nature, 0.05, 0.3381964564, 0.2, 46800, "#00FF00")}
+{damage(light, 0.15, 0.4749338031, 0.21, 50401, "#FFEC19")}
+{damage(darkness, 0.25, 0.6859552264, 0.22, 54000, "#8000FF")}
+{damage(electricity, 0.35, 0.3458969593, 0.23, 57600, "#CCAA00")}
+{damage(universal, 0.45, 0.4625244737, 0.24, 61200, "#000000")}
+
+{resistance(neutral, 0.45, -0.5, 0.15, -21600, "#808080")}
+{resistance(fire, 0.35, -0.6752613187, 0.16, -25200, "#FF0000")}
+{resistance(water, 0.25, -0.3311343193, 0.17, -28799, "#0080FF")}
+{resistance(earth, 0.15, -0.487442106, 0.18, -32400, "#804000")}
+{resistance(air, 0.05, -0.6809653044, 0.19, -35999, "#00FFFF")}
+{resistance(nature, -0.05, -0.3381964564, 0.2, -39600, "#00FF00")}
+{resistance(light, -0.15, -0.4749338031, 0.21, -43200, "#FFEC19")}
+{resistance(darkness, -0.25, -0.6859552264, 0.22, -46799, "#8000FF")}
+{resistance(electricity, -0.35, -0.3458969593, 0.23, -50400, "#CCAA00")}
+{resistance(universal, -0.45, -0.4625244737, 0.24, -53999, "#000000")}
+
+{special(health, -0.04, -0.7, 0.2, -302400, "#C74440")}
+{special(shield, 0.09, -0.5, 0.2, -345600, "#2D70B3")}
+{special(resources, -0.7, 0, 0.2, -86400, "#FA7E19")}
+{special(cooldown, -0.7, -0.3, 0.2, -172800, "#FA7E19")}
+{special(xp, 0, 0, 0.8, -43200, "#FA7E19")}
+{special(townxp, 0, 0, 0.9, 86400, "#FA7E19")}
+
+#data_string {lua(\
+  anvil.assembly = {};\
+  for i = 1, #anvil.nodes do\
+    local selected_anvil = anvil.nodes[i];\
+    if selected_anvil.name == nil then\
+      return "Invalid node " .. i .. " has name nil";\
+    end\
+    anvil.assembly[#anvil.assembly + 1] = "|" .. i .. selected_anvil.node_type .. "_" .. selected_anvil.name;\
+    anvil.assembly[#anvil.assembly] = anvil.assembly[#anvil.assembly] .. selected_anvil.color;\
+    anvil.assembly[#anvil.assembly] = anvil.assembly[#anvil.assembly] .. " " .. selected_anvil.coordinate_radius;\
+    anvil.assembly[#anvil.assembly] = anvil.assembly[#anvil.assembly] .. "  " .. selected_anvil.coordinate_X;\
+    anvil.assembly[#anvil.assembly] = anvil.assembly[#anvil.assembly] .. "   " .. selected_anvil.coordinate_Y;\
+    anvil.assembly[#anvil.assembly] = anvil.assembly[#anvil.assembly] .. "    " .. selected_anvil.coordinate_orbital_speed;\
+  end\
+  return [["]] .. table.concat(anvil.assembly) .. [["]]\
+)}
+
+; Space for convenience
