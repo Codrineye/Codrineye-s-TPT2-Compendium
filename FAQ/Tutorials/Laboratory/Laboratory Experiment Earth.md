@@ -14,24 +14,24 @@ All rewards for the earth experiment are locked behind a density requirement\
 Your compressor, depending on your selected mode, will decrease the diameter and volume to increase how much density you have
 
 ## WHAT'S WITH THE ON, OFF SWITCHES
-If you're looking at the earth experiment for the first time, you might be asking why you wouldn't keep both drills and the compressor on simultaniously.\
+If you're looking at the earth experiment for the first time, you might be asking why you wouldn't keep both drills and the compressor on simultaniously\
 Well, while you **could** try to use them simultaneously, you should note the following 2 aspects of compressing:
 - if you gain mass while compressing, your compression is reset to zero.
 - While compressing, the drills slow down the closer your compressor gets to the maximum compression possible.\
-Please be aware that the section that follows will talk more about this maximum I'm refering to.
+Please be aware that the section that follows will talk more about this maximum I'm refering to
 
 Switching the drills off, while you will have to do very rarely, is beneficial in the early levels as the compressor might startup too slowly\
 Switching the compressor off is needed to be able to change the mode of your compressor
 
 # There are 4 factors to the compressor
-Compressor Modes, \
-Compressor Limit, \
-Compressor Startup/Shutdown \
-and \
-Compressor Stability
+- Compressor Modes: [Redirecting to what these modes do](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/edit/main/FAQ/Tutorials/Laboratory/Laboratory%20Experiment%20Earth.md#what-do-these-modes-do)
+- Compressor Limit
+- Compressor Startup/Shutdown
+- Compressor Stability: [Redirecting to why stability matters](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/edit/main/FAQ/Tutorials/Laboratory/Laboratory%20Experiment%20Earth.md#why-should-i-care-about-stability)
 
 There are 3 modes, Quick & Qangerous, Slow & Safe, Stabilize\
-All of which are controlled via the 2 bars
+The compressor is controlled by the player via the green bar\
+The red bar is controlled by the compressor and cannot surpass this green bar
 
 ![Earth Experiment UI](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Control%20Bars.png)
 
@@ -64,6 +64,7 @@ You got enough mass to prestige, congratulations\
 On first prestige, you will be met with the prestige screen\
 ![Earth Experiment Prestige](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/5b210d5df14a7f66f5ee1c737b8832da171e9138/FAQ/Images/Earth%20Experiment%20Prestige%20Screen.png)\
 If you hover over the middle icon, you will learn what performing a prestige had reset\
+**Keep in mind that this menu can be accessed whenever you'd like, you do not need to prestige to see these effects**\
 You are able to avoid this reset if you buy the exotic skill called `Fundementals`\
 This experiment has 2 prestige upgrades:
 - **Left Improvement**: Reduces the stability loss during compression by 20% and increases stability regeneration in stabilize mode by 10% (Multiplicative)
