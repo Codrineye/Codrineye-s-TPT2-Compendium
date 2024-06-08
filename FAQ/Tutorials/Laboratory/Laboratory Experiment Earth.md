@@ -1,4 +1,5 @@
 
+This file has been made following the rules specified in the [ROOT LEGEND](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/b4a7c62a6eefbbd4bb21106c1ce2148d78b29894/FAQ/Readme.md)
 # Laboratory Experiment: Earth
 ![Earth Experiment](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment.png)
 
@@ -16,8 +17,8 @@ Your compressor, depending on your selected mode, will decrease the diameter and
 ## WHAT'S WITH THE ON, OFF SWITCHES
 If you're looking at the earth experiment for the first time, you might be asking why you wouldn't keep both drills and the compressor on simultaniously\
 Well, while you **could** try to use them simultaneously, you should note the following 2 aspects of compressing:
-- if you gain mass while compressing, your compression is reset to zero.
-- While compressing, the drills slow down the closer your compressor gets to the maximum compression possible.\
+- If you gain mass while compressing, your compression is reset to zero.
+- While using a mode besides Quick & Dangerous, the drills slow down the closer your compressor gets to the maximum compression possible.\
 Please be aware that the section that follows will talk more about this maximum I'm refering to
 
 Switching the drills off, while you will have to do very rarely, is beneficial in the early levels as the compressor might startup too slowly\
@@ -45,7 +46,7 @@ While compressing, you _ALWAYS_ lose stability, the modes are ordered from most 
 ## Mode 1: Quick & Dangerous
 This mode compresses your mass in the fastest way, with the drawback that it **also** drains the stability the fastest
 ## Mode 2: Slow & Safe
-This mode compresses mass in a way such that you can leave it running and you are unlikely to run out of stability before you check on it again, but remember... **THIS MODE STILL DRAINS MASS**, it just drains it a lot slower than quick and dangerous
+This mode compresses mass in a way such that you can leave it running and you are unlikely to run out of stability before you check on it again, but remember... **THIS MODE STILL DRAINS STABILITY**, it just drains it a lot slower than quick and dangerous
 ## Mode 3: Stabilize
 This mode does not compress your mass, instead, it increases your compresors stability
 
