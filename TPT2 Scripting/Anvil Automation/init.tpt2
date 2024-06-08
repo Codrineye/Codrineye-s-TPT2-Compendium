@@ -32,9 +32,9 @@ gss ({status}, {data_string})
 execute ("{package}:Drawer")
 execute ("{package}:Drawer")
 
-loop:
 turbo.cycles.max = max (turbo.cycles.max, turbo.cycles + 5000)
 
+loop:
 increment = increment + 1
 gss ("color" . increment . {identifier}, {get_data("#", " ")})
 gvs ("vector" . increment . {identifier}, vec (\
@@ -46,8 +46,9 @@ gds ("orbit_speed" . increment . {identifier}, s2d ({get_data("    ", "|")}, 0.0
 gotoif (loop, contains (gsg ({status}), "|" . increment))
 
 skip:
-gss ({status}, "</size>")
+gss ({status} . {identifier}, "</size>")
 execute ("{package}:Main")
+gbs ("checker" . {identifier}, gbg ("checker" . {identifier}) == false)
 
 end:
 wait (0.0)
