@@ -4,7 +4,7 @@
 
 # The earth experiment is composed of 3 mechanics
 
-![Earth Experiment UI](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Main%20UI.png)\
+![Earth Experiment UI](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Main%20UI.png)
 ## MASS
 Mass is required for you to prestige this experiment, it is gained from your drills and determines how much you can compress
 
@@ -33,14 +33,14 @@ Compressor Stability
 There are 3 modes, Quick & Qangerous, Slow & Safe, Stabilize\
 All of which are controlled via the 2 bars
 
-![Earth Experiment UI](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Control%20Bars.png)\
+![Earth Experiment UI](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Control%20Bars.png)
 
 The green bar represents the maximum speed the compressor can achieve, the bigger the bar, the quicker it'll run\
 The red bar is the progress the compressor has made in its startup/shutdown sequence, it slowly builds up to the maximum when active and slowly drains to the minimum when deactivated\
 While compressing, you _ALWAYS_ lose stability, the modes are ordered from most stability drain to least stability drain
 
 # What do these modes do?
-![Earth Experiment Modes](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Compressor%20Modes.png)
+![Earth Experiment Modes](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/cb5560733890c201e17b55b4e2165788d2b51490/FAQ/Images/Earth%20Experiment%20Compressor%20Modes.png)
 
 ## Mode 1: Quick & Dangerous
 This mode compresses your mass in the fastest way, with the drawback that it **also** drains the stability the fastest
@@ -62,7 +62,7 @@ thanks to this, you are still able to collect your rewards if you're observant e
 # What happens when I prestige?
 You got enough mass to prestige, congratulations\
 On first prestige, you will be met with the prestige screen\
-![Earth Experiment Modes](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/dc8a855ce0cd2da64838c325a3f759c84a4db89f/FAQ/Images/Earth%20Experiment%20Prestige%20Screen.png)\
+![Earth Experiment Prestige](https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/5b210d5df14a7f66f5ee1c737b8832da171e9138/FAQ/Images/Earth%20Experiment%20Prestige%20Screen.png)\
 If you hover over the middle icon, you will learn what performing a prestige had reset\
 You are able to avoid this reset if you buy the exotic skill called `Fundementals`\
 This experiment has 2 prestige upgrades:
