@@ -17,8 +17,8 @@ Your compressor, depending on your selected mode, will decrease the diameter and
 ## WHAT'S WITH THE ON, OFF SWITCHES
 If you're looking at the earth experiment for the first time, you might be asking why you wouldn't keep both drills and the compressor on simultaniously\
 Well, while you **could** try to use them simultaneously, you should note the following 2 aspects of compressing:
-- If you gain mass while compressing, your compression is reset to zero.
-- While using a mode besides Quick & Dangerous, the drills slow down the closer your compressor gets to the maximum compression possible.\
+- If you gain mass while compressing, your compression is decreased in accordance to the amount of mass you gained.
+- While using a mode that's not Quick & Dangerous, the drills slow down the closer your compressor gets to the maximum compression possible.\
 Please be aware that the section that follows will talk more about this maximum I'm refering to
 
 Switching the drills off, while you will have to do very rarely, is beneficial in the early levels as the compressor might startup too slowly\
