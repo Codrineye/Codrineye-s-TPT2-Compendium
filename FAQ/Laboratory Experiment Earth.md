@@ -40,5 +40,6 @@ If your stability drops to 0% you will have to reset your experiment, which will
 - **ALL** your mass
 - **ALL** your density
 - **ALL** the progress inside of your drills
+
 It is important to note that, tho you've lost everything, you still retain all density before you start your drils back up\
 thanks to this, you are still able to collect your rewards even after your experiment requests to be reset
