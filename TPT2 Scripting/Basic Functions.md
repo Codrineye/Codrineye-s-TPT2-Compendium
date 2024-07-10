@@ -1,9 +1,4 @@
 
-
-
-
-
-
 `Copy to clipboard for autofill`
 ```
 window: "towertesting", "tradingpost", "powerplant", "factory", "laboratory", "shipyard", "workshop", "arcade", "museum", "headquarters", "constructionfirm", "statueofcubos", "mine"
