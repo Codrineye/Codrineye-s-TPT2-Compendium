@@ -68,9 +68,9 @@ LEGACY<b>(THESE MAY NOT WORK, BUT SHOWCASE BLUEPRINT EVOLUTION)</b>:
 > (Infinity Pushing Post-Forge & low cost disables) [Chaos Nightmare kill farm](https://discord.com/channels/488444879836413975/850377589474066453/888517571425488966)
 
 Players that reached MAX_WAVE Post Infinity Rework: 
-1) <@125738024481849351> [on Forest Easy](https://discord.com/channels/488444879836413975/758038117864177776/984342162927910922)
-2) <@951608639578320936> [on Chaos Impossible](https://discord.com/channels/488444879836413975/758038117864177776/985313151945941034)
-3) <@153005455021572096> [on Chaos Impossible](https://discord.com/channels/488444879836413975/758038117864177776/986067611173408778)
+1) Fidon [on Forest Easy](https://discord.com/channels/488444879836413975/758038117864177776/984342162927910922)
+2) Millhaus [on Chaos Impossible](https://discord.com/channels/488444879836413975/758038117864177776/985313151945941034)
+3) mortoburger [on Chaos Impossible](https://discord.com/channels/488444879836413975/758038117864177776/986067611173408778)
 
 4th and above, in no particular order:<br>
-<b>Bluecat WootImNoob Master</b>
+<b>Bluecat<br>WootImNoob<br>Master</b>
