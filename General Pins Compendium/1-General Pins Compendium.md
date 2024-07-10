@@ -1,7 +1,7 @@
 This thread is designated to catalog and generalize all the compendium links and add more links where needed.<br>
 
 Don't discuss/ask things here!<br>
-If you think a link should be added to this list, please ping me in <#783026949715001364> (or dms, feel free)<br>
+If you think a link should be added to this list, please ping me (cratorrex.rx) in [discussion](https://discord.com/channels/488444879836413975/783026949715001364) (or dms, feel free)<br>
 
 Some Indicators:<br>
 > All links will direct you out of this thread.<br>

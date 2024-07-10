@@ -1,10 +1,11 @@
-# **INFINITY** starts at MT12 upon reaching `Infinity 1`
+# INFINITY starts at MT12 upon reaching `Infinity 1`
 ```
 Pins Compendium for infinity-phase
 ```
 ### [Previous Compendium](https://discord.com/channels/488444879836413975/699544001149141053/893485422284517448)
 
-## [General Pins Compendium](https://discord.com/channels/488444879836413975/926940645027905576)<br>[Woot's BP Compendium](https://discord.com/channels/488444879836413975/1094013225915396127)
+## [General Pins Compendium](https://discord.com/channels/488444879836413975/926940645027905576)<br>
+[Woot's BP Compendium](https://discord.com/channels/488444879836413975/1094013225915396127)
 
 ### Jump to <u>Tools and Miscellaneous Compendium</u>. [Spoilers beware.](https://discord.com/channels/488444879836413975/758038117864177776/893490377489780806)
 
@@ -13,9 +14,9 @@ Pins Compendium for infinity-phase
 > [Infinity Stones and Infinity Board](https://discord.com/channels/488444879836413975/758038117864177776/797317129769975878)<br>
 > [Region Information and Stone Locations](https://discord.com/channels/488444879836413975/758038117864177776/850464267668947014)<br>
 > [Connection between Region and Stones](https://discord.com/channels/488444879836413975/758038117864177776/1003554655730671638)<br>
-> [Inf Stone Unlock Requirements](https://discord.com/channels/488444879836413975/758038117864177776/846869462128263178) (for those who already found the stones)<br>
+> If you have already found the stones: [Inf Stone Unlock Requirements](https://discord.com/channels/488444879836413975/758038117864177776/846869462128263178)<br>
 > [Infinity Perks](https://discord.com/channels/488444879836413975/758038117864177776/856598485049540618)<br>
-> [Anvil Mechanics](https://discord.com/channels/488444879836413975/758038117864177776/971952836747337798)
+> [Anvil Mechanics](https://discord.com/channels/488444879836413975/758038117864177776/971952836747337798), [Github Reformat](Guides/Anvil%20Mechanics.md)
 
 ## Builds:
 
@@ -29,7 +30,7 @@ Pins Compendium for infinity-phase
 
 All Modules Blueprint, see what you're missing: [EveryCat](https://discord.com/channels/488444879836413975/1094002009314709514)
 
-`DIRECT` 
+`DIRECT`<br>
 [Boosters](https://www.desmos.com/calculator/fnhqj8wges)
 
 ```
@@ -46,7 +47,7 @@ Infinity Compendium Part 2
 `#THREAD` [Woot's Snippets Compendium](https://discord.com/channels/488444879836413975/1051776082665275412)
 ## Pushing Builds
 > Early: [RpCat](https://discord.com/channels/488444879836413975/1094005500091318395) [Void of Chaos (RP)](https://discord.com/channels/488444879836413975/1241012518655234140)<br>
-> Late: <#1140396334558478347>  
+> Late: [BurnORF](https://discord.com/channels/488444879836413975/1140396334558478347/1140396334558478347) [Sky Breaker](https://discord.com/channels/488444879836413975/1257039173907382343/1257039173907382343)<br>
 > Fragments:<br>
 > \> [Early Infinity](https://discord.com/channels/488444879836413975/1196292835926872107)<br>
 > \> [Late Infinity](https://discord.com/channels/488444879836413975/1144705871486648460)<br>
@@ -58,7 +59,7 @@ Infinity Compendium Part 2
 
 [Pacifist Perfect Space](https://discord.com/channels/488444879836413975/758038117864177776/799316155155349564) (Community Challenge) (LEGACY)
 
-Highest Infinity in a single region Pre Infinity Rework: <@484006898618728463> 82,229,944,548 [Infinities](https://discord.com/channels/488444879836413975/758038117864177776/926414662122209300)
+Highest Infinity in a single region Pre Infinity Rework: ophilia05 on discord: 82,229,944,548 [Infinities](https://discord.com/channels/488444879836413975/758038117864177776/926414662122209300)
 
 LEGACY<b>(THESE MAY NOT WORK, BUT SHOWCASE BLUEPRINT EVOLUTION)</b>:
 > (Pre 90/90) [Finite Infinities](https://discord.com/channels/488444879836413975/758038117864177776/941651484964167690)<br>
