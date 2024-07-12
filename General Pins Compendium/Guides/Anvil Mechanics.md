@@ -11,7 +11,7 @@ You use sliders to adjust what fraction of fragments you will invest, from 0.0 t
 You need to invest at least 1 fragment of a type to get boosts of that type to show up.
 
 When you click the hammer or lock icon, the fragment values on the left will be invested into all the boosts within the claim circle.<br>
-The amount gained drops off farther from the center, and also the primary fragment type (the one that aligns with the boost type) counts for more than the others.<br>
+The amount gained drops off farther from the claim circle's center, and also the primary fragment type (the one that aligns with the boost type) counts for more than the others.<br>
 ```
 The formula is:
 new_fragments_distance = (1 - distance * distance / 0.2) ^ 6
