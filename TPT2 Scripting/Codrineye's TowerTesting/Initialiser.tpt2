@@ -27,7 +27,7 @@ waitwhile(anyopen() || isTowerTesting())
 loop:
 waitwhile(isTowerTesting() == false && {state_get})
 execute("{package(Restart At Will)}")
-waitwhile(health(false) > 0.0 && {state_get} && enemies() > 0)
+waitwhile(health(false) > 0.0 && {state_get} && enemies() > 0 || wave() < 100.0)
 exit()
 stop("{package(Restart At Will)}")
 gotoif(loop, {state_get})
