@@ -1,0 +1,28 @@
+:import TowerTesting_lib
+:name {package(Movement Manager)}
+
+:global string CurentMode
+
+{counting_set(0)}
+{change_difficulty_set(false)}
+
+loop:
+waitwhile(anyopen() || isTowerTesting() || CurentMode == "")
+executesync("{package(Enter Region)}")
+
+{counting_increment}
+{change_difficulty_set(contains(CurentMode, {mode1}))}
+
+waitwhile({change_difficulty_get} && {state_get})
+waituntil(anyopen() || isTowerTesting() || {state_get} == false)
+gotoif(\
+  if({state_get}, loop, 99), \
+  contains(CurentMode, {mode1}) && {counting_get} < 6 || \
+  contains(CurentMode, {mode2}) && {counting_get} < 15\
+)
+waitwhile(anyopen() || isTowerTesting())
+executesync("{package(Enter Region)}")
+
+{counting_set(0)}
+{change_difficulty_set(contains(CurentMode, {mode2}))}
+gotoif(loop, {state_get})

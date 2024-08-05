@@ -46,8 +46,8 @@ Infinity Compendium Part 2
 
 `#THREAD` [Woot's Snippets Compendium](https://discord.com/channels/488444879836413975/1051776082665275412)
 ## Pushing Builds
-> Early: [RpCat](https://discord.com/channels/488444879836413975/1094005500091318395) [Void of Chaos (RP)](https://discord.com/channels/488444879836413975/1241012518655234140)<br>
-> Late: [BurnORF](https://discord.com/channels/488444879836413975/1140396334558478347/1140396334558478347) [Sky Breaker](https://discord.com/channels/488444879836413975/1257039173907382343/1257039173907382343)<br>
+> Early: [RpCat](https://discord.com/channels/488444879836413975/1094005500091318395), [Void of Chaos (RP)](https://discord.com/channels/488444879836413975/1241012518655234140)<br>
+> Late: [BurnORF](https://discord.com/channels/488444879836413975/1140396334558478347/1140396334558478347), [Sky Breaker](https://discord.com/channels/488444879836413975/1257039173907382343/1257039173907382343)<br>
 > Fragments:<br>
 > \> [Early Infinity](https://discord.com/channels/488444879836413975/1196292835926872107)<br>
 > \> [Late Infinity](https://discord.com/channels/488444879836413975/1144705871486648460)<br>
@@ -73,4 +73,8 @@ Players that reached MAX_WAVE Post Infinity Rework:
 3) mortoburger on discord [on Chaos Impossible](https://discord.com/channels/488444879836413975/758038117864177776/986067611173408778)
 
 4th and above, in no particular order:<br>
-<b>Bluecat<br>WootImNoob<br>Master</b>
+<b>
+  Bluecat<br>
+  WootImNoob<br>
+  Master
+</b>

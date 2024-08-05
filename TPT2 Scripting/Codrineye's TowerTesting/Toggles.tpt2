@@ -1,0 +1,21 @@
+:import TowerTesting_lib
+:name {package(Toggles)}
+
+:global string CurentMode
+
+key.q()
+key.w()
+
+gotoif(initialized, {state_get})
+executesync(if({state_get}, "{package(Garbage Requested)}", "{package()}"))
+goto(99)
+
+initialized:
+{Region_Cycling_set(contains(impulse(), "key.q") || {Region_Cycling_get} == false)}
+
+gotoif(99, contains(impulse(), "key.w"))
+CurentMode = if(\
+  contains(CurentMode, {mode1}) && false == contains(impulse(), "{package()}"), \
+  {mode2}, \
+  {mode1}\
+)

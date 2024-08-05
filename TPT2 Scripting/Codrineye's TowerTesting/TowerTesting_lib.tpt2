@@ -1,0 +1,41 @@
+#package(name) Codrineye's TowerTesting:{name}
+
+#identifier "Condineye's TowerTesting"
+
+#hider concat("<size=0>", "Variable_Hider") . {identifier}
+
+#state "<size=0>" . {identifier} . "</size>" . "active"
+#state_get global.bool.get({state})
+#state_toggle global.bool.set({state}, false == {state_get})
+
+#counting "<size=0>" . {identifier} . "counting"
+#counting_get global.int.get({counting})
+#counting_set(value) global.int.set({counting}, ({value}))
+#counting_increment {counting_set({counting_get} + 1)}
+
+#change_difficulty "<size=0>" . {identifier} . "</size>" . "change_difficulty"
+#change_difficulty_get global.bool.get({change_difficulty})
+#change_difficulty_set(value) global.bool.set({change_difficulty}, {value})
+
+#Region_Cycling "<size=0>" . {identifier} . "</size>" . "</size>" . "Region_Cycling"
+#Region_Cycling_get global.bool.get({Region_Cycling})
+#Region_Cycling_set(value) global.bool.set({Region_Cycling}, {value})
+
+#mode1 "Difficulty>Region" . "</size>"
+#mode2 "Region>Difficulty" . "</size>"
+
+:const double screen_delay 0.2
+:const int difficulty_spacing 5
+
+:const string difficulty1 '290.0'
+:const string difficulty2 '256.0'
+:const string difficulty3 '217.0'
+:const string difficulty4 '182.0'
+:const string difficulty5 '145.0'
+:const string difficulty6 '112.0'
+
+:const int difficulty_count 6
+
+#difficulty_list difficulty1 . difficulty2 . difficulty3 . difficulty4 . difficulty5 . difficulty6
+#inversed_difficulty_list difficulty6 . difficulty5 . difficulty4 . difficulty3 . difficulty2 . difficulty1
+

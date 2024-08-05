@@ -1,0 +1,25 @@
+:import TowerTesting_lib
+:name {package(Enter Region)}
+
+:global double Curent_Diff
+:global string CurentMode
+
+#condition1 contains(CurentMode, {mode2}) && {counting_get} == 15
+#condition2 contains(CurentMode, {mode1}) && {counting_get} < 6
+gotoif(if({state_get}, enter_difficulty, 99), {condition1} || {condition2})
+gotoif(enter_difficulty, false == {Region_Cycling_get})
+
+waitwhile(isTowerTesting() || anyopen())
+
+show("towertesting", true)
+wait(screen_delay)
+{click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
+wait(screen_delay)
+
+enter_difficulty:
+show("towertesting", true)
+wait(screen_delay)
+{click.relative(395.0/800.0, Curent_Diff/450.0, 0.0, 1.0)}
+
+wait(screen_delay)
+{click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}

@@ -43,8 +43,9 @@ boost = clamp(0.99 ^ log_10(0.01 * invested_frags ^ infinity stone power))
 The inf stone power is `1.0` if not bought, once bought it changes to `1.1`, for both normal and temporary boosts.
 
 The temporary boost (lock icon) gives more boost, but only lasts until you move the bars - you can't get more permanent boost after.<br>
-Also, you keep your fragments.<br>
-To calculate temp boosts, take the `new_fragments` amount `^1.25`. This gives a "virtual fragment" amount that, when put through the regular boost formula, gives the temporary boost.
+Also, you keep your fragments.
+
+To calculate temporary boosts, take the `new_fragments` amount `^1.25`. This gives a "virtual fragment" amount that, when put through the regular boost formula, gives the temporary boost.
 
 Because of the `^0.75` in the formula, it is best to do multiple, smaller boosts rather than one large boost, at least for the off-fragments.<br>
 This is similar to how it is best to do 10% trades in the trading post.

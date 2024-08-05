@@ -1,0 +1,40 @@
+:import TowerTesting_lib
+:name {package(Stats Exit Diff_Change)}
+
+:global double Curent_Diff
+:local int increment
+
+key.t()
+key.e()
+
+concat("Easy -> Impossible", {difficulty_list}) != \
+concat("Impossible -> Easy", {inversed_difficulty_list})
+
+goto(if(\
+  contains(impulse(), "{package()}"), \
+  loop, \
+  if(\
+    isTowerTesting(), \
+    if(contains(impulse(), "key.t"), stats, exit), \
+    99\
+  )\
+))
+
+exit:
+exit()
+
+stats:
+wait(screen_delay)
+{click.relative(230.0/800.0, 275.0/450.0, 0.5, 0.5)}
+goto(99)
+
+loop:
+Curent_Diff = s2d(sub({difficulty_list}, increment * difficulty_spacing, difficulty_spacing), 290.0)
+
+increment = (increment + 1) % difficulty_count
+
+wait(screen_delay)
+waituntil({change_difficulty_get} || {state_get} == false)
+{change_difficulty_set(false)}
+
+gotoif(loop, {state_get})
