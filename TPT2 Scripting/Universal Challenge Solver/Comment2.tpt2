@@ -1,0 +1,7 @@
+
+key.x()
+
+canvas.clear()
+canvas.rect({pos.relative(615.0/800.0, 380.0/450.0, 0.7, 1.0)}, vec(5.0, 5.0), "#FFFFFF")
+
+; Challange = C00-0

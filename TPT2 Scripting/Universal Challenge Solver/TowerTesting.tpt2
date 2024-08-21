@@ -1,0 +1,39 @@
+:import Challenge_lib
+:name {package(TowerTesting)}
+
+key.{left}()
+key.{right}()
+
+:local int region
+
+executesync(if(\
+  contains(impulse(), "key."), \
+  "{package(init)}", \
+  "{package(N/A)}"\
+))
+gotoif(change, contains(impulse(), "key."))
+; enter challenge mode
+{click.relative(615.0/800.0, 380.0/450.0, 0.7, 1.0)}
+
+region = {get_visual(0)}
+loop:
+; move regions
+{click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
+region = region - 1
+gotoif(loop, region > 0)
+
+#curent_challenge s2d(sub({challenges}, {get_visual(1)} * challenge_length, challenge_length), 290.0)
+; Sellect the challenge
+{click.relative(395.0/800.0, {curent_challenge}/450.0, 0.0, 1.0)}
+
+; launch tower testing
+{click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
+executesync("{package(ui)}")
+goto(99)
+change:
+global.int.set({status}, if(\
+  contains(impulse(), "key.{left}"), \
+  0, \
+  1\
+))
+execute("{package(init)}")

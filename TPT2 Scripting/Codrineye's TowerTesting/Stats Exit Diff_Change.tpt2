@@ -14,12 +14,17 @@ goto(if(\
   contains(impulse(), "{package()}"), \
   loop, \
   if(\
-    isTowerTesting(), \
-    if(contains(impulse(), "key.t"), stats, exit), \
-    99\
+    contains(impulse(), "key."), \
+    if(\
+      isTowerTesting(), \
+      if(contains(impulse(), "key.t"), stats, exit), \
+      99\
+    ), \
+    wait_for_exit\
   )\
 ))
-
+wait_for_exit:
+waitwhile(global.double.get("t") % 60.0 > 0.5 || global.double.get("t") < 0.5)
 exit:
 exit()
 

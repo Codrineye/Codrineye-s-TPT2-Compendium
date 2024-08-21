@@ -1,0 +1,23 @@
+:import fragments_lib
+
+:name {package(Floor Detection)}
+:local bool floor
+; program to detect if is floor 2 or floor 1
+
+gotoif(99, gig({mode}) != -1)
+
+show("towertesting", true)
+
+{click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)} ;launch round
+waituntil(isTowerTesting())
+quit:
+exit()
+gotoif(quit, isTowerTesting())
+wait(0.5) ;wait for everything to load up
+
+show("workshop", true) ;enter workshop
+
+{click.relative(215.0/800.0, 35.0/450.0, 0.0, 0.0)}  ;click on floor 2
+{click.relative(148.0/800.0, 325.0/450.0, 0.5, 0.5)} ;ensure it's infinity tab sellected
+{click.relative(380.0/800.0, 47.0/450.0, 0.0, 0.0)} ;enter anvil mode
+

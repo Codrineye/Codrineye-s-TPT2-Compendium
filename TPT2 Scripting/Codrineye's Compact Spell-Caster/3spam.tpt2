@@ -1,0 +1,6 @@
+:import winAI_lib
+:name {package(3spam)}
+
+wait(0.2)
+useinstant(active.index("spell.response.neutral"))
+goto(1)

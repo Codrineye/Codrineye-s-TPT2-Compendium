@@ -1,0 +1,17 @@
+:import fragments_lib
+:name {package(Farm)}
+
+:global string variables
+:global bool running
+
+gotoif(if(running, 1, 99), global.int.get({mode}) == 1)
+
+show("workshop", false)
+show("towertesting", true)
+
+{click.relative(90.0/800.0, 35.0/450.0, 0.0, 0.0)}
+
+wait(s2d(sub(variables, 9, index(variables, ",", 9) - 9), 3.0))
+
+global.int.set({mode}, 1)
+gotoif(1, running)

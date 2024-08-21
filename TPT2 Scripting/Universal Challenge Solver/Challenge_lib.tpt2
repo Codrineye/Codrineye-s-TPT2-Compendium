@@ -1,0 +1,28 @@
+#package(name) Challenge Solver:{name}
+#identifier "Challenge Solver"
+
+#up w
+#down s
+#left a
+#right d
+#start t
+
+#instructions "<size=0>" . {identifier} . "instructions"
+#status "<size=0>" . {identifier} . "status"
+#visual {identifier} . "visual"
+#output {visual} . "</size>" . "Challenge"
+#get_visual(x) global.int.get({visual} . ({x}))
+
+:const int challenge_length 4
+
+:const string challenge1 '290.0'
+:const string challenge2 '256.0'
+:const string challenge3 '217.0'
+:const string challenge4 '182.0'
+:const string challenge5 '145.0'
+:const string challenge6 '112.0'
+:const string challenge_type '77.0'
+
+#challenges challenge1 . challenge2 . challenge3 . challenge4 . challenge5 . challenge6 . challenge_type
+
+

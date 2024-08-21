@@ -1,0 +1,15 @@
+:import winAI_lib
+:name {package(inf)}
+
+upgrade.era("health", 42069)
+gotoif(0, xp() < disable.inf.cost())
+
+disable.inf("aura.death")
+disable.inf("reflect.wince")
+disable.inf("reflect.captain")
+disable.inf("barrier.temporal")
+disable.inf("spell.void")
+disable.inf("spell.snapOfDestiny")
+disable.inf("spell.response.neutral")
+
+goto(0)

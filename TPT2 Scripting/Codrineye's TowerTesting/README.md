@@ -7,6 +7,9 @@ There are 2 versions in this repo, [Codrineye's TowerTesting](#codrineyes-towert
 # Codrineye's TowerTesting v 1.0
 Codrineye's TowerTesting is a fully automated AI which will cycle through every single Region and Difficulty in accordance to both its Mode and wether or not its cycling mechanic is toggled on.
 
+# Codrineye's TowerTesting v 1.1
+This version makes a slight difference to [Stats Exit Diff_Change](Stats%20Exit%20Diff_Change.tpt2) that supports it being used by [winAI4](/TPT2%20Scripting/Codrineye's%20Compact%20Spell-Caster/tick.tpt2) to exit towertesting once the round has lasted for 60 ingame seconds
+
 # What the AI does
 On startup you will activate every global variable, the state of the script, the double Curent_Diff representing which difficulty will be entered, here's the list:<br>
 - 290 is Easy

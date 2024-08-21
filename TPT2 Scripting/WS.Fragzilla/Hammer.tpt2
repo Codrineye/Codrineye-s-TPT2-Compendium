@@ -1,0 +1,28 @@
+:import fragments_lib
+:name {package(Hammer)}
+
+:global string variables
+:global bool running
+:local int remClicks
+
+gotoif(if(running, 1, 99), gig({mode}) != 1)
+
+show("towertesting", false)
+show("workshop", true)
+
+remClicks = 1 + s2i(\
+  sub(\
+    variables, \
+    index(variables, "hammercount=", 0), \
+    index(variables, "</", 0) - index(variables, "hammercount=", 0)\
+  ), \
+  3\
+)
+
+hammertime:
+remClicks = remClicks - 1
+{click.relative(720.0/800.0, 40.0/450.0, 0.5, 0.5)}
+gotoif(hammertime, remClicks > 0)
+
+global.int.set({mode}, 0)
+gotoif(0, running)

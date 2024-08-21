@@ -1,8 +1,13 @@
 # Getting Started
 
-Facility AI is a software you can download at MT4, this action will cost you 1.75e8 Headquarters resources.<br>
-Once installed, you gain access to the button labled "Facility AI", which leads you to the Facility AI interface.<br>
-Within this interface, you have access to the [AI editor](#what-is-an-ai), the [Custom AI Overlay editor](#what-is-a-custom-ai-overlay) and the [Facility AI settings](#what-do-these-settings-do).
+Facility AI is a software you can download at MT4.<br>
+Once installed, you gain access to the button labled "Facility AI" and the headquarters tutorial gets updated to include a bare bones explanation of this feature.<br>
+Within the Facility AI interface, you have access to:
+- [The AI editor](#what-is-an-ai)
+- [The Custom AI Overlay editor](#what-is-a-custom-ai-overlay)
+- [The Facility AI settings](#what-do-these-settings-do)
+
+![Facility AI Interface](/FAQ/Images/Facility%20AI%20Interface.png)
 
 # What is an AI
 An AI .<br>

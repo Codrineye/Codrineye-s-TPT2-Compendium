@@ -1,0 +1,47 @@
+:import Challenge_lib
+:name {package(init)}
+
+wakeup()
+key.{start}()
+
+#target(selection) "<color=#00A0F0>" . ({selection}) . "</color>"
+global.int.set({status}, if(\
+  contains(impulse(), "key."), \
+  2, \
+  global.int.get({status})\
+))
+global.int.set({visual} . "0", {get_visual(0)})
+global.int.set({visual} . "1", {get_visual(1)})
+global.string.set({output}, if(\
+  global.int.get({status}) == 0, \
+  "C" . {target(sub(i2s(101 + {get_visual(0)}), 1, 2))} . "-" . i2s(1 + {get_visual(1)}), \
+  if(\
+    global.int.get({status}) == 1, \
+    "C" . sub(i2s(101 + {get_visual(0)}), 1, 2) . "-" . {target(1 + {get_visual(1)})}, \
+    "C" . sub(i2s(101 + {get_visual(0)}), 1, 2) . "-" . i2s(1 + {get_visual(1)})\
+  )\
+))
+
+global.string.set({instructions}, if(\
+  contains(impulse(), "key."), \
+  "</size>", \
+  "</size>" . "Challenge=C<region>-<challenge>" . "<br>" \
+    . "<color=#00A0F0>" . "{up}{left}{down}{right} moves, {start} begins the challenge" . "</color>"\
+))
+
+goto(if(\
+  contains(impulse(), "{package()}") || contains(impulse(), "wakeup"), \
+  99, \
+  if(anyopen() || isTowerTesting() || isBossFight(), warn, skip)\
+))
+warn:
+global.string.set(\
+  "<color=#F00>" . "<b>" . "warning", "Exit All Buildings and/or active games" . "</b>" . "</color>"\
+)
+waitwhile(anyopen() || isTowerTesting() || isBossFight())
+global.unset("<color=#F00>" . "<b>" . "warning")
+skip:
+show("towertesting", true)
+executesync("{package(TowerTesting)}")
+execute("{package(init)}")
+

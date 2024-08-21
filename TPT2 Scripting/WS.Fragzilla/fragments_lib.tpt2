@@ -1,0 +1,6 @@
+; name of the package
+#package(name) WS.Fragzilla:{name}
+
+; enter idle mode or anvil mode
+; "IA" = idle or anvil = 0 or 1
+#mode "<size=0>Mode"

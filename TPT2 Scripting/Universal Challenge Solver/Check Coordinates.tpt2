@@ -1,0 +1,25 @@
+
+key.x()
+
+:const double increment 67.5
+:local double inc
+:local double x
+
+canvas.clear()
+canvas.rect(\
+  {pos.relative(750.0/800.0, 5.0/450.0, 1.0, 1.0)}, \
+  {pos.relative(5.0/800.0, 250.0/450.0, 0.0, 0.0)}, \
+  "#FFFFFF"\
+)
+
+x = 320.0
+loop:
+x = x + increment
+canvas.rect(\
+  {pos.relative(x / 800.0, 235.0/450.0, 0.5, 0.5)}, \
+  vec(5.0, 5.0), \
+  "#000"\
+)
+x = x + increment
+inc = inc + 1.0
+gotoif(loop, inc < 3.0)

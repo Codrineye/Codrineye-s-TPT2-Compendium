@@ -1,0 +1,28 @@
+:import fragments_lib
+:name {package(Init)}
+
+:global string variables
+:global bool running
+:local int keeper
+
+key.f()
+
+false == anyopen()
+
+gotoif(exit, running)
+gis({mode}, if(\
+  variables == "", \
+  -1, \
+  gig({mode})\
+))
+running = true
+variables = concat("cooldown=", "1.1") . "," . concat("hammercount=", "1") . "</size=0>"
+
+executesync("{package(Floor Detection)}")
+execute("{package(Farm)}")
+execute("{package(Hammer)}")
+
+goto(99)
+
+exit:
+running = false

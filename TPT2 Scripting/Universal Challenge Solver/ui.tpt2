@@ -1,0 +1,38 @@
+:import Challenge_lib
+:name {package(ui)}
+
+:local int limit
+:local int region
+
+key.{up}()
+key.{down}()
+
+executesync(if(\
+  contains(impulse(), "key."), \
+  "{package(init)}", \
+  "{package(N/A)}"\
+))
+gotoif(change, contains(impulse(), "key."))
+waitwhile(isTowerTesting())
+
+show("towertesting", true)
+region = 14 - {get_visual(0)}
+loop:
+; move regions
+{click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
+region = region - 1
+gotoif(loop, region > 0)
+show("towertesting", false)
+goto(99)
+
+change:
+limit = if(global.int.get({status}) == 0, 14, 5)
+global.int.set({visual} . i2s(global.int.get({status})), max(\
+  0, \
+  min(limit, if(\
+    contains(impulse(), "key.{up}"),\
+    {get_visual(global.int.get({status}))} + 1, \
+    {get_visual(global.int.get({status}))} - 1\
+  ))\
+))
+execute("{package(init)}")

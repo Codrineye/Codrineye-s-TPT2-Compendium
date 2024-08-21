@@ -1,0 +1,31 @@
+:import winAI_lib
+:name {package(init)}
+
+game.newround()
+
+global.int.set({pointer}, 0)
+useinstant(active.index("barrier.temporal"))
+
+stop("{package(3spam)}")
+stop("{package(tick)}")
+stop("{package(sync)}")
+
+loop:
+stop("{package(inf)}")
+goto(if(\
+  isTowerTesting() && contains(impulse(), "game.newround"), \
+  if(tower.health(false) > 0.0, exit, loop), \
+  99\
+))
+exit:
+
+global.double.set({timer}, time.delta() * 2.0)
+useinstant(active.index("barrier.temporal"))
+
+{execute_package(tick)}
+{execute_package(sync)}
+{execute_package(inf)}
+
+useinstant(active.index("crate.rex"))
+waitwhile(health(false) > 0.0 && disable.cost("nature") < 0.0)
+execute(if(health(false) <= 0.0, "{package(init)}", "{package(Null_Cond)}"))

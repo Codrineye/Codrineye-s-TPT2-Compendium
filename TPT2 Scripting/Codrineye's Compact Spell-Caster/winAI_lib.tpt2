@@ -1,0 +1,32 @@
+; Consistent naming across scripts
+#package(name) winAI:{name}
+#execute_package(script) execute("{package({script})}")
+
+; A package identifier used within
+; the names of global variables for a unique value
+#identifier "winAI"
+
+#pointer "<size=0>" . "pointer" . {identifier}
+#pointer_get global.int.get({pointer})
+#pointer_set(value) global.int.set(\
+  {pointer}, \
+  ({pointer_get} + {value}) % (spells_count * increment)\
+)
+
+; The pointer chunk
+; Since I do not want to messy up the users screen
+; the pointer is a block hider, so you don't have to
+; see the pointer increment and decrement
+; 
+; pointer_get is self explanetory
+; Make sure your pointer is an int, as sub() requires integers
+; 
+; pointer_set is also self explanetory, but the set value is interesting
+; We add the value to our pointer, however, we're working with strings
+; Because of this, we loop over after we've exhausted our space
+; 
+; our space is dictated by spells_count * increment, which are
+; :const int values found at the end of Spell Config
+
+#timer "t"
+#timer_get global.double.get({timer})
