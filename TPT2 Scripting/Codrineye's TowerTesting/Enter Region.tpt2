@@ -4,8 +4,9 @@
 :global double Curent_Diff
 :global string CurentMode
 
-#condition1 contains(CurentMode, {mode2}) && {counting_get} == 15
+#condition1 contains(CurentMode, {mode2}) && {counting_get} == 14
 #condition2 contains(CurentMode, {mode1}) && {counting_get} < 6
+
 gotoif(if({state_get}, enter_difficulty, 99), {condition1} || {condition2})
 gotoif(enter_difficulty, false == {Region_Cycling_get})
 

@@ -7,11 +7,14 @@ key.q()
 key.w()
 
 gotoif(initialized, {state_get})
-executesync(if({state_get}, "{package(Garbage Requested)}", "{package()}"))
+executesync("{package(Initialiser)}")
 goto(99)
 
 initialized:
-{Region_Cycling_set(contains(impulse(), "key.q") || {Region_Cycling_get} == false)}
+global.bool.set(\
+  {Region_Cycling}, \
+  contains("key.q|{package(Initialiser)}", impulse()) || {Region_Cycling_get} == false\
+)
 
 gotoif(99, contains(impulse(), "key.w"))
 CurentMode = if(\

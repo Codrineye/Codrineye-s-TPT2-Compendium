@@ -1,20 +1,19 @@
 :import TowerTesting_lib
 :name {package(Initialiser)}
 
-key.z()
 key.x()
+key.r()
 
+gotoif(\
+  if(contains(impulse(), "key.r"), restart, timer), \
+  contains("key.r|{package(Initialiser)}", impulse())\
+)
 global.string.set({hider}, if(\
-  contains(impulse(), "key.z"), \
-  "Removal Of Shutdown Message", \
-  if(\
-    {state_get}, \
-    "</size>" . "Codrineye's TowerTesting Is Shutdown" . "<size=0>", \
-    concat("Hider Blocker", "</size>")\
-  )\
+  {state_get}, \
+  "Codrineye's TowerTesting Is Shutdown", \
+  concat("Hider Blocker", "</size>")\
 ))
 
-gotoif(99, contains(impulse(), "key.z"))
 {state_toggle}
 goto(if({state_get}, skip, 99))
 
@@ -22,12 +21,19 @@ skip:
 execute("{package(Stats Exit Diff_Change)}")
 execute("{package(Movement Manager)}")
 executesync("{package(Toggles)}")
-waitwhile(anyopen() || isTowerTesting())
+waitwhile({state_get} && anyopen() || isTowerTesting())
 
 loop:
-waitwhile(isTowerTesting() == false && {state_get})
-execute("{package(Restart At Will)}")
-waitwhile(health(false) > 0.0 && {state_get} && enemies() > 0 || wave() < 100.0)
+waitwhile({state_get} && (isTowerTesting() == false))
+execute("{package(Initialiser)}")
+waitwhile({state_get} && health(false) > 0.0 && (enemies() > 0 || wave() < 100.0))
 exit()
 stop("{package(Restart At Will)}")
-gotoif(loop, {state_get})
+goto(if({state_get}, loop, 99))
+
+timer:
+wait(30.0)
+
+restart:
+restart()
+

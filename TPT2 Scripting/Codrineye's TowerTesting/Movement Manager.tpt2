@@ -7,7 +7,7 @@
 {change_difficulty_set(false)}
 
 loop:
-waitwhile(anyopen() || isTowerTesting() || CurentMode == "")
+waitwhile({state_get} && (anyopen() || isTowerTesting() || CurentMode == ""))
 executesync("{package(Enter Region)}")
 
 {counting_increment}
@@ -20,7 +20,7 @@ gotoif(\
   contains(CurentMode, {mode1}) && {counting_get} < 6 || \
   contains(CurentMode, {mode2}) && {counting_get} < 15\
 )
-waitwhile(anyopen() || isTowerTesting())
+waitwhile({state_get} && (anyopen() || isTowerTesting()))
 executesync("{package(Enter Region)}")
 
 {counting_set(0)}

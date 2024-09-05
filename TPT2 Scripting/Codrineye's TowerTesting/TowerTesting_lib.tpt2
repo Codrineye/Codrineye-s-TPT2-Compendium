@@ -1,49 +1,31 @@
-; Consistent naming accross the AI
 #package(name) Codrineye's TowerTesting:{name}
 
-; A unique script identifier for the AI
 #identifier "Condineye's TowerTesting"
 
 #hider concat("<size=0>", "Variable_Hider") . {identifier}
 
-; the state of our AI
 #state "<size=0>" . {identifier} . "</size>" . "active"
 #state_get global.bool.get({state})
 #state_toggle global.bool.set({state}, false == {state_get})
 
-; this global variable is used to determine which area we enter
-; Specificly used within Enter Region
 #counting "<size=0>" . {identifier} . "counting"
 #counting_get global.int.get({counting})
 #counting_set(value) global.int.set({counting}, ({value}))
 #counting_increment {counting_set({counting_get} + 1)}
 
-; a variable similar to {counting}
-; hidden variable used within Stats Exit Diff_Change
 #change_difficulty "<size=0>" . {identifier} . "</size>" . "change_difficulty"
 #change_difficulty_get global.bool.get({change_difficulty})
 #change_difficulty_set(value) global.bool.set({change_difficulty}, {value})
 
-; a double used within Enter Region to define
-; which difficulty to enter
-#Region_Cycling "<size=0>" . {identifier} . "</size>" . "</size>" . "Region_Cycling"
+#Region_Cycling {identifier} . "</size>" . "Region_Cycling"
 #Region_Cycling_get global.bool.get({Region_Cycling})
-#Region_Cycling_set(value) global.bool.set({Region_Cycling}, {value})
 
-; pre-defined modes for CurentMode
-; for use within contains()
 #mode1 "Difficulty>Region" . "</size>"
 #mode2 "Region>Difficulty" . "</size>"
 
-; Universal screen_delay
-; this constant is used in wait()'s
-; for the screen to load 
 :const double screen_delay 0.2
-
-; difficulty list setup
 :const int difficulty_spacing 5
 
-; 
 :const string difficulty1 '290.0'
 :const string difficulty2 '256.0'
 :const string difficulty3 '217.0'
