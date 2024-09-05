@@ -2,11 +2,6 @@
 :import Spell Config
 :name {package(sync)}
 
-#root_substring(value, size) sub(\
-  {active_module_list}, \
-  {pointer_get} + {value}, \
-  {size}\
-)
 #substring(value, size) sub(\
   {active_module_list}, \
   index + {value}, \
@@ -30,14 +25,14 @@
 
 copy_activator = contains(impulse(), "{package(sync)}")
 check:
+index = {pointer_get}
 gotoif(if(\
     copy_activator, \
     skip, \
     syncronization_needed\
-  ), false == contains("00", {root_substring(0, sync_precision)})\
+  ), false == contains("00", {substring(0, sync_precision)})\
 )
 skip:
-index = {pointer_get}
 {pointer_set(increment)}
 timer = s2d(\
   {substring(sync_precision, time_precision)}, \

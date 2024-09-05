@@ -1,5 +1,9 @@
 :name Lua Madness
 ; 
+; Package found on discord or on my github repo
+; discord: https://discord.com/channels/488444879836413975/1275961817151307847/1275961817151307847
+; github: https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/main/TPT2%20Scripting/Codrineye's%20Compact%20Spell-Caster/README.md
+; 
 ; This macro handles every single action
 ; The way it works is by creating a string value
 ; :const string spellname<spell number> 'data given for the spell'
@@ -16,7 +20,7 @@
 ; 
 ; An attribute that is either 'instant ' or 'grounded'
 ;   This is always sized 8 characters
-; That prevents active modules to be used with a delay
+; That permits active modules to be used without a delay
 ; 
 ; And finally, the spell name
 ; It is the internal spell name, followed by a ';' to mark its end
@@ -37,6 +41,7 @@
 ; All of these macros are defined inside of winAI_lib
 ; 
 ; 
+
 {lua(\
   spell = {};\
   spell.active_module = {};\
@@ -49,6 +54,9 @@
   spell.placement_precision = 4;\
   spell.attribute_size = 8;\
   spell.max_name_size = 0;\
+  spell.batch = {};\
+  spell.batch_instance = 1;\
+  spell.batch_max_size = 0;\
 \
   local function x_digit_precision(digits, input)\
     return string.sub(string.format("%." .. digits .. "f", input), 1, digits + 2);\
@@ -58,7 +66,16 @@
     local excess = table.pack(coord_1, coord_2);\
     local spell_index = 1 + #spell.active_module.module_instance;\
     local new_spell = {};\
-    new_spell.coords = {};\
+\
+    local batch_update = 1;\
+    if spell.batch[spell.batch_instance] ~= nil then\
+      batch_update = batch_update + spell.batch[spell.batch_instance];\
+    end\
+    spell.batch_max_size = math.max(\
+      spell.batch_max_size, \
+      batch_update\
+    );\
+    spell.batch[spell.batch_instance] = batch_update;\
 \
     new_spell.name = string.gsub(name, " ", "");\
     local syncronization_timer_delay = 0.0;\
@@ -77,10 +94,11 @@
     if excess[1] == nil then\
       excess[1] = 0.0;\
     end\
-    new_spell.coords[1] = x_digit_precision(spell.placement_precision, excess[1]);\
     if excess[2] == nil then\
       excess[2] = 0.0;\
     end\
+    new_spell.coords = {};\
+    new_spell.coords[1] = x_digit_precision(spell.placement_precision, excess[1]);\
     new_spell.coords[2] = x_digit_precision(spell.placement_precision, excess[2]);\
     new_spell.constant = new_spell.timer .. \
       new_spell.coords[1] .. new_spell.coords[2] .. \
@@ -98,23 +116,33 @@
   end\
 \
   function spell.concatinate_spell_names()\
+    local batch = 1;\
+    local increment = 1;\
     local syncronize = 1;\
     local spells_concat = {};\
     spells_concat[1] = [["]];\
-    for i = 1, #spell.active_module.module_instance do\
-      if i == spell.active_module.syncronization[syncronize].name then\
-        spells_concat[1 + #spells_concat] = [[" . sync]] .. syncronize .. [[ . "]];\
-        syncronize = math.min(syncronize + 1, #spell.active_module.syncronization);\
-      else\
-        spells_concat[1 + #spells_concat] = string.sub(math.floor(10 ^ spell.sync_precision), 2);\
+    while increment < #spell.active_module.module_instance do\
+      for i = 1, spell.batch[batch] do\
+        if increment == spell.active_module.syncronization[syncronize].name then\
+          spells_concat[1 + #spells_concat] = [[" . sync]] .. syncronize .. [[ . "]];\
+          syncronize = math.min(syncronize + 1, #spell.active_module.syncronization);\
+        else\
+          spells_concat[1 + #spells_concat] = string.sub(math.floor(10 ^ spell.sync_precision), 2);\
+        end\
+        spells_concat[1 + #spells_concat] = [[" . spellname]] .. increment .. [[ . "]];\
+        spells_concat[1 + #spells_concat] = string.rep(\
+          [[.]], \
+          spell.max_name_size - spell.active_module.module_instance[increment].name_size\
+        );\
+        increment = increment + 1;\
       end\
-    \
-      spells_concat[1 + #spells_concat] = [[" . spellname]] .. i .. [[ . "]];\
-    \
-      for j = 1, spell.max_name_size - spell.active_module.module_instance[i].name_size do\
-        spells_concat[1 + #spells_concat] = [[.]];\
-      end\
-      \
+      local spacer = spell.batch_max_size - spell.batch[batch];\
+      spacer = spacer * spell.max_name_size;\
+      spells_concat[1 + #spells_concat] = string.rep([[.]], spacer);\
+      batch = math.min(\
+        batch + 1,\
+        spell.batch_instance\
+      );\
     end\
     spells_concat[#spells_concat + 1] = [["]];\
     return table.concat(spells_concat);\
@@ -129,6 +157,13 @@
     spell.sync_delay = delay;\
     return [[:const string sync]] .. syncronization_index .. \
       [[ ']] .. string.sub(syncronization.count, spell.sync_precision) .. [[']];\
+  end\
+\
+  function spell.add_batch()\
+    local batch_recording = spell.batch[spell.batch_instance];\
+    local batch_checkpoint = spell.batch_instance;\
+    spell.batch_instance = spell.batch_instance + 1;\
+    return [[:const int batch]] .. batch_checkpoint .. [[ ]] .. batch_recording;\
   end\
 )}
 
@@ -155,6 +190,9 @@
     {spell_location_x}, \
     {spell_location_y}\
   );\
+)}
+#add_batch {lua(\
+  return spell.add_batch()\
 )}
 
 ; This is the macro that concatinates every

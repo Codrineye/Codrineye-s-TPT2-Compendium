@@ -9,15 +9,24 @@
 ; *  and lastly
 ; *  if the module is placed, you will have to specify the coordinates
 ; 
-; you have 3 functions at your disposal:
-; All of these macros generate :const string <token> 'contents'
+; you have 4 functions at your disposal:
+; All of these macros generate :const <type> <token> 'contents'
 ; 
 ; syncronize_module_activation()
 ; This macro will create a token sync<sync count> containing the value 'module_count - 1'
 ; You will need to specify the amount of modules you want to activate at this time and
-; a delay to the activation, if you so please
-; This will make it so you have module_count sync scripts active at once
+; a delay to the activation
+; This will make it so you have <module_count> sync scripts active at once
 ; The excess scripts will remove themselves after spell activation
+; 
+; add_batch()
+; This macro will declare the end of one batch and the start of another
+;   it's curently the only macro that returns a :const int, with the token being batch<batch count>
+; A 'batch' means a sellection of modules so that you may separate module sequences
+;   with only needing arithmetic operations
+; By default you're in batch1, if you call for this macro you will move to batch2
+;   by calling this macro, you change the string within sync created by <active_module_list> 
+;   so that each batch has equal length
 ; 
 ; add_active_module.type()
 ; This macro will create a token spellname<spell count> containing the following values
@@ -35,6 +44,7 @@
 ; 
 ; I do not recommend defining a ground module as an instant module nor vice versa
 ; the system will accept your input, but you will not cast anything
+
 
 {syncronize_module_activation(3, 0.0)}
 {add_active_module.instant(barrier.temporal, 0.0)}
@@ -87,7 +97,6 @@
 {syncronize_module_activation(4, 0.0)}
 {add_active_module.instant(spell.snapOfDestiny, 57.0)}
 
-
 ; These are the constants you'll be dealing with
 ; It's more convenient to put them at the end of this file rather than copy them
 ; Putting the const declaration here is also beneficial since it shows you can
@@ -101,5 +110,6 @@
 :const int placement_precision {lua(return 2 + spell.placement_precision)}
 :const int attribute_size {lua(return spell.attribute_size)}
 
+:const int batch {lua(return spell.batch_max_size)}
 :const int increment {lua(return spell.max_name_size)}
 
