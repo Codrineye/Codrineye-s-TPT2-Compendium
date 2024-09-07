@@ -7,6 +7,7 @@
 #condition1 contains(CurentMode, {mode2}) && {counting_get} == 14
 #condition2 contains(CurentMode, {mode1}) && {counting_get} < 6
 
+gotoif(timer, contains(impulse(), "{package(Initialiser)}"))
 gotoif(if({state_get}, enter_difficulty, 99), {condition1} || {condition2})
 gotoif(enter_difficulty, false == {Region_Cycling_get})
 
@@ -24,3 +25,8 @@ wait(screen_delay)
 
 wait(screen_delay)
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
+goto(99)
+
+timer:
+wait(30.0)
+restart()

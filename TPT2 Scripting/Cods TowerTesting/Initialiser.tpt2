@@ -4,10 +4,10 @@
 key.x()
 key.r()
 
-gotoif(\
-  if(contains(impulse(), "key.r"), restart, timer), \
-  contains("key.r|{package(Initialiser)}", impulse())\
-)
+:local bool additional_cond
+
+additional_cond = false
+gotoif(restart, contains("key.r", impulse()))
 global.string.set({hider}, if(\
   {state_get}, \
   "Codrineye's TowerTesting Is Shutdown", \
@@ -24,16 +24,12 @@ executesync("{package(Toggles)}")
 waitwhile({state_get} && anyopen() || isTowerTesting())
 
 loop:
-waitwhile({state_get} && (isTowerTesting() == false))
-execute("{package(Initialiser)}")
+waitwhile({state_get} && (isTowerTesting() == false) && (additional_cond == false))
+execute("{package(Enter Region)}")
 waitwhile({state_get} && health(false) > 0.0 && (enemies() > 0 || wave() < 100.0))
 exit()
-stop("{package(Restart At Will)}")
-goto(if({state_get}, loop, 99))
-
-timer:
-wait(30.0)
+stop("{package(Enter Region)}")
+gotoif(loop, {state_get})
 
 restart:
 restart()
-
