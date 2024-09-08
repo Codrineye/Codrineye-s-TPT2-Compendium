@@ -1,5 +1,5 @@
-#version v1.2.5
-#package(name) Cods TowerTesting{version}:{name}
+#version v1.2.7
+#package(name) Cods TowerTesting {version}:{name}
 
 #identifier "Condineye's TowerTesting"
 
@@ -24,7 +24,6 @@
 #mode1 "Difficulty>Region" . "</size>"
 #mode2 "Region>Difficulty" . "</size>"
 
-:const double screen_delay 0.2
 :const int difficulty_spacing 5
 
 :const string difficulty1 '290.0'

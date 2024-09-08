@@ -2,12 +2,10 @@
 :name {package(Initialiser)}
 
 key.x()
-key.r()
 
 :local bool additional_cond
 
 additional_cond = false
-gotoif(restart, contains("key.r", impulse()))
 global.string.set({hider}, if(\
   {state_get}, \
   "Codrineye's TowerTesting Is Shutdown", \
@@ -21,15 +19,15 @@ skip:
 execute("{package(Stats Exit Diff_Change)}")
 execute("{package(Movement Manager)}")
 executesync("{package(Toggles)}")
-waitwhile({state_get} && anyopen() || isTowerTesting())
+waitwhile({state_get} && (anyopen() || isTowerTesting()))
 
 loop:
-waitwhile({state_get} && (isTowerTesting() == false) && (additional_cond == false))
-execute("{package(Enter Region)}")
-waitwhile({state_get} && health(false) > 0.0 && (enemies() > 0 || wave() < 100.0))
+waitwhile({state_get} && (isTowerTesting() == false))
+execute("{package(Restart At Will)}")
+waitwhile({state_get} && health(false) > 0.0 && (additional_cond == false) && (enemies() > 0 || wave() < 100.0))
+exit:
 exit()
-stop("{package(Enter Region)}")
+gotoif(exit, isTowerTesting())
+stop("{package(Restart At Will)}")
 gotoif(loop, {state_get})
 
-restart:
-restart()
