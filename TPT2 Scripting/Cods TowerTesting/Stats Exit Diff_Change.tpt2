@@ -29,7 +29,7 @@ exit:
 exit()
 
 stats:
-wait(screen_delay)
+wait(global.double.get("screen_delay"))
 {click.relative(230.0/800.0, 275.0/450.0, 0.5, 0.5)}
 goto(99)
 
@@ -38,7 +38,7 @@ Curent_Diff = s2d(sub({difficulty_list}, increment * difficulty_spacing, difficu
 
 increment = (increment + 1) % difficulty_count
 
-wait(screen_delay)
+wait(global.double.get("screen_delay"))
 waituntil({change_difficulty_get} || {state_get} == false)
 {change_difficulty_set(false)}
 
