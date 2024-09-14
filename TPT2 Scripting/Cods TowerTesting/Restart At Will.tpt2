@@ -1,0 +1,17 @@
+:import TowerTesting_lib
+:name {package(Restart At Will)}
+
+game.newround()
+key.r()
+
+global.double.set("screen_delay", 0.5)
+goto(if(\
+  {state_get} && era() >= 1.0 && isTowerTesting(), \
+  if(contains(impulse(), "key."), restart, timer), \
+  99\
+))
+timer:
+wait(30.0)
+
+restart:
+restart()

@@ -1,4 +1,4 @@
-#version v1.2.7
+#version v1.3.0
 #package(name) Cods TowerTesting {version}:{name}
 
 #identifier "Condineye's TowerTesting"
