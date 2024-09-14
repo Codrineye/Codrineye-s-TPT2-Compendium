@@ -20,21 +20,28 @@ skip:
 execute("{package(Restart At Will)}")
 execute("{package(Stats Exit Diff_Change)}")
 execute("{package(Movement Manager)}")
-executesync("{package(Toggles)}")
-waitwhile({state_get} && (anyopen() || isTowerTesting()))
+execute("{package(Toggles)}")
 ; initiate needed scripts and include the global variables within the hider
 ; Toggles needs to be last execution, as modes end the hider on shutdown
-; wait until we can perform actions
 
-; start the loop which permits the condition to update
+; wait while we can't perform actions
+; start the loop, crucial waituntil prevents AI
+; from thinking the tower has died because it's not in towertesting
+; update the additional_cond until
 ; if tower health reaches 0, enter exit loop
 ; this keeps telling the game to exit until it fulfills the task
 ; End the timer
 ; Once we're no longer TowerTesting we may continue the loop if the AI isn't shutdown
 loop:
+waitwhile({state_get} && (isTowerTesting()))
+waituntil(\
+  ({state_get} == false) || \
+  ({state_get} && isTowerTesting())\
+)
+additional_loop:
 additional_cond = false
 gotoif(\
-  loop, \
+  additional_loop, \
   {state_get} && health(false) > 0.0 && \
   (additional_cond == false)\
 )

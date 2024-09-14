@@ -1,0 +1,6 @@
+:import Challenge_lib
+:name {package(tick)}
+
+global.double.set({timer}, {timer_get} + time.delta())
+execute("{package(tick)}")
+

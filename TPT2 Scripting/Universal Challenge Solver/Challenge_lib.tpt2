@@ -1,11 +1,24 @@
+:import Spell Config:Universal Challenge Solver
 #package(name) Challenge Solver:{name}
-#identifier "Challenge Solver"
 
 #up w
 #down s
 #left a
 #right d
 #start t
+#init wakeup
+
+#identifier "Challenge Solver"
+
+#pointer "<size=0>" . {identifier} . "pointer"
+#pointer_get global.int.get({pointer})
+#pointer_set(value) global.int.set(\
+  {pointer}, \
+  ({pointer_get} + {value}) % (increment * batch)\
+)
+
+#timer "t"
+#timer_get global.double.get({timer})
 
 #instructions "<size=0>" . {identifier} . "instructions"
 #status "<size=0>" . {identifier} . "status"
@@ -13,7 +26,7 @@
 #output {visual} . "</size>" . "Challenge"
 #get_visual(x) global.int.get({visual} . ({x}))
 
-:const int challenge_length 4
+:const int challenge_length 5
 
 :const string challenge1 '290.0'
 :const string challenge2 '256.0'
