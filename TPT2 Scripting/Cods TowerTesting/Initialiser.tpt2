@@ -27,7 +27,7 @@ loop:
 waitwhile({state_get} && (isTowerTesting() == false))
 additional_cond_loop:
 ; line 9
-additional_cond = infinity() == a.d(10.0, "^", 3.0)
+additional_cond = false
 gotoif(\
   additional_cond_loop, \
   {state_get} && health(false) > 0.0 && \
