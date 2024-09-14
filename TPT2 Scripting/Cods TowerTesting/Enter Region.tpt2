@@ -2,25 +2,56 @@
 :name {package(Enter Region)}
 
 :global double Curent_Diff
-:global string CurentMode
 
-#condition1 contains(CurentMode, {mode2}) && {counting_get} == 14
-#condition2 contains(CurentMode, {mode1}) && {counting_get} < 6
+; Conditions set in accordance to CurentMode
+; counting starts from 0
+; mode2 means we advance to the next difficulty after 15 cycles
+; mode1 means we advance to the next region after 6 cycles
+#condition1 contains({CurentMode_get}, {mode2}) && {counting_get} == 14
+#condition2 contains({CurentMode_get}, {mode1}) && {counting_get} < 6
 
-gotoif(if({state_get}, enter_difficulty, 99), {condition1} || {condition2})
+game.newround()
+
+; if either condition is true, check if AI is active
+; if so enter difficulty, else quit process
+; if neither condition is true, check if we're starting the timer, else we proceed
+goto(if(\
+  {condition1} || {condition2}, \
+  if({state_get}, enter_difficulty, 99), \
+  if(contains(impulse(), "game.newround"), timer, skip)\
+))
+skip:
+; if Region_Cycling is not permitted, default to enter difficulty
 gotoif(enter_difficulty, false == {Region_Cycling_get})
 
+; prevent the AI from performing actions when it cannot
 waitwhile(isTowerTesting() || anyopen())
 
+; cycle through region
 show("towertesting", true)
 wait(global.double.get("screen_delay"))
 {click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
 wait(global.double.get("screen_delay"))
 
+; enter the difficulty
 enter_difficulty:
 show("towertesting", true)
 wait(global.double.get("screen_delay"))
 {click.relative(395.0/800.0, Curent_Diff/450.0, 0.0, 1.0)}
 
+; launch the new round
 wait(global.double.get("screen_delay"))
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
+
+; timer cannot interact with Restart At Will unless we're called for the timer
+timer:
+stop(if(\
+  contains(impulse(), "game.newround"), \
+  "{package(Restart At Will)}", \
+  "{package(Null Package)}"\
+))
+execute(if(\
+  contains(impulse(), "game.newround"), \
+  "{package(Restart At Will)}", \
+  "{package(Null Package)}"\
+))

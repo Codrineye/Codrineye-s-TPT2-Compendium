@@ -1,31 +1,45 @@
-#version v1.3.0
+#version v1.3.1
 #package(name) Cods TowerTesting {version}:{name}
 
+; the identifier of this script
 #identifier "Condineye's TowerTesting"
 
+; the global variable hider
 #hider concat("<size=0>", "Variable_Hider") . {identifier}
 
+; the variable name for the scripts state
 #state "<size=0>" . {identifier} . "</size>" . "active"
 #state_get global.bool.get({state})
 #state_toggle global.bool.set({state}, false == {state_get})
 
+; the variable name for counting, a hidden global variable used internally
 #counting "<size=0>" . {identifier} . "counting"
 #counting_get global.int.get({counting})
 #counting_set(value) global.int.set({counting}, ({value}))
 #counting_increment {counting_set({counting_get} + 1)}
 
+; The variable name for change_difficulty, a hidden global variable used internally
 #change_difficulty "<size=0>" . {identifier} . "</size>" . "change_difficulty"
 #change_difficulty_get global.bool.get({change_difficulty})
 #change_difficulty_set(value) global.bool.set({change_difficulty}, {value})
 
-#Region_Cycling {identifier} . "</size>" . "Region_Cycling"
+; The variable name for Region_Cycling
+#Region_Cycling {identifier} . "</size>" . "Region_Cycling" . "(W)"
 #Region_Cycling_get global.bool.get({Region_Cycling})
 
+; The variable name for CurentMode
+#CurentMode "<size=0>" . {identifier} . "</size>" . "CurentMode" . "(Q)"
+#CurentMode_get global.string.get({CurentMode})
+
+; The two different modes, so it's easy to edit
 #mode1 "Difficulty>Region" . "</size>"
 #mode2 "Region>Difficulty" . "</size>"
 
+; const variable to make the difficulty logic easier to find
 :const int difficulty_spacing 5
 
+; const string variables that represents the coordinates of
+; each respective difficulty
 :const string difficulty1 '290.0'
 :const string difficulty2 '256.0'
 :const string difficulty3 '217.0'
@@ -33,8 +47,10 @@
 :const string difficulty5 '145.0'
 :const string difficulty6 '112.0'
 
+; const variable to make the difficulty logic easier to find
 :const int difficulty_count 6
 
+; the two lists used for the comment in `Stats Exit Diff_Change`
 #difficulty_list difficulty1 . difficulty2 . difficulty3 . difficulty4 . difficulty5 . difficulty6
 #inversed_difficulty_list difficulty6 . difficulty5 . difficulty4 . difficulty3 . difficulty2 . difficulty1
 

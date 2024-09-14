@@ -1,14 +1,16 @@
 :import TowerTesting_lib
 :name {package(Restart At Will)}
 
-game.newround()
 key.r()
 
+; Adjustable screen delay
+; if called by pressing r, restart, otherwise
+; only have a timer if we've not reached era >= 1.0 and if the script is active
 global.double.set("screen_delay", 0.5)
 goto(if(\
-  {state_get} && era() >= 1.0 && isTowerTesting(), \
-  if(contains(impulse(), "key."), restart, timer), \
-  99\
+  contains(impulse(), "key."), \
+  restart, \
+  if(era() >= 1.0 || ({state_get} == false), 99, timer)\
 ))
 timer:
 wait(30.0)

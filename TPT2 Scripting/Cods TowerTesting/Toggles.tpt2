@@ -1,15 +1,15 @@
 :import TowerTesting_lib
 :name {package(Toggles)}
 
-:global string CurentMode
-
 key.q()
 key.w()
 
+; Ensure the global hider is active, this also means that q and w activate the AI
 gotoif(initialized, {state_get})
 executesync("{package(Initialiser)}")
 goto(99)
 
+; we've passed the initialization sequence, set Region_Cycling and CurentMode appropiately
 initialized:
 global.bool.set(\
   {Region_Cycling}, \
@@ -17,8 +17,8 @@ global.bool.set(\
 )
 
 gotoif(99, contains(impulse(), "key.w"))
-CurentMode = if(\
-  contains(CurentMode, {mode1}) && false == contains(impulse(), "{package()}"), \
+global.string.set({CurentMode}, if(\
+  contains({CurentMode_get}, {mode1}) && false == contains(impulse(), "{package()}"), \
   {mode2}, \
   {mode1}\
-)
+))

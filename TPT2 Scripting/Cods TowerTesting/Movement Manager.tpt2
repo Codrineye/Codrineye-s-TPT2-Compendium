@@ -1,28 +1,35 @@
 :import TowerTesting_lib
 :name {package(Movement Manager)}
 
-:global string CurentMode
-
+; Reset counting and change_difficulty condition
 {counting_set(0)}
 {change_difficulty_set(false)}
 
 loop:
-waitwhile({state_get} && (anyopen() || isTowerTesting() || CurentMode == ""))
+; wait while AI cannot interact with game as wanted
+; execute Enter Region and wait until we may proceed
+waitwhile({state_get} && (anyopen() || isTowerTesting() || {CurentMode_get} == ""))
 executesync("{package(Enter Region)}")
 
+; increment counting and see if difficulty can be changed
 {counting_increment}
-{change_difficulty_set(contains(CurentMode, {mode1}))}
+{change_difficulty_set(contains({CurentMode_get}, {mode1}))}
 
+; wait for a response from Diff_Change if one can be returned
+; wait while outside of towertesting
+; quit if AI is shut down, else loop if we cannot proceed
 waitwhile({change_difficulty_get} && {state_get})
 waituntil(anyopen() || isTowerTesting() || {state_get} == false)
 gotoif(\
   if({state_get}, loop, 99), \
-  contains(CurentMode, {mode1}) && {counting_get} < 6 || \
-  contains(CurentMode, {mode2}) && {counting_get} < 15\
+  contains({CurentMode_get}, {mode1}) && {counting_get} < 6 || \
+  contains({CurentMode_get}, {mode2}) && {counting_get} < 15\
 )
+; wait so we can proceed, executesync Enter Region, same reason as above
 waitwhile({state_get} && (anyopen() || isTowerTesting()))
 executesync("{package(Enter Region)}")
 
+; Reset counting, check if we can change proceed, and loop AI is active
 {counting_set(0)}
-{change_difficulty_set(contains(CurentMode, {mode2}))}
+{change_difficulty_set(contains({CurentMode_get}, {mode2}))}
 gotoif(loop, {state_get})

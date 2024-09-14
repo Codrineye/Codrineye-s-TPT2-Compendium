@@ -5,14 +5,14 @@ key.x()
 
 :local bool additional_cond
 
+; hide content if AI should turn off, else stop hiding
 global.string.set({hider}, if(\
   {state_get}, \
   "Codrineye's TowerTesting Is Shutdown", \
-  "</size>" . \
-    "q -> CurentMode" . "<br>" . \
-    "w -> Region_Cycling"\
+  concat("Stop Hiding", "</size>")\
 ))
 
+; toggle the state, and exit if AI is shutdown
 {state_toggle}
 goto(if({state_get}, skip, 99))
 
@@ -22,21 +22,24 @@ execute("{package(Stats Exit Diff_Change)}")
 execute("{package(Movement Manager)}")
 executesync("{package(Toggles)}")
 waitwhile({state_get} && (anyopen() || isTowerTesting()))
+; initiate needed scripts and include the global variables within the hider
+; Toggles needs to be last execution, as modes end the hider on shutdown
+; wait until we can perform actions
 
+; start the loop which permits the condition to update
+; if tower health reaches 0, enter exit loop
+; this keeps telling the game to exit until it fulfills the task
+; End the timer
+; Once we're no longer TowerTesting we may continue the loop if the AI isn't shutdown
 loop:
-waitwhile({state_get} && (isTowerTesting() == false))
-additional_cond_loop:
-; line 9
 additional_cond = false
 gotoif(\
-  additional_cond_loop, \
+  loop, \
   {state_get} && health(false) > 0.0 && \
-  (additional_cond == false) && (enemies() > 0 || wave() < 100.0)\
+  (additional_cond == false)\
 )
 
 exit_loop:
 exit()
-gotoif(exit_loop, isTowerTesting())
 stop("{package(Restart At Will)}")
-gotoif(loop, {state_get})
-
+gotoif(if(isTowerTesting(), exit_loop, loop), {state_get})
