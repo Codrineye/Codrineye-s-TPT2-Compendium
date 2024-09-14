@@ -40,7 +40,7 @@ If you'd like to change the order the AI enters difficulties, I've put a conditi
     t will open stats and move to the Wave tab<br>
     x will start/stop the AI<br>
     w will toggle Region_Cycling<br>
-    q will toggle through your modes\
+    q will toggle through your modes
 </details>
 <details>
   <summary>
