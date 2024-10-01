@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.tpt2": "plaintext",
+    "cmath": "cpp",
+    "cstring": "cpp",
+    "fstream": "cpp",
+    "istream": "cpp",
+    "string": "cpp"
+  }
+}
