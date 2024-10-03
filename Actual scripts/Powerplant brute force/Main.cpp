@@ -8,7 +8,7 @@ using namespace std;
 ifstream in("Test.in");
 ofstream out("Test.out");
 
-#define e6 10000000;
+#define e6 1000000;
 
 void optimizare() {
    int cmax = -1;
@@ -39,10 +39,11 @@ void optimizare() {
  * Power
  * Root = 1000
  * yellow battery = 875787.780762 power
- * yellow battery = + 5% for every yellow battery count
+ * yellow battery = +5% for every yellow battery count
  * red battery = 400000 power
  * red battery = 1 + 0.03 * producer * red battery count
- * 
+ * blue battery = 123501000
+ * blue battery = (1% * emitter) * blue batteries count
 */
 
 /*

@@ -1,0 +1,47 @@
+:import IronClick_lib
+:name {package(Main)}
+
+key.p()
+key.l()
+
+gotoif(points, contains(impulse(), "key.l"))
+
+; This function does not change the value inside Point
+; It only ensures the user cannot make the clicker
+; click on coordinates 0,0
+Point = if(\
+  x(Point) == y({Era}) && y(Point) == y({Era}), \
+  {Era}, \
+  {Construction}\
+)
+
+; enter a modification of D0S.Superclick
+; D0S.Superclick link
+; https://github.com/d0sboots/PerfectTower/blob/main/D0S.Crates_Idler_v2
+:global int click_instances
+
+click_instances += 1
+execute(if(click_instances < 54, "{package(Main)}", "{package(Null)}"))
+execute(if(click_instances < 54, "{package(Main)}", "{package(Null)}"))
+
+loop:
+click(position())
+click(Point)
+gotoif(loop, click_instances <= 54)
+
+click_instances += 1
+global.unset(if(\
+  click_instances > 109, \
+  "click_instances", \
+  "{package(NULL)}"\
+))
+goto(99)
+
+points:
+; Switching through points
+
+Point = if(\
+  x(Point) == x({Era}) && y(Point) == y({Era}), \
+  {Construction}, \
+  {Era}\
+)

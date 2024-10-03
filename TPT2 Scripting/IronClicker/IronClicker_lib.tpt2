@@ -1,0 +1,5 @@
+#package(name) IronClick:{name}
+
+:global vector Point
+#Construction {pos.relative(287.0/800.0, 332.0/450.0, 1.0, 0.0)}
+#Era {pos.relative(437.0/800.0, 30.0/450.0, 0.0, 0.0)}
