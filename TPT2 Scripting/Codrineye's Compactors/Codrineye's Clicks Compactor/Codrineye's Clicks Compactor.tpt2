@@ -1,0 +1,6 @@
+:name LUA MADNESS
+
+{lua(\
+  clicker = {};\
+  \
+)}
