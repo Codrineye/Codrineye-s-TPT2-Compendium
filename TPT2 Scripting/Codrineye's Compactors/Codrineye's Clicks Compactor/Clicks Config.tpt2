@@ -1,2 +1,11 @@
-:import Codrineyes Clicks Compactor
+:import Codrineye's Clicks Compactor
 ; This AI is made to
+
+
+{add_click(287.0, 332.0, 1.0, 1.0)}
+{add_click(437.0, 30.0, 0.0, 0.0)}
+
+:const int increment {lua(return click.max_length)}
+:const int clicks_count {lua(return #click.r)}
+:const int coord_displace {lua(return 2 + click.p.coord)}
+:const int anchor_displace {lua(return 2 + click.p.anchor)}

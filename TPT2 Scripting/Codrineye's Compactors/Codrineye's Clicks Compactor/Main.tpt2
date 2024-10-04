@@ -1,30 +1,31 @@
 :import IronClick_lib
 :name {package(Main)}
 
+#root_click(distance, length) sub({clicks_concat}, {distance}, {length})
+#string_read {pos.relative(\
+  s2d({root_click({pointer.get} * increment, coord_displace)}, 0.0) / 800.0, \
+  s2d({root_click({pointer.get} * increment + coord_displace, coord_displace)}, 0.0) / 450.0, \
+  s2d({root_click({pointer.get} * increment + coord_displace + coord_displace, anchor_displace)}, 0.0), \
+  s2d({root_click({pointer.get} * increment + coord_displace + coord_displace + anchor_displace, anchor_displace)}, 0.0)\
+)}
+
 key.p()
 key.l()
 
 gotoif(points, contains(impulse(), "key.l"))
 
-; This function does not change the value inside Point
-; It only ensures the user cannot make the clicker
-; click on coordinates 0,0
-Point = if(\
-  x(Point) == y({Era}) && y(Point) == y({Era}), \
-  {Era}, \
-  {Construction}\
-)
-
 ; enter a modification of D0S.Superclick
 ; D0S.Superclick link
 ; https://github.com/d0sboots/PerfectTower/blob/main/D0S.Crates_Idler_v2
 :global int click_instances
+:local vector Point
 
 click_instances += 1
 execute(if(click_instances < 54, "{package(Main)}", "{package(Null)}"))
 execute(if(click_instances < 54, "{package(Main)}", "{package(Null)}"))
 
 loop:
+Point = {string_read}
 click(position())
 click(Point)
 gotoif(loop, click_instances <= 54)
@@ -38,10 +39,4 @@ global.unset(if(\
 goto(99)
 
 points:
-; Switching through points
-
-Point = if(\
-  x(Point) == x({Era}) && y(Point) == y({Era}), \
-  {Construction}, \
-  {Era}\
-)
+{pointer.advance}

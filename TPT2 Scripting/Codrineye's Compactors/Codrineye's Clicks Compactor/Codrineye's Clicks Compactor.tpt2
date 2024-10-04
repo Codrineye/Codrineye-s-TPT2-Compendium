@@ -1,6 +1,66 @@
 :name LUA MADNESS
 
+#anchor_warning "Recording a relative vector should not have anchor values bellow 0 or above 1"
+
 {lua(\
-  clicker = {};\
+  click = {};\
+  click.r = {};\
+  click.max_length = 1;\
+  click.p = {};\
+  click.p.coord = 3;\
+  click.p.anchor = 2;\
+\
+  local function x_digit_precision(digits, input)\
+    local number = string.gsub(input, " ", "");\
+    return string.sub(string.format("%." .. digits .. "f", number), 1, digits + 2);\
+  end\
+\
+  function click.add_click(coord_x, coord_y, anchor_x, anchor_y)\
+    local click_index = 1 + #click.r;\
+    local click_recording = {};\
+    click_recording.coord_x = x_digit_precision(click.p.coord, coord_x);\
+    click_recording.coord_y = x_digit_precision(click.p.coord, coord_y);\
+    click_recording.anchor_x = x_digit_precision(click.p.anchor, anchor_x);\
+    click_recording.anchor_y = x_digit_precision(click.p.anchor, anchor_y);\
+    local anchor_max = math.max(\
+      tonumber(click_recording.anchor_x), \
+      tonumber(click_recording.anchor_y)\
+    );\
+    local anchor_min = math.min(\
+      tonumber(click_recording.anchor_x), \
+      tonumber(click_recording.anchor_y)\
+    );\
+    if 1 < anchor_max or anchor_min < 0 then\
+      return {anchor_warning};\
+    end\
   \
+    local click_string = click_recording.coord_x .. click_recording.coord_y\
+      .. click_recording.anchor_x .. click_recording.anchor_y;\
+    click.max_length = math.max(click.max_length, #click_string);\
+  \
+    click.r[click_index] = click_recording;\
+    return [[:const string click]] .. click_index .. [[ ']] .. click_string .. [[']];\
+  end\
+\
+  function click.concatinate_click_recordings()\
+    local clicks_recorded = #click.r;\
+    local clicks_concat = {};\
+    for i = 1, clicks_recorded - 1 do\
+      clicks_concat[1 + #clicks_concat] = "click" .. i;\
+      clicks_concat[1 + #clicks_concat] = [[ . ]];\
+    end\
+    clicks_concat[1 + #clicks_concat] = "click" .. clicks_recorded;\
+    return table.concat(clicks_concat);\
+  end\
 )}
+
+#add_click(coord_x, coord_y, anchor_x, anchor_y) {lua(\
+  return click.add_click(\
+    [[{coord_x}]], \
+    [[{coord_y}]], \
+    [[{anchor_x}]], \
+    [[{anchor_y}]]\
+  );\
+)}
+
+#clicks_concat {lua(return click.concatinate_click_recordings())}
