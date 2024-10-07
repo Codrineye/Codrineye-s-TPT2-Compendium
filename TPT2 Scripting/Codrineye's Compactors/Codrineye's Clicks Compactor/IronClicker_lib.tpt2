@@ -2,6 +2,29 @@
 #package(name) IronClick:{name}
 
 #identifier "IronClick"
+
 #pointer "<size=0>" . {identifier} . "pointer"
 #pointer.get global.int.get({pointer})
-#pointer.advance global.int.set({pointer}, ({pointer.get} + 1) % clicks_count)
+#pointer.set(value) global.int.set({pointer}, {value})
+#pointer.advance {pointer.set(({pointer.get} + 1) % clicks_count)}
+
+#position {identifier} . "clicker position"
+#position.get global.vec2.get({position})
+#position.set(value) global.vec2.set({position}, {value})
+#position.vector_set(coord_x, coord_y, anchor_x, anchor_y) {position.set({pos.relative(\
+  {coord_x} / 800.0, \
+  {coord_y} / 450.0, \
+  {anchor_x}, \
+  {anchor_y}\
+)})}
+
+#status {identifier} . "</size>" . "Status"
+#status.get global.string.get({status})
+#status.set(value) global.string.set({status}, {value})
+
+#root_click(distance, length) sub({clicks_concat}, {distance}, {length})
+#root_index(char, spacing) index(\
+  {clicks_concat}, \
+  {char}, \
+  {spacing}\
+) - ({spacing})

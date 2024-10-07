@@ -1,11 +1,36 @@
 :import Codrineye's Clicks Compactor
-; This AI is made to
+; This configuration is made to stack relative vectors together in 1 single string
+; You use the macro add_click and specify the parameters as you would with a pos.relative macro call
+; * the x coordinate
+; * the y coordinate
+; * the x anchor
+; * the y anchor
+; the relevant division is done internally within the root_click macro in Main
+; The final parameter is a name you can assign to the click, usefull for visual feedback
+; 
+; You should check the values in Codineye's Clicks Compactor under click.maintenance
+; Modify them accordingly, to represent what you're working with
+; Ensure the resolution values are equivalent to the ingame resolution
 
+{add_click(287.0, 332.0, 1.0, 1.0, Era)}
+{add_click(437.0, 30.0, 0.0, 0.0, Ship)}
 
-{add_click(287.0, 332.0, 1.0, 1.0)}
-{add_click(437.0, 30.0, 0.0, 0.0)}
+; These constant values are used for internal calculations
+; 2 double constants representing the x and y values of the games resolution
+; they are used when calculating relative vectors
+
+:const double resolution_x {lua(return click.maintenance.resolution_x)}
+:const double resolution_y {lua(return click.maintenance.resolution_y)}
+
+; 4 int constants representing
+; * the size of a recorded chunk
+; * the number of recorded clicks
+; * the size a coordinate is saved as
+; * the size an anchor is saved as
+; look in Main to see how they are being used
 
 :const int increment {lua(return click.max_length)}
 :const int clicks_count {lua(return #click.recording)}
 :const int coord_displace {lua(return 2 + click.precision.coord)}
 :const int anchor_displace {lua(return 2 + click.precision.anchor)}
+

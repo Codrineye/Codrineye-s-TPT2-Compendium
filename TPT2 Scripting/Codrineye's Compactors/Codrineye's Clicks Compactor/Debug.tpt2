@@ -1,0 +1,42 @@
+:import IronClick_lib
+:name {package(Debug)}
+
+key.d()
+
+:local double coord_x
+:local double coord_y
+:local double anchor_x
+:local double anchor_y
+:local string identifier
+
+:local bool debugging
+
+debugging = false
+goto(if(debugging, debug, 99))
+debug:
+{pointer.advance}
+coord_x = s2d({root_click({pointer.get} * increment, coord_displace)}, -1.0)
+coord_y = s2d({root_click({pointer.get} * increment + coord_displace, coord_displace)}, -1.0)
+anchor_x = s2d({root_click({pointer.get} * increment + coord_displace + coord_displace, anchor_displace)}, 0.0)
+anchor_y = s2d({root_click({pointer.get} * increment + coord_displace + coord_displace + anchor_displace, anchor_displace)}, 0.0)
+
+identifier = {root_click(\
+  {pointer.get} * increment + coord_displace + coord_displace + anchor_displace + anchor_displace, \
+  {root_index(\
+    ";", \
+    {pointer.get} * increment + coord_displace + coord_displace + anchor_displace + anchor_displace\
+  )}\
+)}
+
+{position.vector_set(\
+  coord_x, \
+  coord_y, \
+  anchor_x, \
+  anchor_y\
+)}
+
+{status.set(if(\
+  contains(d2s(coord_x) . d2s(coord_y) . d2s(anchor_x) . d2s(anchor_y), "-1"), \
+  "relative.pos(" . d2s(coord_x) . ", " . d2s(coord_y) . ", " . d2s(anchor_x) . ", " . d2s(anchor_y) . ")", \
+  identifier\
+))}

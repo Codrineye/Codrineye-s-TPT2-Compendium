@@ -1,25 +1,180 @@
 :name LUA MADNESS
-
-#anchor_warning "Recording a relative vector should not have anchor values bellow 0 or above 1"
+; 
+; Package found on discord or on my github repo
+; discord: To Be Done
+; github: https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/main/TPT2%20Scripting/Codrineye's%20Compactors/Codrineye's%20Clicks%20Compactor/Codrineye's%20Clicks%20Compactor.tpt2
+; 
+; 2 lua macros made to perform all actions
+; The way this works is by creating a string value
+; :const string click[click number] 'data given for the click'
+; For information on what 'data given for click' means, look at Clicks Config
+; The comments bellow explain what you're looking at
+; 
+; Macro 1 will initialise all global variables used in the functions
+; Additionally, it supports user interaction to for additional configuration
+; 
+; We declair the root table [click], which differentiates lua macros from the rest
+; 
+; click.debugging represents a boolean that if set to true will permit us to
+; read debugging information in the developer console accessed with ctrl+shift+i
+; 
+; click.maintenance is the field that supports user interraction
+; * .resolution_x = the x resolution value found in the debugging interface accessed with f2
+; * .resolution_y = the y resolution found alongside .resolution_y
+; * .name_separator = the separation character that's used for getting the name of a click
+; Modify these values as you see fit, if one of them is not permitted, you will get an error message
+; 
+; click.recording is the field used to record, this is what's used for <add_click>
+; click.precision is the field used to determine how large or small a variable can be
+; you, the user, can configure these as you see fit
+; * .coord is the size in which a coordinate can be recorded
+; * .anchor is the size in which an anchor can be recorded
+; You can modify them, tho I recommend not to unless you have a reason
+; 
+; click.max_name stores the max length of all the names we've read
+; click.max_length stores the max length of the outputed 'data given for the click'
+; 
 
 {lua(\
   click = {};\
+  click.debugging = false;\
+  click.maintenance = {};\
+  click.maintenance.resolution_x = 800.0;\
+  click.maintenance.resolution_y = 450.0;\
+  click.maintenance.name_separator = [[;]];\
   click.recording = {};\
-  click.max_length = 1;\
   click.precision = {};\
   click.precision.coord = 3;\
   click.precision.anchor = 2;\
-\
+  click.max_name = 0;\
+  click.max_length = 0;\
+)}
+
+; 
+; this marks the end of Macro 1 
+; /=================================================================\
+; |WARNING: IT IS NOT ADVISED THAT USERS MODIFY THE FOLLOWING FIELDS|
+; |WARNING: IT IS NOT ADVISED THAT USERS MODIFY THE FOLLOWING FIELDS|
+; |WARNING: IT IS NOT ADVISED THAT USERS MODIFY THE FOLLOWING FIELDS|
+; \=================================================================/
+; 
+; Macro 2 holds the function declarations
+; local functions cannot be accessed outside of this lua macro
+; these functions are used for simple tasks not worth repeating
+; 
+; local function x_digit_precision(digits, input)
+; This function is an edited version of what's used in my spells compactor
+; it creates a local number, and gives it the value of the input with the removed spaces
+; afterwards, the fuction returns a formatted string, that has <digits> amount of digits
+; the value of digits uses click.precision.<input type>
+; 
+; local function debugging()
+; This function too can be found in my spells compactor
+; its purpose is to print out relevant debugging values to the developer console
+; 
+; global functions can be accessed globally, as long as the originating library is imported
+; these functions are used to perform all kinds of tasks
+; 
+; function add_clicks(coord_x, coord_y, anchor_x, anchor_y, name)
+; this is the function you write to when calling for <add_click>
+; we create a local integer 'click_index' that's used for the returning click[click number]
+; we create a local table 'new_click' that gets added to clicks.recording
+; we assign the given values as follows
+; * .coord_x calls for x_digit_precision with precision.coord
+; * .coord_y calls for x_digit_precision with precision.coord
+; we check if .coord_x or .coord_y are values larger than the resolution they were recorded with
+; if they are, we return an error and prevent compilation
+; 
+; otherwise, we continue
+; * .anchor_x calls for x_digit_precision with precision.anchor
+; * .anchor_y calls for x_digit_precision with precision.anchor
+; we then take the max and min of the two anchors and
+; check if the max is larger than 1.0 or if the min is smaller than 0
+; if they are, we return an error and prevent compilation
+; 
+; otherwise, we can continue
+; * .click_name strips away all whitespace found before and after the name
+; the name inside of click_name will retain all whitespace found in the middle of the name
+; this it so that names like "construction firm" **do not** get colapsed into "constructionfirm"
+; we create a local string 'click_string' that
+; contains the data which will be outputed for the string
+; we then update click.max_name to hold either
+; * the length of the curent name
+; * the value it already has
+; we do a similar thing with click.max_length but with the whole click_string
+; after that, we insert the new click inside of our table click.record
+; check if we're permitted to call for 'local function debugging()'
+; and return the :const string
+; 
+; function clicks.concatinate_click_recordings()
+; this is the function that concatenates all the const strings into one string
+; we start by storing the number of recorded clicks inside of 'local clicks_count'
+; then, create the table 'local clicks_concat'
+; entering a loop, we count in i from 1 to clicks_count
+; create a dummy variable 'local space' that has the subtraction
+; between .max_name and the stored name of click[i]
+; then, assign string concaining [.] that repeat as many times as space says to 'local spacer'
+; insert into clicks_concat the const click[i] and the linking concatination [[ . "]] 
+; insert into clicks_concat the spacing value of spacer and the linking concatination [[" . ]]
+; loop until we run out of recordings
+; insert into clicks_concat the ending value of [["."]]
+; and finally, return the table concatination of 'clicks_concat'
+; 
+; function click.data_validation()
+; this is a function that verifies whether or not the user is recording valid data
+; valid data is defined as click coordinates obtained at a screen resolution of 16/9
+; we start by creating local copies of click.maintenance.resolution_x and .resolution_y
+; then, check if resolution_x is smaller or equal to resolution_y
+; throw an error if it's the case and prevent compilation
+; otherwise, we continue onward
+; 
+; we assign the division of 16/9 to 'local resolution'
+; we assign the division of our given resolution to 'local given_resolution'
+; 
+; then, create a 'local divisor' element that'll be used in getting the resolution factor
+; we enter a while loop, that only stops once resolution_y == 0
+; inside of the loop
+; * give divisor the value of resolution_x
+; * give resolution_x the value of resolution_y
+; * give resolution_y the value of divisor % resolution_y
+; once the loop ends, finish by assigning divisor the value of resolution_x
+; we then create the 2 'local root_resolution_x' _y respectively and
+; assign them the division between the respective click.maintenance.resolution and our divisor
+; finally, we check if resolution - given_resolution is different than 0
+; if it is, then our given resolution is not 16/9 which means we return an error and prevent compilation
+; 
+; click.data_validation() is run at the bottom of this file
+; so you can check the errors by modifying the values under .maintenance.resolution_x/y
+
+{lua(\
   local function x_digit_precision(digits, input)\
     local number = string.gsub(input, " ", "");\
     return string.sub(string.format("%." .. digits .. "f", number), 1, digits + 2);\
   end\
 \
-  function click.add_click(coord_x, coord_y, anchor_x, anchor_y)\
+  local function debugging()\
+    print([[Debugging enabled: ]] .. click.debugging);\
+    print([[Click Index: ]] .. #click.recording);\
+    print([[Click ID: ]] .. click.recording[#click.recording].click_name);\
+    print([[Click Coord_x: ]] .. click.recording[#click.recording].coord_x);\
+    print([[Click Coord_y: ]] .. click.recording[#click.recording].coord_y);\
+    print([[Click Anchor_x: ]] .. click.recording[#click.recording].anchor_x);\
+    print([[Click Anchor_y: ]] .. click.recording[#click.recording].anchor_y);\
+    print([[Click Max Name Length: ]] .. click.max_name);\
+    print([[Click Max Formation Length: ]] .. click.max_length);\
+    print([[Debugging Log]] .. #click.recording .. [[ End]]);\
+  end\
+\
+  function click.add_click(coord_x, coord_y, anchor_x, anchor_y, name)\
     local click_index = 1 + #click.recording;\
     local click_recording = {};\
     click_recording.coord_x = x_digit_precision(click.precision.coord, coord_x);\
     click_recording.coord_y = x_digit_precision(click.precision.coord, coord_y);\
+    if tonumber(click_recording.coord_x) > click.maintenance.resolution_x or tonumber(click_recording.coord_y) > click.maintenance.resolution_y then\
+      return [[Try not to give values larger than your screen resolution]] .. \
+        "\ncoord_x[" .. click_recording.coord_x .. "] should be smaller than " .. click.maintenance.resolution_x ..\
+        "\ncoord_y[" .. click_recording.coord_y .. "] should be smaller than " .. click.maintenance.resolution_y;\
+    end\
     click_recording.anchor_x = x_digit_precision(click.precision.anchor, anchor_x);\
     click_recording.anchor_y = x_digit_precision(click.precision.anchor, anchor_y);\
     local anchor_max = math.max(\
@@ -31,36 +186,83 @@
       tonumber(click_recording.anchor_y)\
     );\
     if 1 < anchor_max or anchor_min < 0 then\
-      return {anchor_warning};\
+      return [[Recording a relative vector should not have anchor values bellow 0 or above 1]];\
     end\
+    click_recording.click_name = name:gsub("^ +", ""):gsub(" +$", "") .. click.maintenance.name_separator;\
   \
-    local click_string = click_recording.coord_x .. click_recording.coord_y\
-      .. click_recording.anchor_x .. click_recording.anchor_y;\
+    local click_string = click_recording.coord_x .. click_recording.coord_y .. \
+        click_recording.anchor_x .. click_recording.anchor_y .. \
+        click_recording.click_name;\
+  \
+    click.max_name = math.max(click.max_name, #click_recording.click_name);\
     click.max_length = math.max(click.max_length, #click_string);\
   \
     click.recording[click_index] = click_recording;\
+    if click.debugging then\
+      debugging();\
+    end\
     return [[:const string click]] .. click_index .. [[ ']] .. click_string .. [[']];\
   end\
 \
   function click.concatinate_click_recordings()\
     local clicks_recorded = #click.recording;\
     local clicks_concat = {};\
-    for i = 1, clicks_recorded - 1 do\
-      clicks_concat[1 + #clicks_concat] = "click" .. i;\
-      clicks_concat[1 + #clicks_concat] = [[ . ]];\
+    for i = 1, clicks_recorded do\
+      local space = click.max_name - #click.recording[i].click_name;\
+      local spacer = string.rep([[.]], space);\
+      clicks_concat[#clicks_concat + 1] = [[click]] .. i .. [[ . "]];\
+      clicks_concat[#clicks_concat + 1] = spacer .. [[" . ]];\
     end\
-    clicks_concat[1 + #clicks_concat] = "click" .. clicks_recorded;\
+    clicks_conat[#clicks_concat + 1] = [["."]];\
     return table.concat(clicks_concat);\
+  end\
+\
+  function click.data_validation()\
+    local resolution_x = click.maintenance.resolution_x;\
+    local resolution_y = click.maintenance.resolution_y;\
+    if resolution_x <= resolution_y then\
+      return [[Recording coordinates should be done on a resolution of 16/9 ]] .. \
+        "resolution_x[" .. resolution_x .. "]" \
+        .. [[ should always be bigger than ]] ..\
+        "resolution_y[" .. resolution_y .. "]";\
+    end\
+    local resolution = 16/9;\
+    local given_resolution = resolution_x / resolution_y;\
+    local divisor = 0;\
+    while resolution_y ~= 0 do\
+      divisor = resolution_x;\
+      resolution_x = resolution_y;\
+      resolution_y = divisor % resolution_x;\
+    end\
+    divisor = resolution_x;\
+    local root_resolution_x = click.maintenance.resolution_x / divisor;\
+    local root_resolution_y = click.maintenance.resolution_y / divisor;\
+    if resolution - given_resolution ~= 0 then\
+      return "Resolution provided has a factor of " .. \
+        root_resolution_x .. "/" .. root_resolution_y .. \
+        "\nExpected resolution was 16/9" .. \
+        "\nRecommended resolution for recording clicks is 800x450";\
+    end\
   end\
 )}
 
-#add_click(coord_x, coord_y, anchor_x, anchor_y) {lua(\
+; this marks the end of Macro 2
+; the following 2 ordinairy macros are for the user
+; to communicate with the scripts more easily
+
+; <add_click> communicates with click.add_click()
+#add_click(coord_x, coord_y, anchor_x, anchor_y, identifier) {lua(\
   return click.add_click(\
     [[{coord_x}]], \
     [[{coord_y}]], \
     [[{anchor_x}]], \
-    [[{anchor_y}]]\
+    [[{anchor_y}]], \
+    [[{identifier}]]\
   );\
 )}
 
+; <clicks_concat> returns the concatinated table from click.concatinate_click_recordings
 #clicks_concat {lua(return click.concatinate_click_recordings())}
+
+; this final lua call ensures that all data entered by the user is valid
+{lua(return click.data_validation())}

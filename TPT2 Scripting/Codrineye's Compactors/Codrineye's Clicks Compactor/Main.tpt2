@@ -1,33 +1,46 @@
 :import IronClick_lib
 :name {package(Main)}
 
-#root_click(distance, length) sub({clicks_concat}, {distance}, {length})
 #string_read {pos.relative(\
-  s2d({root_click({pointer.get} * increment, coord_displace)}, 0.0) / 800.0, \
-  s2d({root_click({pointer.get} * increment + coord_displace, coord_displace)}, 0.0) / 450.0, \
-  s2d({root_click({pointer.get} * increment + coord_displace + coord_displace, anchor_displace)}, 0.0), \
-  s2d({root_click({pointer.get} * increment + coord_displace + coord_displace + anchor_displace, anchor_displace)}, 0.0)\
+  s2d({root_click(root_pointer, coord_displace)}, 0.0) / resolution_x, \
+  s2d({root_click(root_pointer + coord_displace, coord_displace)}, 0.0) / resolution_y, \
+  s2d({root_click(root_pointer + coord_displace + coord_displace, anchor_displace)}, 0.0), \
+  s2d({root_click(root_pointer + coord_displace + coord_displace + anchor_displace, anchor_displace)}, 0.0)\
 )}
 
 key.p()
 key.l()
 
-gotoif(points, contains(impulse(), "key.l"))
+goto(if(\
+  contains(impulse(), "key.l"), \
+  points, \
+  if(contains(impulse(), "{package(Main)}"), superclick, start)\
+))
 
+start:
 ; enter a modification of D0S.Superclick
 ; D0S.Superclick link
 ; https://github.com/d0sboots/PerfectTower/blob/main/D0S.Crates_Idler_v2
-:global int click_instances
-:local vector Point
 
+:global int click_instances
+:local int root_pointer
+
+root_pointer = if(\
+  contains(impulse(), "key.p") && click_instances > 0, \
+  clicks_count * increment, \
+  {pointer.get} * increment\
+)
+
+{position.set({string_read})}
+
+superclick:
 click_instances += 1
 execute(if(click_instances < 54, "{package(Main)}", "{package(Null)}"))
 execute(if(click_instances < 54, "{package(Main)}", "{package(Null)}"))
 
 loop:
-Point = {string_read}
 click(position())
-click(Point)
+click({position.get})
 gotoif(loop, click_instances <= 54)
 
 click_instances += 1
@@ -40,3 +53,11 @@ goto(99)
 
 points:
 {pointer.advance}
+{status.set({root_click(\
+  {pointer.get} * increment + coord_displace + coord_displace + anchor_displace + anchor_displace, \
+  {root_index(\
+    ";", \
+    {pointer.get} * increment + coord_displace + coord_displace + anchor_displace + anchor_displace\
+  )}\
+)})}
+
