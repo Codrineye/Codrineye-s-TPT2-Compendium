@@ -1,0 +1,37 @@
+:import clicker lib
+:name {package(shop)}
+
+key.{buy_at_pointer}()
+key.{buy_best}()
+
+:local int shopper
+
+executesync(if(\
+  {initialisation_check}, \
+  "{garbage_requested}", \
+  "{package(init)}"\
+))
+
+shopper = if(\
+  contains(impulse(), "key.{buy_best}"), \
+  1 + {page_size}, \
+  1 + {pointer.get}\
+)
+
+buy_best_loop:
+
+:local int price
+
+shopper = shopper - 1
+price = s2i({items.substring(shopper, 2, 0, price_displace)}, d2i(99 ^ price_displace))
+
+gotoif(buy_best_loop, \
+  contains(impulse(), "key.{buy_best}") && \
+  shopper >= 0 && {stats.get("points")} < price\
+)
+
+gotoif(99, {stats.get("points")} < price)
+
+{stats.add("points per click", s2i({items.substring(shopper, 0, 0, effect_displace)}, 0))}
+{stats.add("points per second", s2i({items.substring(shopper, 1, 0, effect_displace)}, 0))}
+{stats.add("points", 0 - price)}

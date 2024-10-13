@@ -1,0 +1,59 @@
+:import clicker lib
+:name {package(pointer system)}
+
+key.{pointer_increase}()
+key.{pointer_decrease}()
+
+execute(if(\
+  {initialisation_check}, \
+  "{garbage_requested}", \
+  "{package(init)}"\
+))
+
+execute(if(\
+  contains({item.get("item" . {pointer.get})}, {pointer}), \
+  "{package(page system)}", \
+  "{garbage_requested}"\
+))
+gotoif(\
+  99, \
+  ({initialisation_check} == false) || \
+  contains({item.get("item" . {pointer.get})}, {pointer})\
+)
+
+{pointer.set(if(\
+  contains(impulse(), "{package()}"), \
+  {pointer.get}, \
+  if(\
+    contains(impulse(), "key.{pointer_increase}"), \
+    min({pointer.get} + 1, {page_size} - 1), \
+    max({pointer.get} - 1, 0)\
+  )\
+))}
+
+{item.set("item" . {pointer.get}, {pointer} . "item" . {pointer.get} . "</color>")}
+{item.set("description", {items.substring(\
+  {pointer.get}, \
+  2, \
+  price_displace + name_displace, \
+  {items.index({pointer.get}, 2, price_displace + name_displace)}\
+)})}
+{item.set("effect per click", "points per click + " . i2s(s2i({items.substring(\
+  {pointer.get}, \
+  0, \
+  0, \
+  effect_displace\
+)}, 0)))}
+{item.set("effect per second", "points per second + " . i2s(s2i({items.substring(\
+  {pointer.get}, \
+  1, \
+  0, \
+  effect_displace\
+)}, 0)))}
+{item.set("cost", "cost = " . i2s(s2i({items.substring(\
+  {pointer.get}, \
+  2, \
+  0, \
+  price_displace\
+)}, 0)))}
+

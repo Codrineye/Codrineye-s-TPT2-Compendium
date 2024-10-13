@@ -1,0 +1,40 @@
+:import Shop Creation
+
+{add_item(noob clicker, 1, 0, you start this clicker!, 50)}
+{add_item(cylindro clicker, 3, 0, this easiest boss!, 350)}
+{add_item(chaos complete, 0, 5, this hardest region!, 1e3)}
+{add_item(first era, 7, 0, WOW! mt8!, 3e3)}
+{add_item(this long story..., 10, 15, MT10.. this no final, 10e3)}
+{add_page(1)}
+
+{add_item(pyramido, 25, 0, this easy!, 25e3)}
+{add_item(maxing out the lab, 0, 50, you maxing laboratory, 40e3)}
+{add_item(infinity board, 80, 0, what is it... you have MT11, 85e3)}
+{add_item(cubos jr., 60, 60, hmm new boss, 120e3)}
+{add_item(facility ai, 100, 100, required to win!, 250e3)}
+{add_page(2)}
+
+{add_item(first infinity..., 300, 0, wow; infinity... this end?, 1e6)}
+{add_item(challanger, 500, 500, huh; challenge tutorial use!, 4e6)}
+{add_item(ifn anvil, 3.5e3, 0, you upgrade afk in anvil, 13e6)}
+{add_item(tower customization, 9e3, 0, flex multipy you click, 25e6)}
+{add_item(farm gem, 10e3, 10e3, shipyard; trading post..., 100e6)}
+{add_page(3)}
+
+
+:const string items '{lua(return shop.concat_items())}'
+:const string pages '{lua(return shop.concat_pages())}'
+
+:const int items_count {lua(return #shop.item)}
+:const int page_count {lua(return #shop.page)}
+
+:const int name_displace {lua(return shop.text.max_name_size)}
+:const int description_displace {lua(return shop.text.max_description_size)}
+
+:const string text_separator '{lua(return shop.text.text_ending_marker)}'
+
+:const int price_displace {lua(return shop.precision.price)}
+:const int effect_displace {lua(return shop.precision.effect)}
+
+:const int max_page_size {lua(return shop.max_page_size)}
+:const int segment_length {lua(return shop.max_length)}

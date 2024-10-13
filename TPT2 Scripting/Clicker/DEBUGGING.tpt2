@@ -1,0 +1,55 @@
+:import clicker lib
+:name {package(DEBUGGING)}
+
+#deb.displace(position, effect_count, other_displace) {other_displace} \
+  + ({effect_count} * effect_displace) + (({position} + (page  * s2i(sub(pages, page, 1), 1))) * segment_length)
+
+#deb.substring(position, effect_count, other_displace, length) sub(\
+  data, \
+  {deb.displace({position}, {effect_count}, {other_displace})},\
+  {length}\
+)
+#deb.index(position, effect_count, other_displace) index(\
+  data, \
+  text_separator, \
+  {deb.displace({position}, {effect_count}, {other_displace})}\
+) - ({deb.displace({position}, {effect_count}, {other_displace})})
+
+
+key.x()
+
+false == true
+
+:global string effect_click
+:global string effect_idle
+:global string price
+:global string name
+:global string description
+:local string data
+
+data = items
+
+:global int pointer
+:global int page
+
+page = page % page_count
+pointer = pointer % s2i(sub(pages, page, 1), 1)
+
+effect_click = {deb.substring(pointer, 0, 0, effect_displace)}
+effect_idle = {deb.substring(pointer, 1, 0, effect_displace)}
+price = {deb.substring(pointer, 2, 0, price_displace)}
+name = {deb.substring(\
+  pointer, \
+  2, \
+  price_displace, \
+  {deb.index(pointer, 2, price_displace)}\
+)}
+description = {deb.substring(\
+  pointer, \
+  2, \
+  price_displace + name_displace, \
+  {deb.index(pointer, 2, price_displace + name_displace)}\
+)}
+
+pointer = pointer + 1
+page = (page + pointer / s2i(sub(pages, page, 1), 1)) % page_count
