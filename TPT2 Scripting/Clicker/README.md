@@ -4,6 +4,7 @@ A project originally made by discord user [megahakerek](https://github.com/Megah
 Clicker is an incremental game created inside of The Perfect Tower 2 that features:
 - Manual and Idle points gain
 - 3 pages worth of upgrades
+
 and even
 - A pointer system that highlights the sellected upgrade
 
