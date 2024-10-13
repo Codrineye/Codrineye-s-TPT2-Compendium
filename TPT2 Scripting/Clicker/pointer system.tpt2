@@ -10,16 +10,13 @@ execute(if(\
   "{package(init)}"\
 ))
 
-execute(if(\
+gotoif(99, {initialisation_check} == false)
+
+executesync(if(\
   contains({item.get("item" . {pointer.get})}, {pointer}), \
   "{package(page system)}", \
   "{garbage_requested}"\
 ))
-gotoif(\
-  99, \
-  ({initialisation_check} == false) || \
-  contains({item.get("item" . {pointer.get})}, {pointer})\
-)
 
 {pointer.set(if(\
   contains(impulse(), "{package()}"), \

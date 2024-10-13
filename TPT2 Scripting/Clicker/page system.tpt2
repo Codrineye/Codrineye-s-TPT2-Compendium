@@ -33,4 +33,8 @@ item_loop:
 
 i += 1
 gotoif(item_loop, i < {page_size})
-execute("{package(pointer system)}")
+execute(if(\
+  contains(impulse(), "{package(pointer system)}"), \
+  "{garbage_requested}", \
+  "{package(pointer system)}"\
+))
