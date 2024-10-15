@@ -13,4 +13,4 @@ RAM levels determine AI script storage capacity.
 Higher CPU levels mean faster software installation.
 
 # Server Representation
-![Server Representation](<../../Images/Server Display.png>)
+![Server Representation](/FAQ/Images/Server%20Display.png)

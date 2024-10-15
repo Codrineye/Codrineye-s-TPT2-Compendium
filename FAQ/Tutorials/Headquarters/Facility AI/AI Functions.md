@@ -4,7 +4,8 @@ If you are not here to understand a specific function in more detail, please go 
 # AI Functions
 
 AI Functions are blocks used when writing scripts.<br>
-This is a list of all of them functions, separated according to the function type
+This is a list of all of them functions, separated according to the function type<br>
+The functions are written in the [External AI Editor](https://d0sboots.github.io/perfect-tower/) format first, and then written in the internal editor format in `[square brackets]`
 
 There are 4 types of functions:
 - [Impulse functions](#impulse-functions)
@@ -13,6 +14,7 @@ There are 4 types of functions:
 - [Foundational functions](#foundational-functions)
 
 ## Impulse functions
+wakeup() [impulse.wakeup()] will activate the script once the AI Overlay is activated<br>
 
 
 ## Conditional functions

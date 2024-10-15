@@ -1,4 +1,6 @@
-This post is a summary of Facility AI, which links to more indepth threads
+This post is a summary of Facility AI, which links to more indepth threads<br>
+This file is its own [set of FAQ posts](https://discord.com/channels/488444879836413975/1140860422682062908/1140860422682062908) (Placeholder link)
+
 # Facility AI
 
 Facility AI is a software you can download at MT4.

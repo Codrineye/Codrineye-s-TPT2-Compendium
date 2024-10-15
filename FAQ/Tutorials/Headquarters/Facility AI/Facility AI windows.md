@@ -64,7 +64,7 @@ The `Spacing` field is an integer that determines how much space is used between
 
 # Space management
 
-The AI overlay builder grants you 10.000 characters of XML, and if you're looking to create large screens, this can be a limitation, so here are a few tips to make your window building experience as pleasent as possible.
+The AI overlay builder grants you 10.000 characters of XML, and if you're looking to create complex windows, this can be a limitation, so here are a few tips to make your window building experience as pleasent as possible.
 
-
+## Use containers
 
