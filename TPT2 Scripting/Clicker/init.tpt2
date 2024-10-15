@@ -1,0 +1,21 @@
+:import clicker lib
+:name {package(init)}
+
+key.{clicker_start}()
+
+{stats.set("points", 0)}
+{stats.set("points per click", 1)}
+{stats.set("points per second", 0)}
+
+{pointer.set(0)}
+{item.set("shop", "</size>" . "=======shop=======")}
+
+{stats.set("shop page", 1)}
+
+{item.set("description", "")}
+{item.set("effect per click", "")}
+{item.set("effect per second", "")}
+{item.set("cost", "")}
+
+executesync("{package(page system)}")
+execute("{package(points)}")

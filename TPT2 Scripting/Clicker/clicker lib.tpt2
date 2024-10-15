@@ -1,0 +1,53 @@
+:import Shop Contents
+#package(name) clicker:{name}
+#garbage_requested {package(##%GARBAGE REQUESTED%##)}
+
+; Impulse keys macros
+; make it easier to understand the script
+
+#click 0
+#clicker_start c
+#buy_at_pointer f
+#buy_best b
+#page_increase d
+#page_decrease a
+#pointer_increase s
+#pointer_decrease w
+
+#identifier "clicker"
+
+#item(name) "<size=0>" . {identifier} . ({name})
+#item.get(name) global.string.get({item({name})})
+#item.set(name, value) global.string.set({item({name})}, "</size>" . {value})
+
+#initialisation_check contains({item.get("cost")}, "</size>")
+
+#stats.get(name) global.int.get({name})
+#stats.set(name, value) global.int.set({name}, {value})
+#stats.add(name, effect) {stats.set({name}, {stats.get({name})} + {effect})}
+
+#shop_page.get ({stats.get("shop page")} - 1)
+#page_size s2i(sub(pages, {shop_page.get}, max_page_size), -1)
+
+#pointer "<color=#0AF>"
+#pointer.internal {item("internal pointer")}
+#pointer.get global.int.get({pointer.internal})
+#pointer.set(value) global.int.set({pointer.internal}, {value})
+
+; click->idle->price->name->description
+#items.displace(position, effect_count, other_displace) {other_displace} \
+  + ({effect_count} * effect_displace) + (\
+    ({shop_page.get} * {page_size}) + {position}\
+  ) * segment_length
+
+#items.substring(position, effect_count, other_displace, length) sub(\
+  items, \
+  {items.displace({position}, {effect_count}, {other_displace})},\
+  {length}\
+)
+#items.index(position, effect_count, other_displace) index(\
+  items, \
+  text_separator, \
+  {items.displace({position}, {effect_count}, {other_displace})}\
+) - ({items.displace({position}, {effect_count}, {other_displace})})
+

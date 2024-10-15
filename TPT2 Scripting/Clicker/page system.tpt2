@@ -1,0 +1,40 @@
+:import clicker lib
+:name {package(page system)}
+
+key.{page_increase}()
+key.{page_decrease}()
+
+execute(if(\
+  {initialisation_check}, \
+  "{garbage_requested}", \
+  "{package(init)}"\
+))
+gotoif(99, {initialisation_check} == false)
+
+{stats.set("shop page", if(\
+  contains(impulse(), "{package()}"), \
+  {stats.get("shop page")}, \
+  if(\
+    contains(impulse(), "key.{page_increase}"), \
+    min({stats.get("shop page")} + 1, page_count), \
+    max({stats.get("shop page")} - 1, 1)\
+  )\
+))}
+
+:local int i
+
+item_loop:
+{item.set("item" . i, {items.substring(\
+  i, \
+  2, \
+  price_displace, \
+  {items.index(i, 2, price_displace)}\
+)})}
+
+i += 1
+gotoif(item_loop, i < {page_size})
+execute(if(\
+  contains(impulse(), "{package(pointer system)}"), \
+  "{garbage_requested}", \
+  "{package(pointer system)}"\
+))

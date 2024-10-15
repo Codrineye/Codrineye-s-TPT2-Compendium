@@ -1,0 +1,133 @@
+{lua(\
+  shop = {};\
+  shop.item = {};\
+  shop.max_length = 0;\
+  shop.text = {};\
+  shop.text.max_name_size = 0;\
+  shop.text.max_description_size = 0;\
+  shop.text.text_ending_marker = [[|]];\
+  shop.precision = {};\
+  shop.precision.price = 0;\
+  shop.precision.effect = 0;\
+  shop.page = {};\
+  shop.max_page_size = 0;\
+  shop.contents_saver = 0;\
+\
+  local function x_digit_precision(digits, input)\
+    local number = tostring(input):gsub(" ", "");\
+    return string.sub(\
+      string.format("%0" .. digits .. "f", number),\
+      1,\
+      digits + 2\
+    );\
+  end\
+  local function text_formatting(text)\
+    local input = text:gsub(";", ",");\
+    return input:gsub("^ +", ""):gsub(" +$", "") .. shop.text.text_ending_marker;\
+  end\
+\
+  function shop.add_item(price, effect_idle, effect_click, name, description)\
+    local shop_index = 1 + #shop.item;\
+    local new_item = {};\
+    new_item.price = math.tointeger(price);\
+    shop.precision.price = math.max(\
+      #tostring(new_item.price) - 1,\
+      shop.precision.price\
+    );\
+    new_item.effect = {};\
+    new_item.effect.idle = math.tointeger(effect_idle);\
+    new_item.effect.click = math.tointeger(effect_click);\
+    shop.precision.effect = math.max(\
+      #tostring(math.max(new_item.effect.idle, new_item.effect.click)) - 1,\
+      shop.precision.effect\
+    );\
+    new_item.name = text_formatting(name);\
+    new_item.description = text_formatting(description);\
+    shop.text.max_name_size = math.max(\
+      shop.text.max_name_size,\
+      #new_item.name\
+    );\
+    shop.text.max_description_size = math.max(\
+      shop.text.max_description_size,\
+      #new_item.description\
+    );\
+    shop.max_length = shop.precision.price \
+      + shop.precision.effect + shop.precision.effect\
+      + shop.text.max_name_size + shop.text.max_description_size;\
+    shop.item[shop_index] = new_item;\
+    local item_name = name:gsub("^ +", ""):gsub(" +$", ""):gsub(" ", "_");\
+    return [[:const int ]] .. item_name .. [[ ]] .. shop_index;\
+  end\
+\
+  function shop.concat_items()\
+    local function repetition_string(big, small)\
+      local space = big - small;\
+      return string.rep('.', space);\
+    end\
+    local shop_items = #shop.item;\
+    local items_concat = {};\
+    for i = 1, shop_items do\
+      items_concat[1 + #items_concat] = x_digit_precision(\
+        shop.precision.effect,\
+        shop.item[i].effect.click\
+      );\
+      items_concat[1 + #items_concat] = x_digit_precision(\
+        shop.precision.effect,\
+        shop.item[i].effect.idle\
+      );\
+      items_concat[1 + #items_concat] = x_digit_precision(\
+        shop.precision.price,\
+        shop.item[i].price\
+      );\
+      items_concat[1 + #items_concat] = shop.item[i].name;\
+      items_concat[1 + #items_concat] = repetition_string(\
+        shop.text.max_name_size,\
+        #shop.item[i].name\
+      );\
+      items_concat[1 + #items_concat] = shop.item[i].description;\
+      items_concat[1 + #items_concat] = repetition_string(\
+        shop.text.max_description_size,\
+        #shop.item[i].description\
+      );\
+    end\
+    return table.concat(items_concat);\
+  end\
+\
+  function shop.add_page()\
+    local page_index = 1 + #shop.page;\
+    local new_page = {};\
+    new_page.count = #shop.item - shop.contents_saver;\
+    new_page.size = #tostring(new_page.count);\
+    shop.max_page_size = math.max(\
+      shop.max_page_size,\
+      new_page.size\
+    );\
+    shop.page[page_index] = new_page;\
+    shop.contents_saver = #shop.item;\
+    return [[:const int page]] .. page_index .. [[ ]] .. page_index;\
+  end\
+\
+  function shop.concat_pages()\
+    local page_count = #shop.page;\
+    local page_fitter = shop.max_page_size;\
+    local pages_concat = {};\
+    for i = 1, page_count do\
+      pages_concat[1 + #pages_concat] = x_digit_precision(\
+        shop.max_page_size,\
+        shop.page[i].count\
+      );\
+    end\
+    return table.concat(pages_concat);\
+  end\
+)}
+
+#add_item(name, effect_click, effect_idle, description, price) {lua(return shop.add_item(\
+  [[{price}]],\
+  [[{effect_idle}]],\
+  [[{effect_click}]],\
+  [[{name}]],\
+  [[{description}]]\
+))}
+#add_page(page) {lua(return shop.add_page())}
+
+
