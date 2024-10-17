@@ -4,20 +4,27 @@
 key.{pointer_increase}()
 key.{pointer_decrease}()
 
+; 
+; we repeat the same first start block as in page system
+; we end the process since we're woken up by page system
+; 
+:local bool initialised
+initialised = contains({item.get("shop")}, "</size>")
+
 execute(if(\
-  {initialisation_check}, \
+  initialised, \
   "{garbage_requested}", \
   "{package(init)}"\
 ))
+gotoif(99, initialised == false)
 
-gotoif(99, {initialisation_check} == false)
+; we execute page system to not have more than 1 sellection
+; a check on the impulse is not needed
+; since we're usually always going to execute page system
+executesync("{package(page system)}")
 
-executesync(if(\
-  contains({item.get("item" . {pointer.get})}, {pointer}), \
-  "{package(page system)}", \
-  "{garbage_requested}"\
-))
-
+; update our pointer according to our impulse
+; we have a min value of 0, and a max of {page_size} - 1
 {pointer.set(if(\
   contains(impulse(), "{package()}"), \
   {pointer.get}, \
@@ -28,29 +35,29 @@ executesync(if(\
   )\
 ))}
 
-{item.set("item" . {pointer.get}, {pointer} . "item" . {pointer.get} . "</color>")}
+; set up the store for the user to be able to see
+; since we always refresh the shop to remove the color
+; we can easily call for the item directly, instead of 
+; getting a substring of the item
+; 
+; we convert the input from a string to an int
+; and then back to a string so that the player
+; sees `cost = 50` instead of `cost = 00000050`
+{item.set("item" . {pointer.get}, {pointer} . {item.get("item" . {pointer.get})} . "</color>")}
 {item.set("description", {items.substring(\
   {pointer.get}, \
   2, \
   price_displace + name_displace, \
   {items.index({pointer.get}, 2, price_displace + name_displace)}\
 )})}
-{item.set("effect per click", "points per click + " . i2s(s2i({items.substring(\
-  {pointer.get}, \
-  0, \
-  0, \
-  effect_displace\
-)}, 0)))}
-{item.set("effect per second", "points per second + " . i2s(s2i({items.substring(\
-  {pointer.get}, \
-  1, \
-  0, \
-  effect_displace\
-)}, 0)))}
-{item.set("cost", "cost = " . i2s(s2i({items.substring(\
-  {pointer.get}, \
-  2, \
-  0, \
-  price_displace\
-)}, 0)))}
+{item.set("effect per click", "points per click + " . i2s(\
+  s2i({items.substring({pointer.get}, 0, 0, effect_displace)}, 0)\
+))}
+{item.set("effect per second", "points per second + " . i2s(\
+  s2i({items.substring({pointer.get}, 1, 0, effect_displace)}, \
+  0)\
+))}
+{item.set("cost", "cost = " . i2s(\
+  s2i({items.substring({pointer.get}, 2, 0, price_displace)}, 0)\
+))}
 

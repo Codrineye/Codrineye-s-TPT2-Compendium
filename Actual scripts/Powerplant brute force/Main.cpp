@@ -10,31 +10,6 @@ ofstream out("Test.out");
 
 #define e6 1000000;
 
-void optimizare() {
-   int cmax = -1;
-   int pos_init, pos_finit;
-   int cif_init, cif_finit;
-   for (int x, i = 0; in >> x; i ++) {
-      while (x > 0) {
-         if (x % 10 > cmax) {
-            pos_init = pos_finit = i;
-            cif_init = cif_finit = x;
-            cmax = x % 10;
-         } else if (x % 10 == cmax) {
-            pos_finit = i;
-            cif_finit = x;
-         }
-         x = x % 10;
-      }
-   }
-   if (pos_finit == pos_init) {
-      out << "Nu Exista";
-   } else {
-      out << cif_init << ' ' << cif_finit;
-   }
-}
-
-
 /*
  * Power
  * Root = 1000

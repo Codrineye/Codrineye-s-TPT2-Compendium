@@ -4,18 +4,33 @@
 mouse.{click}.down()
 key.{click}()
 
+; we perform the same check as in page system
+:local bool initialised
+initialised = contains({item.get("shop")}, "</size>")
+
 execute(if(\
-  {initialisation_check}, \
+  initialised, \
   "{garbage_requested}", \
   "{package(init)}"\
 ))
-gotoif(99, {initialisation_check} == false)
+gotoif(99, initialised == false)
 
+; increment if we have a click
+; exit the script
 increment:
-{stats.add("points", {stats.get("points per click")})}
+global.int.set(\
+  "points", \
+  global.int.get("points") + global.int.get("points per click")\
+)
 gotoif(99, contains("mouse.{click}.down|key.{click}", impulse()))
 
+; we have a clicks per second loop here
+; we wait 1 second so that we don't have
+; a clicks per frame loop
 clicks_per_second:
 wait(1.0)
-{stats.add("points", {stats.get("points per second")})}
+global.int.set(\
+  "points", \
+  global.int.get("points") + global.int.get("points per second")\
+)
 goto(clicks_per_second)

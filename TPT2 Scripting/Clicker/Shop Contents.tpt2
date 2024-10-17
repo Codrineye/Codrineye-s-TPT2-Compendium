@@ -1,4 +1,36 @@
 :import Shop Creation
+; 
+; 
+; This is a configuration script
+; you have at your disposal 2 functions:
+; 
+; <add_item> will register a new item
+; it has 5 fields you need to fill out
+; in order to define an item
+; * the name of the item
+; * the amount it adds to points per click
+; * the amount it adds to points per second
+; * a description for the item
+; * a price for the item
+; 
+; if the items description needs to have `,`
+; you will have to use `;`
+; we use e notation for the input to be read as a number
+; the implemented system does cannot read
+; numbers in notations other than scientific or full
+; 
+; <add_page> will register a new page
+; to define a page, you need to give it a number
+; this function determines how many items can be shown at once
+; 
+; at this time, I recommend you keep all pages the same size
+; the method in which items are displayed does not
+; update the items it cannot reach
+; this means that if a page has 5 items and the next has 6 items
+; going from a page to another does not hide the 6th item
+; 
+; development in the future will likely find a fix to this
+; 
 
 {add_item(noob clicker, 1, 0, you start with this clicker!, 50)}
 {add_item(cylindro clicker, 3, 0, the easiest boss!, 350)}
@@ -21,19 +53,28 @@
 {add_item(gem farm, 10e3, 10e3, shipyard; trading post..., 100e6)}
 {add_page(3)}
 
+; we now define our constants
+; first, string constants for an items string and a pages string
+; the pages string is likely the cause of the firstly mentioned issue
 :const string items '{lua(return shop.concat_items())}'
 :const string pages '{lua(return shop.concat_pages())}'
 
+; now, we have the count of items and our page recordings
 :const int items_count {lua(return #shop.item)}
 :const int page_count {lua(return #shop.page)}
 
+; 2 displacemant constants, for the name and description
 :const int name_displace {lua(return shop.text.max_name_size)}
 :const int description_displace {lua(return shop.text.max_description_size)}
 
+; the character that determines the end of our name/desc
 :const string text_separator '{lua(return shop.text.text_ending_marker)}'
 
+; 2 displacement constants for the price and effect
 :const int price_displace {lua(return shop.precision.price)}
 :const int effect_displace {lua(return shop.precision.effect)}
 
+; max page size is a number that determines how long a page is
+; if the biggest page is 12, this const makes it read 05
 :const int max_page_size {lua(return shop.max_page_size)}
 :const int segment_length {lua(return shop.max_length)}

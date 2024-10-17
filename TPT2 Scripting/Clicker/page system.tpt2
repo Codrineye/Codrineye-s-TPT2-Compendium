@@ -4,13 +4,29 @@
 key.{page_increase}()
 key.{page_decrease}()
 
+; our page system
+; this block ensures we are initialised
+; since we're called by init, we can safely quit
+; 
+; We can remove the initialised bool to clear an action
+; but since we're well in our limit, we can safely keep it
+; for guaranteed stability
+
+:local bool initialised
+initialised = contains({item.get("shop")}, "</size>")
+
 execute(if(\
-  {initialisation_check}, \
+  initialised, \
   "{garbage_requested}", \
   "{package(init)}"\
 ))
-gotoif(99, {initialisation_check} == false)
+gotoif(99, initialised == false)
 
+; Update our shop page in accordance to the impulse
+; the macro names of the impulse should be clear enough
+; additionally, we set pointer to 0 if the page changes
+; we would not want the pointer at position 5 to stay there
+; on a new page
 {stats.set("shop page", if(\
   contains(impulse(), "{package()}"), \
   {stats.get("shop page")}, \
@@ -20,7 +36,10 @@ gotoif(99, {initialisation_check} == false)
     max({stats.get("shop page")} - 1, 1)\
   )\
 ))}
-
+{pointer.set(if(contains(impulse(), "key."), 0, {pointer.get}))}
+; the item loop
+; setting the name of all items on this page
+; 
 :local int i
 
 item_loop:
@@ -31,10 +50,26 @@ item_loop:
   {items.index(i, 2, price_displace)}\
 )})}
 
+; look at clicker lib to understand this items.substring better
+; it's essentially just a sub() that takes less space
+; 
+; we increment until i is the length of our page size
+; 
 i += 1
 gotoif(item_loop, i < {page_size})
+; 
+; check if the pointer system called us
+; if it didn't, we wake it up to add the pointer
+; we want the pointer to be active so that the user
+; instantly has a sellection
+; 
+; tho it's not needed, since the system built
+; permits the pointer to be absent, I personally prefer this
+; 
 execute(if(\
   contains(impulse(), "{package(pointer system)}"), \
   "{garbage_requested}", \
   "{package(pointer system)}"\
 ))
+; We are not a turbo script, so there's no need for a no-op setup
+; 

@@ -1,3 +1,92 @@
+; 
+; Package made to create an
+; item and page registering system
+; 1 lua macro to perform all actions
+; 
+; initialisation of all variables present in this script
+; create the root table `shop`
+; all items are stored in the table shop.item
+; shop.max_length updates dynamically to mark the
+; maximum length of all inputs read
+; 
+; the shop.text table is used for text inputs
+; max_name_size and max_description_size update
+; as the inputs are being recorded
+; .text_ending_marker is a character added to the
+; end of a text to make the retrieving of text easier
+; 
+; shop.precision stores variables used to
+; format the numbers as best as possible
+; .price has the maximum value between itsself and
+; the number of digits the inputed price has
+; .effect has the maximum value between itself and
+; the number of digits of
+; the maximum between click/idle effects
+; 
+; the system is not made to support negative numbers
+; but with some tweeking, it likely could
+; 
+; .contents_saver is a dummy variable
+; it is used in calculating page sizes, by having
+; the count of recordings that had been made since
+; the last time this function got called
+; .max_page_size has the maximum between its value and
+; the number of digits of the count of item recordings made
+; since the previous page creation
+; 
+; 
+; local functions cannot be accessed outside of this lua macro
+; these functions are used for simple tasks not worth repeating
+; 
+; local function x_digit_precision(digits, input)
+; This function is an edited version of what's used in my clicks compactor
+; it creates a local number, and gives it the value of the input
+; with the removed spaces afterwards, the fuction
+; returns a formatted string, that has <digits> amount of 0's infront
+; the value of digits uses shop.precision.<input type>
+; 
+; time for the local functions
+; x_digit_precision(digits, input)
+; we create a local `number` that converts the
+; input into a string with none of the spaces
+; the function then returns the formatted string
+; such that the number has as many 0's infront of it
+; as the number of digits we want
+; 
+; text_formatting() taken in a text input
+; we create a local `input` that replaces all instances
+; of ';' with a ',' and then
+; return the `input` to no longer have whitespace
+; before and after the text input and adds the ending
+; character at the end
+; As an example
+;   text_formatting('  yah;oo  ow ')
+;   will return 'yah,oo  ow|'
+; everything inbetween ''
+; 
+; time for the global functions
+; add_item() takes in:
+;  * the price
+;  * the effect given per second
+;  * the effect given per click
+;  * the item name
+;  * the item description
+; we take our shop_index and create a table `new_item`
+; new_item.price is given the tonumber() value of price
+; tonumber() converts its input into a number, or empty string
+; if the input is not a number
+; we then compare .precision.price with the number of
+; characters inside of new_item.price, but converted to a string
+; create a new table new_item.effect() and add .idle and .click to it
+; perform the same dance with .precision.effect like with precision.price
+; Format the names accordingly and update max_name/description_size
+; update max_length to the absolute values, add the new item to shop.item
+; create an item_name that replaces all spaces inside of name with `_` and
+; return :local int item_name shop_index
+; 
+; shop.concat_items() 
+; 
+; 
 {lua(\
   shop = {};\
   shop.item = {};\

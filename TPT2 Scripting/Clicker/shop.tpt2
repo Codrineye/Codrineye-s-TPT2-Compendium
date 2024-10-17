@@ -5,12 +5,21 @@ key.{buy_at_pointer}()
 key.{buy_best}()
 
 :local int shopper
+:local bool initialised
+:local int price
 
-executesync(if(\
-  {initialisation_check}, \
+; 
+; Setup sequence seen inside of page system
+; we quit on line 3
+; even tho the script self exits 
+initialised = contains({item.get("shop")}, "</size>")
+
+execute(if(\
+  initialised, \
   "{garbage_requested}", \
   "{package(init)}"\
 ))
+gotoif(99, initialised == false)
 
 shopper = if(\
   contains(impulse(), "key.{buy_best}"), \
@@ -18,20 +27,41 @@ shopper = if(\
   1 + {pointer.get}\
 )
 
+; we enter this sequence no matter the impulse
+; we pre-increment shopper for this setup to
+; always give a valid value
 buy_best_loop:
 
-:local int price
-
 shopper = shopper - 1
-price = s2i({items.substring(shopper, 2, 0, price_displace)}, d2i(99 ^ price_displace))
+price = s2i(\
+  {items.substring(shopper, 2, 0, price_displace)}, \
+  d2i(99 ^ price_displace)\
+)
 
+; this condition will only proceed if
+; * we're buying max
+; * shopper is positive (since we cannot have item -1)
+; * price is bigger than our amount of points, since we cannot have 
+;   a negative amount of points
+; 
 gotoif(buy_best_loop, \
   contains(impulse(), "key.{buy_best}") && \
   shopper >= 0 && {stats.get("points")} < price\
 )
-
+; this gotoif stops us from trying to buy something
+; we cannot afford
+; this condition does not serve the same purpose as in
+; the previous gotoif even tho they both look the same
+; this condition exits the script if we're buying at the pointer
+; or if we're buying the first item in buy max, and we cannot afford it
+; the previous condition is to exit once we can afford an item
+; 
 gotoif(99, {stats.get("points")} < price)
 
+; we can now safely add the items to our stats
+; if the conversion fails, we return 0 just so that the player doesn't
+; lose progress because of a mistake I made
 {stats.add("points per click", s2i({items.substring(shopper, 0, 0, effect_displace)}, 0))}
 {stats.add("points per second", s2i({items.substring(shopper, 1, 0, effect_displace)}, 0))}
-{stats.add("points", 0 - price)}
+{stats.set("points", {stats.get("points")} - price)}
+

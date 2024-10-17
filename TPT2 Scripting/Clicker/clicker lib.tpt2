@@ -1,10 +1,17 @@
 :import Shop Contents
+
+; Macro for names in the script
 #package(name) clicker:{name}
 #garbage_requested {package(##%GARBAGE REQUESTED%##)}
+; Macro to call general garbage package
+; for invalid execute/executesync
 
-; Impulse keys macros
-; make it easier to understand the script
 
+; Impulse macros
+; makes it easy to change impulses
+; and hopefully makes the scripts easier
+; to understand
+; 
 #click 0
 #clicker_start c
 #buy_at_pointer f
@@ -13,33 +20,72 @@
 #page_decrease a
 #pointer_increase s
 #pointer_decrease w
-
+; 
+; Internal name for global variables
+; Reduces change of being modified by external sources
 #identifier "clicker"
 
+; Macro to handle a complex UI element
+; To prevent clutter, these are kept hidden until needed
+; 
 #item(name) "<size=0>" . {identifier} . ({name})
 #item.get(name) global.string.get({item({name})})
 #item.set(name, value) global.string.set({item({name})}, "</size>" . {value})
 
-#initialisation_check contains({item.get("cost")}, "</size>")
-
+; Macro to more easily and consistely express int
+; It just makes the source easier to look at
 #stats.get(name) global.int.get({name})
 #stats.set(name, value) global.int.set({name}, {value})
-#stats.add(name, effect) {stats.set({name}, {stats.get({name})} + {effect})}
+#stats.add(name, value) {stats.set({name}, {stats.get({name})} + ({value}))}
 
-#shop_page.get ({stats.get("shop page")} - 1)
-#page_size s2i(sub(pages, {shop_page.get}, max_page_size), -1)
+; read the size of the page
+; we're working with page - 1 for the starting index to be 0
+#page_size s2i(sub(pages, {stats.get("shop page")} - 1, max_page_size), -1)
 
+; color of our pointer
+; we set the color of the selected item
 #pointer "<color=#0AF>"
+; 
+; macros to handle the position of our internal pointer
+; the pointer has the same naming scheme as an item, but
+; its hiding block isn't ended inside
+; this makes it the only stat with characteristics of items
+; 
 #pointer.internal {item("internal pointer")}
-#pointer.get global.int.get({pointer.internal})
-#pointer.set(value) global.int.set({pointer.internal}, {value})
+#pointer.get {stats.get({pointer.internal})}
+#pointer.set(value) {stats.set({pointer.internal}, {value})}
 
+; Macros to get data out of our registered items
+; for clarity this is how the data is stored
+; 
 ; click->idle->price->name->description
+; 
+; calculate the offset from our root
+; this is a compressed formula, that takes in
+; our curent position, the number of `effect displace` present
+; and other displacements
+; 
+; this turns getting the discription from
+;  * effect_displace + effect_displace + price_displace + name_displace
+; into
+;  * 2, price_displace + name_displace
+; 
+; the displace function gets us the corect offset by
+; multiplying the internal page size with the current page size
+; adding the position to this value, and then multiplying everything
+; by the segment length
+; this calculation will fail if page_size has varying values
+; 
 #items.displace(position, effect_count, other_displace) {other_displace} \
   + ({effect_count} * effect_displace) + (\
-    ({shop_page.get} * {page_size}) + {position}\
+    (({stats.get("shop page")} - 1) * {page_size}) + {position}\
   ) * segment_length
-
+; 
+; Macros to easily get the wanted substring and index
+; the offset needs to be removed to get the text length
+; additionally, we've already declaired our character to
+; mark the end of text, so the only change needed to make is
+; inside of Shop Creation, if you want a different character
 #items.substring(position, effect_count, other_displace, length) sub(\
   items, \
   {items.displace({position}, {effect_count}, {other_displace})},\
