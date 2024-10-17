@@ -1,0 +1,80 @@
+:name lua madness but better
+; at least, I hope so XD
+; 
+; 
+; Original global declaration:
+; |-------------------------|
+; debugging = false;\
+; spell = {};\
+; spell.active_module = {};\
+; spell.active_module.module_instance = {};\
+; spell.active_module.placement_positions = {};\
+; spell.active_module.syncronization = {};\
+; spell.sync_delay = 0.0;\
+; spell.sync_precision = 2;\
+; spell.timer_precision = 6;\
+; spell.placement_precision = 4;\
+; spell.attribute_size = 8;\
+; spell.max_name_size = 0;\
+; spell.batch = {};\
+; spell.batch_instance = 1;\
+; spell.batch_max_size = 0;\
+; |----------------------|
+
+{lua(\
+  spell = {};\
+  spell.debugging = false;\
+  spell.active = {};\
+  spell.active_max_length = 0;\
+  spell.text = {};\
+  spell.text.name_max_length = 0;\
+  spell.text.attribute_max_length = 0;\
+  spell.text.text_ending_character = '|';\
+  spell.precision = {};\
+  spell.precision.sync = 0;\
+  spell.precision.timer = 0;\
+  spell.precision.placement = 0;\
+\
+  local function x_digit_precision(digits, input)\
+    local number = tostring(input):gsub(" ", "");\
+    return string.sub(\
+      string.format("%." .. digits .. "f", number), \
+      1, \
+      digits + 2\
+    );\
+  end\
+  local function text_formatting(input)\
+    local text = input:gsub(" ", "");\
+    return text .. spell.text.text_ending_character;\
+  end\
+\
+  function spell.add_spell(name, attribute, coord_x, coord_y, timer)\
+    local actives_index = 1 + #spell.active;\
+    local new_spell = {};\
+    new_spell.name = text_formatting(name);\
+    spell.text.name_max_size = math.max(\
+      spell.text.name_max_size, \
+      #new_spell.name\
+    );\
+    new_spell.attribute = attribute:gsub(" ", "");\
+    shop.text.attribute_max_size = math.max(\
+      shop.text.attribute_max_size, \
+      #new_spell.attribute\
+    );\
+    new_spell.coord_x = tonumber(coord_x);\
+    new_spell.coord_y = tonumber(coord_y);\
+    if math.type(new_spell.coord_x) == "float" or math.type(new_spell.coord_y) == "float" then\
+      spell.precision.placement = math.max(\
+        spell.precision.placement, \
+        #tostring(math.max(new_spell.coord_x, new_spell.coord_y)) - 1\
+      );\
+    else\
+      spell.precision.placement = math.max(\
+        spell.precision.placement, \
+        #tostring(math.max(new_spell.coord_x, new_spell.coord_y))\
+      );\
+    end\
+    new_spell.timer = tonumber(timer);\
+    \
+  end\
+)}
