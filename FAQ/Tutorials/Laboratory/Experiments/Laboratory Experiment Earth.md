@@ -84,9 +84,9 @@ Do note that this information will hardly ever come in usefull, but it's better 
 On the bright side, it could help you understand it better
 
 [density](#density) = [mass](#mass) / volume<br>
-[mass](#mass) is a double, meaning that its limit is ~$1e308$, meaning $10 ^ {308}$
-$$volume = \frac{4}{3} \cdot \pi \cdot radius ^ {3}$$
-$$radius = ({uncompressed\ radius}) \cdot (1.0 - compression)$$
+[mass](#mass) is a double, meaning that its limit is ~$1e308$, meaning $10 ^ {308}$<br>
+$$volume = \frac{4}{3} \cdot \pi \cdot radius ^ {3}$$<br>
+$$radius = ({uncompressed\ radius}) \cdot (1.0 - compression)$$<br>
 $${max.compression} = 10 - 0.5 \cdot clamp_0^1({0.75} ^ {\log^3\left(mass\right)})$$
 
 clamp01(x) is equivalent to max(0, min(x, 1))<br>
