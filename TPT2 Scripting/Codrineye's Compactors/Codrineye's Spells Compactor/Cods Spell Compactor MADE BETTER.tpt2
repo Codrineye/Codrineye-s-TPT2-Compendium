@@ -23,7 +23,9 @@
 
 {lua(\
   spell = {};\
-  spell.debugging = false;\
+  spell.debugging = {};\
+  spell.debugging.log = tru;\
+  spell.debugging.halt_compilation = tru;\
   spell.active = {};\
   spell.active_max_length = 0;\
   spell.text = {};\
@@ -36,45 +38,143 @@
   spell.precision.placement = 0;\
 \
   local function x_digit_precision(digits, input)\
-    local number = tostring(input):gsub(" ", "");\
+    local number = tostring(input):gsub(" ", ""):gusb("'", "");\
     return string.sub(\
-      string.format("%." .. digits .. "f", number), \
-      1, \
+      string.format("%." .. digits .. "f", number),\
+      1,\
       digits + 2\
     );\
   end\
   local function text_formatting(input)\
-    local text = input:gsub(" ", "");\
+    local text = input:gsub(" ", ""):gsub("'", "");\
     return text .. spell.text.text_ending_character;\
+  end\
+  local function debugging()\
+    print(\
+      "Spell Name =", spell.active[#spell.active].name, "\n",\
+      "And is of type", type(spell.active[#spell.active].name)\
+    );\
+    print(\
+      "Spell Name Size =", #spell.active[#spell.active].name, "\n",\
+      "Max Name Size =", spell.text.name_max_length\
+    );\
+    print(\
+      "Spell Attribute =", spell.active[#spell.active].attribute, "\n",\
+      "And is of type", type(spell.active[#spell.active].attribute)\
+    );\
+    print(\
+      "Spell Attribute Size =", #spell.active[#spell.active].attribute,\
+      "\n", "Max Attribute Size =", spell.text.attribute_max_length\
+    );\
+    print(\
+      "Spell coord_x =", spell.active[#spell.active].coord_x, "\n",\
+      "And is of type", type(spell.active[#spell.active].coord_x), "\n",\
+      "Should be a number, of type float, and such", "\n",\
+      "And is a number of type", math.type(spell.active[#spell.active].coord_x)\
+    );\
+    print(\
+      "Spell coord_y =", spell.active[#spell.active].coord_y, "\n",\
+      "And is of type", type(spell.active[#spell.active].coord_y), "\n",\
+      "Should be a number, of type float, and such", "\n",\
+      "And is a number of type", math.type(spell.active[#spell.active].coord_y)\
+    );\
+    print(\
+      "Spell Max Coord Size =", -1 + #tostring(math.max(\
+        spell.active[#spell.active].coord_x, \
+        spell.active[#spell.active].coord_y\
+      )), "\n",\
+      "Coord Precision =", spell.precision.placement\
+    );\
+    print(\
+      "Spell timer = ", spell.active[#spell.active].timer, "\n",\
+      "And is of type", type(spell.active[#spell.active].timer), "\n",\
+      "Should be a number, of type float, and such", "\n",\
+      "And is a number of type", math.type(spell.active[#spell.active].timer)\
+    );\
+    print(\
+      "Spell Timer Size =", -1 + #tostring(spell.active[#spell.active].timer),\
+      "\n", "Timer Precision =", spell.precision.timer\
+    );\
+    print("Spell index =", #spell.active);\
+    print("Blocker");\
   end\
 \
   function spell.add_spell(name, attribute, coord_x, coord_y, timer)\
     local actives_index = 1 + #spell.active;\
     local new_spell = {};\
     new_spell.name = text_formatting(name);\
+    new_spell.attribute = attribute:gsub(" ", "");\
+    new_spell.coord_x = 0.0 + tonumber(coord_x);\
+    new_spell.coord_y = 0.0 + tonumber(coord_y);\
+    new_spell.timer = 0.0 + tonumber(timer);\
+    spell.active[actives_index] = new_spell;\
+    if spell.debugging.log or spell.debugging.halt_compilation then\
+      debugging();\
+      if spell.debugging.halt_compilation then\
+        return "Debugging Enabled, check the dev-console";\
+      end\
+    end\
     spell.text.name_max_size = math.max(\
-      spell.text.name_max_size, \
+      spell.text.name_max_length,\
       #new_spell.name\
     );\
-    new_spell.attribute = attribute:gsub(" ", "");\
-    shop.text.attribute_max_size = math.max(\
-      shop.text.attribute_max_size, \
+    spell.text.attribute_max_size = math.max(\
+      spell.text.attribute_max_length,\
       #new_spell.attribute\
     );\
-    new_spell.coord_x = tonumber(coord_x);\
-    new_spell.coord_y = tonumber(coord_y);\
-    if math.type(new_spell.coord_x) == "float" or math.type(new_spell.coord_y) == "float" then\
-      spell.precision.placement = math.max(\
-        spell.precision.placement, \
-        #tostring(math.max(new_spell.coord_x, new_spell.coord_y)) - 1\
-      );\
-    else\
-      spell.precision.placement = math.max(\
-        spell.precision.placement, \
-        #tostring(math.max(new_spell.coord_x, new_spell.coord_y))\
-      );\
+    spell.precision.placement = math.max(\
+      spell.precision.placement, \
+      -1 + #tostring(math.max(new_spell.coord_x, new_spell.coord_y))\
+    );\
+    spell.precision.timer = math.max(\
+      spell.precision.timer,\
+      -1 + #tostring(new_spell.timer)\
+    );\
+    local constat_int = "spell." .. actives_count;\
+    return [[:const int ]] .. constant_int .. [[ ]] .. actives_index;\
+  end\
+  function spell.concat_actives()\
+    local actives_count = #spell.active;\
+    local spells = {};\
+    local recordings = spell.active;\
+  \
+    --[[Sequence for concatenation\
+        It will get broken up into separate\
+        local functions\
+        This is done to add implementation flexibility\
+      ]]\
+  \
+    for i = 1, actives_count do\
+      \
     end\
-    new_spell.timer = tonumber(timer);\
-    \
   end\
 )}
+
+#add_spell(name, attribute, placement_x, placement_y, timer) {lua(\
+  return spell.add_spell(\
+    {name},\
+    {attribute},\
+    [[{placement_x}]],\
+    [[{placement_y}]],\
+    [[{timer}]]\
+  );\
+)}
+
+#add_spell.instant(name, timer) {add_spell(\
+  '{name}',\
+  'instant.',\
+  0.0,\
+  0.0,\
+  {timer}\
+)}
+
+#add_spell.grounded(name, coord_x, coord_y, timer) {add_spell(\
+  '{name}',\
+  'grounded',\
+  {coord_x},\
+  {coord_y},\
+  {timer}\
+)}
+
+
+
