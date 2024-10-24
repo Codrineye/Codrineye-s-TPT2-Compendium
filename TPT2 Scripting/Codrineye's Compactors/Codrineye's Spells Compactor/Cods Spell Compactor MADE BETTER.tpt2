@@ -24,9 +24,11 @@
 {lua(\
   spell = {};\
   spell.debugging = {};\
-  spell.debugging.log = tru;\
-  spell.debugging.halt_compilation = tru;\
+  spell.debugging.log = 0;\
+  spell.debugging.halt_compilation = 0;\
+  spell.debugging.halting_limit = 99;\
   spell.active = {};\
+  spell.active.sync = {};\
   spell.active_max_length = 0;\
   spell.text = {};\
   spell.text.name_max_length = 0;\
@@ -108,11 +110,13 @@
     new_spell.coord_y = 0.0 + tonumber(coord_y);\
     new_spell.timer = 0.0 + tonumber(timer);\
     spell.active[actives_index] = new_spell;\
-    if spell.debugging.log or spell.debugging.halt_compilation then\
+    if spell.debugging.log + spell.debugging.halt_compilation > 0 then\
       debugging();\
-      if spell.debugging.halt_compilation then\
-        return "Debugging Enabled, check the dev-console";\
+      if spell.debugging.halt_compilation > spell.debugging.halting_limit then\
+        return "Debugging Enabled, compilation stopped \n" .. \
+          "check the dev-console in your browser";\
       end\
+      spell.debugging.halting_limit = spell.debugging.halting_limit - 1;\
     end\
     spell.text.name_max_size = math.max(\
       spell.text.name_max_length,\
@@ -123,30 +127,80 @@
       #new_spell.attribute\
     );\
     spell.precision.placement = math.max(\
-      spell.precision.placement, \
+      spell.precision.placement,\
       -1 + #tostring(math.max(new_spell.coord_x, new_spell.coord_y))\
     );\
     spell.precision.timer = math.max(\
       spell.precision.timer,\
       -1 + #tostring(new_spell.timer)\
     );\
-    local constat_int = "spell." .. actives_count;\
+    local constant_int = "spell." .. actives_index;\
     return [[:const int ]] .. constant_int .. [[ ]] .. actives_index;\
   end\
+  \
   function spell.concat_actives()\
-    local actives_count = #spell.active;\
+    local active_count = #spell.active;\
+    local index = 1;\
     local spells = {};\
     local recordings = spell.active;\
   \
-    --[[Sequence for concatenation\
-        It will get broken up into separate\
-        local functions\
-        This is done to add implementation flexibility\
-      ]]\
-  \
-    for i = 1, actives_count do\
-      \
+      --[[/*\
+        * Sequence for concatenation\
+        * It will get broken up into separate\
+        * local functions\
+        * This is done to add implementation flexibility\
+       */]]\
+    local function number_handling()\
+        --[[/*\
+          * Function that handles numbers\
+          * called by the for loop\
+          * actions performed outside the for loop\
+          * for a clean and easy to understand\
+          * sequence\
+         */]]\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.digit.timer,\
+        recordings[index].timer\
+      );\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.digit.placement,\
+        recordings[index].coord_x\
+      );\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.digit.placement,\
+        recordings[index].coord_y\
+      );\
     end\
+    local function text_handling()\
+        --[[/*\
+          * Function to handle all text inputs\
+          * featuring an internal function spacing()\
+          * that returns a spacing string\
+          * This is done to keep spacing consistent\
+          * since spacing is so important, all actions get\
+          * filtered down through this\
+         */]]\
+      local function spacing(max_size)\
+        local spacing_size = max_size - #spells[#spells];\
+        local spacing = string.rep('.', spacing_size);\
+        return spacing;\
+      end\
+      \
+      spells[1 + #spells] = recordings[index].attribute;\
+      spells[1 + #spells] = spacing(spell.text.attribute_max_size);\
+      spells[1 + #spells] = recordings[index].name;\
+      spells[1 + #spells] = spacing(spell.text.name_max_size);\
+    end\
+  \
+    while index < active_count do\
+      index = index + 1;\
+      number_handling();\
+      text_handling();\
+    end\
+    return table.concat(spells);\
+  end\
+  function spell.syncronization(copies, delay)\
+    \
   end\
 )}
 
@@ -168,7 +222,7 @@
   {timer}\
 )}
 
-#add_spell.grounded(name, coord_x, coord_y, timer) {add_spell(\
+#add_spell.grounded(name, timer, coord_x, coord_y) {add_spell(\
   '{name}',\
   'grounded',\
   {coord_x},\
@@ -176,5 +230,9 @@
   {timer}\
 )}
 
+; concat names =>
+; timer + x_pos + y_pos + type + name
 
+{add_spell.instant(a, 0)}
 
+:const string spells '{lua(return spell.concat_actives())}'
