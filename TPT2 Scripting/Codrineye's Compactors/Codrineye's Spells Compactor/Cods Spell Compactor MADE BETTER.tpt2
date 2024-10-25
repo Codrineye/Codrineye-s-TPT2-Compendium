@@ -20,27 +20,36 @@
 ; spell.batch_instance = 1;\
 ; spell.batch_max_size = 0;\
 ; |----------------------|
-
-{lua(\
+; 
+; enable debugging in Spell Debugging
+; 
+{lua( \
   spell = {};\
   spell.debugging = {};\
   spell.debugging.log = 0;\
-  spell.debugging.halt_compilation = 0;\
-  spell.debugging.halting_limit = 99;\
+  spell.debugging.can_halt = 0;\
+  spell.debugging.halt_after = 1;\
   spell.active = {};\
   spell.active.sync = {};\
+  spell.active.sync.index = 0;\
+  spell.active.sync.copies_internal = 0;\
+  spell.active.sync.delay_internal = 0;\
   spell.active_max_length = 0;\
   spell.text = {};\
   spell.text.name_max_length = 0;\
   spell.text.attribute_max_length = 0;\
   spell.text.text_ending_character = '|';\
+  spell.text.debugging = 0;\
+  spell.text.debugging_separator = '\n|';\
   spell.precision = {};\
   spell.precision.sync = 0;\
   spell.precision.timer = 0;\
   spell.precision.placement = 0;\
-\
+)}
+
+{lua(\
   local function x_digit_precision(digits, input)\
-    local number = tostring(input):gsub(" ", ""):gusb("'", "");\
+    local number = tostring(input):gsub(" ", ""):gsub("'", "");\
     return string.sub(\
       string.format("%." .. digits .. "f", number),\
       1,\
@@ -97,10 +106,29 @@
       "Spell Timer Size =", -1 + #tostring(spell.active[#spell.active].timer),\
       "\n", "Timer Precision =", spell.precision.timer\
     );\
+    print(\
+      "Spell sync = ", spell.active[#spell.active].sync, "\n",\
+      "And is of type", type(spell.active[#spell.active].sync), "\n",\
+      "Should be a number, of type integer, and such", "\n",\
+      "And is a number of type", math.type(spell.active[#spell.active].sync)\
+    );\
     print("Spell index =", #spell.active);\
     print("Blocker");\
   end\
 \
+\
+  function spell.syncronization(copies, delay)\
+    local sync_index = 1 + #spell.active.sync;\
+    local sync = {};\
+    sync.copies = -1 + math.tointeger(tonumber(copies));\
+    sync.delay = 0.0 + tonumber(delay);\
+    spell.active.sync[sync_index] = sync;\
+    spell.precision.sync = math.max(\
+      spell.precision.sync,\
+      #tostring(sync.copies)\
+    );\
+  end\
+  \
   function spell.add_spell(name, attribute, coord_x, coord_y, timer)\
     local actives_index = 1 + #spell.active;\
     local new_spell = {};\
@@ -108,15 +136,39 @@
     new_spell.attribute = attribute:gsub(" ", "");\
     new_spell.coord_x = 0.0 + tonumber(coord_x);\
     new_spell.coord_y = 0.0 + tonumber(coord_y);\
-    new_spell.timer = 0.0 + tonumber(timer);\
+    \
+    new_spell.sync = 0;\
+    local sync = spell.active.sync;\
+    local function add_sync()\
+      --[[/*\
+         * Function to handle the sync system\
+         * \
+         */]]\
+      if sync.copies_internal == 0 and sync[1 + sync.index] ~= nil then\
+        sync.index = sync.index + 1;\
+        sync.delay_internal = 0.0;\
+        sync.copies_internal = sync[sync.index].copies;\
+        new_spell.sync = sync.copies_internal;\
+        return sync.delay_internal;\
+      end\
+      sync.delay_internal = sync.delay_internal + sync[sync.index].delay;\
+      sync.copies_internal = sync.copies_internal - 1;\
+      return sync.delay_internal;\
+    end\
+    local sync_offset = 0.0;\
+    if sync[sync.index] ~= nil then\
+      sync_offset = add_sync();\
+    end\
+    new_spell.timer = sync_offset + tonumber(timer);\
+    \
     spell.active[actives_index] = new_spell;\
-    if spell.debugging.log + spell.debugging.halt_compilation > 0 then\
+    if spell.debugging.log + spell.debugging.can_halt > 0 then\
       debugging();\
-      if spell.debugging.halt_compilation > spell.debugging.halting_limit then\
+      if spell.debugging.can_halt > spell.debugging.halt_after then\
         return "Debugging Enabled, compilation stopped \n" .. \
           "check the dev-console in your browser";\
       end\
-      spell.debugging.halting_limit = spell.debugging.halting_limit - 1;\
+      spell.debugging.halt_after = spell.debugging.halt_after - 1;\
     end\
     spell.text.name_max_size = math.max(\
       spell.text.name_max_length,\
@@ -135,14 +187,19 @@
       -1 + #tostring(new_spell.timer)\
     );\
     local constant_int = "spell." .. actives_index;\
-    return [[:const int ]] .. constant_int .. [[ ]] .. actives_index;\
+    local spell_name = [[']] .. new_spell.name .. [[']];\
+    return [[:const string ]] .. constant_int .. [[ ]] .. spell_name;\
   end\
   \
   function spell.concat_actives()\
     local active_count = #spell.active;\
-    local index = 1;\
+    local index = 0;\
     local spells = {};\
     local recordings = spell.active;\
+    local spells_debugging = '';\
+    if spell.text.debugging > 0 then\
+      spells_debugging = spell.text.debugging_separator;\
+    end\
   \
       --[[/*\
         * Sequence for concatenation\
@@ -150,6 +207,7 @@
         * local functions\
         * This is done to add implementation flexibility\
        */]]\
+  \
     local function number_handling()\
         --[[/*\
           * Function that handles numbers\
@@ -158,16 +216,24 @@
           * for a clean and easy to understand\
           * sequence\
          */]]\
-      spells[1 + #spells] = x_digit_precision(\
-        spell.digit.timer,\
+      local function spells_number_formatting(digits, input)\
+        return spells_debugging .. x_digit_precision(digits, input);\
+      end\
+      \
+      spells[1 + #spells] = spells_number_formatting(\
+        spell.precision.sync,\
+        recordings[index].sync\
+      );\
+      spells[1 + #spells] = spells_number_formatting(\
+        spell.precision.timer,\
         recordings[index].timer\
       );\
-      spells[1 + #spells] = x_digit_precision(\
-        spell.digit.placement,\
+      spells[1 + #spells] = spells_number_formatting(\
+        spell.precision.placement,\
         recordings[index].coord_x\
       );\
-      spells[1 + #spells] = x_digit_precision(\
-        spell.digit.placement,\
+      spells[1 + #spells] = spells_number_formatting(\
+        spell.precision.placement,\
         recordings[index].coord_y\
       );\
     end\
@@ -180,15 +246,22 @@
           * since spacing is so important, all actions get\
           * filtered down through this\
          */]]\
-      local function spacing(max_size)\
-        local spacing_size = max_size - #spells[#spells];\
-        local spacing = string.rep('.', spacing_size);\
-        return spacing;\
+      local spells_text = '';\
+      local function spells_text_formatting(text)\
+         return spells_debugging .. text;\
       end\
-      \
-      spells[1 + #spells] = recordings[index].attribute;\
+      local function spacing(max_size)\
+        local spacing_size = max_size - #spells_text;\
+        local spacer = string.rep('.', spacing_size);\
+        return spells_text_formatting(spacer);\
+      end\
+    \
+      spells_text = recordings[index].attribute;\
+      spells[1 + #spells] = spells_text_formatting(spells_text);\
       spells[1 + #spells] = spacing(spell.text.attribute_max_size);\
-      spells[1 + #spells] = recordings[index].name;\
+    \
+      spells_text = recordings[index].name;\
+      spells[1 + #spells] = spells_text_formatting(spells_text);\
       spells[1 + #spells] = spacing(spell.text.name_max_size);\
     end\
   \
@@ -196,11 +269,9 @@
       index = index + 1;\
       number_handling();\
       text_handling();\
+      spells[1 + #spells] = spells_debugging;\
     end\
     return table.concat(spells);\
-  end\
-  function spell.syncronization(copies, delay)\
-    \
   end\
 )}
 
@@ -216,7 +287,7 @@
 
 #add_spell.instant(name, timer) {add_spell(\
   '{name}',\
-  'instant.',\
+  'instant',\
   0.0,\
   0.0,\
   {timer}\
@@ -230,9 +301,17 @@
   {timer}\
 )}
 
+#syncronize(copies, delay) {lua(return spell.syncronization(\
+  [[{copies}]],\
+  [[{delay}]]\
+))}
+
 ; concat names =>
-; timer + x_pos + y_pos + type + name
+; sync + timer + x_pos + y_pos + type + name
 
+{syncronize(3, 1)}
 {add_spell.instant(a, 0)}
+{add_spell.grounded(b, 0, 0, 0)}
 
-:const string spells '{lua(return spell.concat_actives())}'
+#spells_concat {lua(return spell.concat_actives())}
+":const string spells '{spells_concat}'
