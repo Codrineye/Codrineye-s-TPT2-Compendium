@@ -21,15 +21,13 @@
 ; spell.batch_max_size = 0;\
 ; |----------------------|
 ; 
-; enable debugging in Spell Debugging
 ; 
-{lua( \
+
+{lua(\
   spell = {};\
-  spell.debugging = {};\
-  spell.debugging.log = 0;\
-  spell.debugging.can_halt = 0;\
-  spell.debugging.halt_after = 1;\
   spell.active = {};\
+  spell.active.batch = {};\
+  spell.active.batch.max_batch = 0;\
   spell.active.sync = {};\
   spell.active.sync.index = 0;\
   spell.active.sync.copies_internal = 0;\
@@ -38,9 +36,7 @@
   spell.text = {};\
   spell.text.name_max_length = 0;\
   spell.text.attribute_max_length = 0;\
-  spell.text.text_ending_character = '|';\
-  spell.text.debugging = 0;\
-  spell.text.debugging_separator = '\n|';\
+  spell.text.text_ending_character = ':';\
   spell.precision = {};\
   spell.precision.sync = 0;\
   spell.precision.timer = 0;\
@@ -50,73 +46,28 @@
 {lua(\
   local function x_digit_precision(digits, input)\
     local number = tostring(input):gsub(" ", ""):gsub("'", "");\
+    local format = "%.";\
+    if math.type(tonumber(number)) == 'integer' then\
+      format = "%0"; \
+    end\
     return string.sub(\
-      string.format("%." .. digits .. "f", number),\
+      string.format(format .. digits .. "f", number),\
       1,\
       digits + 2\
     );\
   end\
+  \
   local function text_formatting(input)\
     local text = input:gsub(" ", ""):gsub("'", "");\
     return text .. spell.text.text_ending_character;\
   end\
-  local function debugging()\
-    print(\
-      "Spell Name =", spell.active[#spell.active].name, "\n",\
-      "And is of type", type(spell.active[#spell.active].name)\
-    );\
-    print(\
-      "Spell Name Size =", #spell.active[#spell.active].name, "\n",\
-      "Max Name Size =", spell.text.name_max_length\
-    );\
-    print(\
-      "Spell Attribute =", spell.active[#spell.active].attribute, "\n",\
-      "And is of type", type(spell.active[#spell.active].attribute)\
-    );\
-    print(\
-      "Spell Attribute Size =", #spell.active[#spell.active].attribute,\
-      "\n", "Max Attribute Size =", spell.text.attribute_max_length\
-    );\
-    print(\
-      "Spell coord_x =", spell.active[#spell.active].coord_x, "\n",\
-      "And is of type", type(spell.active[#spell.active].coord_x), "\n",\
-      "Should be a number, of type float, and such", "\n",\
-      "And is a number of type", math.type(spell.active[#spell.active].coord_x)\
-    );\
-    print(\
-      "Spell coord_y =", spell.active[#spell.active].coord_y, "\n",\
-      "And is of type", type(spell.active[#spell.active].coord_y), "\n",\
-      "Should be a number, of type float, and such", "\n",\
-      "And is a number of type", math.type(spell.active[#spell.active].coord_y)\
-    );\
-    print(\
-      "Spell Max Coord Size =", -1 + #tostring(math.max(\
-        spell.active[#spell.active].coord_x, \
-        spell.active[#spell.active].coord_y\
-      )), "\n",\
-      "Coord Precision =", spell.precision.placement\
-    );\
-    print(\
-      "Spell timer = ", spell.active[#spell.active].timer, "\n",\
-      "And is of type", type(spell.active[#spell.active].timer), "\n",\
-      "Should be a number, of type float, and such", "\n",\
-      "And is a number of type", math.type(spell.active[#spell.active].timer)\
-    );\
-    print(\
-      "Spell Timer Size =", -1 + #tostring(spell.active[#spell.active].timer),\
-      "\n", "Timer Precision =", spell.precision.timer\
-    );\
-    print(\
-      "Spell sync = ", spell.active[#spell.active].sync, "\n",\
-      "And is of type", type(spell.active[#spell.active].sync), "\n",\
-      "Should be a number, of type integer, and such", "\n",\
-      "And is a number of type", math.type(spell.active[#spell.active].sync)\
-    );\
-    print("Spell index =", #spell.active);\
-    print("Blocker");\
+\
+\
+  function spell.add_batch()\
+    local batch_index = 1 + #spell.active.batch;\
+    local batch = {};\
   end\
-\
-\
+  \
   function spell.syncronization(copies, delay)\
     local sync_index = 1 + #spell.active.sync;\
     local sync = {};\
@@ -142,34 +93,39 @@
     local function add_sync()\
       --[[/*\
          * Function to handle the sync system\
-         * \
+         * if we've run through the internal copies\
+         *   if the next index holds a sync\
+         *     increment the index and update\
+         *     our internal copies\
+         *   setup so we only have 1 return\
+         *   1 return means only 1 logic sequence\
+         *   to follow\
+         * we can continue\
+         * by increasing the delay and\
+         * decreasing our internal copies\
          */]]\
-      if sync.copies_internal == 0 and sync[1 + sync.index] ~= nil then\
-        sync.index = sync.index + 1;\
-        sync.delay_internal = 0.0;\
-        sync.copies_internal = sync[sync.index].copies;\
-        new_spell.sync = sync.copies_internal;\
-        return sync.delay_internal;\
+      if sync.copies_internal == 0 then\
+        if sync[1 + sync.index] ~= nil then\
+          sync.index = sync.index + 1;\
+          sync.copies_internal = sync[sync.index].copies;\
+          new_spell.sync = sync[sync.index].copies;\
+        end\
+        sync.copies_internal = sync.copies_internal + 1;\
+        sync.delay_internal = 0.0 - sync[sync.index].delay;\
       end\
       sync.delay_internal = sync.delay_internal + sync[sync.index].delay;\
       sync.copies_internal = sync.copies_internal - 1;\
       return sync.delay_internal;\
     end\
-    local sync_offset = 0.0;\
-    if sync[sync.index] ~= nil then\
-      sync_offset = add_sync();\
-    end\
-    new_spell.timer = sync_offset + tonumber(timer);\
     \
+    local sync_offset = add_sync();\
+    new_spell.timer = sync_offset + tonumber(timer);\
     spell.active[actives_index] = new_spell;\
-    if spell.debugging.log + spell.debugging.can_halt > 0 then\
-      debugging();\
-      if spell.debugging.can_halt > spell.debugging.halt_after then\
-        return "Debugging Enabled, compilation stopped \n" .. \
-          "check the dev-console in your browser";\
-      end\
-      spell.debugging.halt_after = spell.debugging.halt_after - 1;\
+    local debug_check = debug.can_halt + debug.can_log;\
+    if debug_check > 0 then\
+      debug.log();\
     end\
+    \
     spell.text.name_max_size = math.max(\
       spell.text.name_max_length,\
       #new_spell.name\
@@ -184,8 +140,15 @@
     );\
     spell.precision.timer = math.max(\
       spell.precision.timer,\
-      -1 + #tostring(new_spell.timer)\
+      #tostring(new_spell.timer) - 1\
     );\
+    local halt_limit = debug.should_halt;\
+    if debug.can_halt > 0 then\
+      if debug.can_halt > halt_limit then\
+        return debug.halt();\
+      end\
+      debug.should_halt = halt_limit - 1;\
+    end\
     local constant_int = "spell." .. actives_index;\
     local spell_name = [[']] .. new_spell.name .. [[']];\
     return [[:const string ]] .. constant_int .. [[ ]] .. spell_name;\
@@ -196,9 +159,16 @@
     local index = 0;\
     local spells = {};\
     local recordings = spell.active;\
-    local spells_debugging = '';\
-    if spell.text.debugging > 0 then\
-      spells_debugging = spell.text.debugging_separator;\
+    local spells_debug = {};\
+    spells_debug.format = '';\
+    spells_debug.spacer_open = '';\
+    spells_debug.spacer_close = '';\
+    spells_debug.chunk = '';\
+    if debug.text.can_concat > 0 then\
+      spells_debug.format = debug.text.concat_format;\
+      spells_debug.spacer_open = debug.text.spacer_open;\
+      spells_debug.spacer_close = debug.text.spacer_close\
+      spells_debug.chunk = "Chunk Separation\n";\
     end\
   \
       --[[/*\
@@ -206,6 +176,7 @@
         * It will get broken up into separate\
         * local functions\
         * This is done to add implementation flexibility\
+        * and to improve overall readability\
        */]]\
   \
     local function number_handling()\
@@ -217,7 +188,7 @@
           * sequence\
          */]]\
       local function spells_number_formatting(digits, input)\
-        return spells_debugging .. x_digit_precision(digits, input);\
+        return spells_debug.format .. x_digit_precision(digits, input);\
       end\
       \
       spells[1 + #spells] = spells_number_formatting(\
@@ -244,16 +215,20 @@
           * that returns a spacing string\
           * This is done to keep spacing consistent\
           * since spacing is so important, all actions get\
-          * filtered down through this\
+          * filtered down through it\
          */]]\
       local spells_text = '';\
+    \
       local function spells_text_formatting(text)\
-         return spells_debugging .. text;\
+         return spells_debug.format .. text;\
       end\
       local function spacing(max_size)\
         local spacing_size = max_size - #spells_text;\
-        local spacer = string.rep('.', spacing_size);\
-        return spells_text_formatting(spacer);\
+        local spacer = {};\
+        spacer[1 + #spacer] = spells_debug.spacer_open;\
+        spacer[1 + #spacer] = string.rep('.', spacing_size);\
+        spacer[1 + #spacer] = spells_debug.spacer_close;\
+        return spells_text_formatting(table.concat(spacer));\
       end\
     \
       spells_text = recordings[index].attribute;\
@@ -269,7 +244,7 @@
       index = index + 1;\
       number_handling();\
       text_handling();\
-      spells[1 + #spells] = spells_debugging;\
+      spells[1 + #spells] = spells_debug.format .. spells_debug.chunk;\
     end\
     return table.concat(spells);\
   end\
@@ -309,9 +284,6 @@
 ; concat names =>
 ; sync + timer + x_pos + y_pos + type + name
 
-{syncronize(3, 1)}
-{add_spell.instant(a, 0)}
-{add_spell.grounded(b, 0, 0, 0)}
-
 #spells_concat {lua(return spell.concat_actives())}
-":const string spells '{spells_concat}'
+
+; Space for convenience

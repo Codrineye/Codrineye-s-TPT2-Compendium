@@ -1,6 +1,3 @@
-
-; Space for convenience
-
 ; name of the package
 #package AutoNode
 
@@ -55,5 +52,3 @@
 #special(name, coordonateX, coordonateY, radius, speed, color) {lua(\
   return anvil.add_node("{name}", {coordonateX}, {coordonateY}, {radius}, {speed}, "special", {color})\
 )}
-
-; Space for convenience

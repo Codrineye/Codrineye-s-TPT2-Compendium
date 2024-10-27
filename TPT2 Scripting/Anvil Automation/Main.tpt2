@@ -1,6 +1,3 @@
-
-; Space for convenience
-
 :import Anvil Macros
 :name {package}:Main
 
@@ -13,5 +10,3 @@ gds (name, if (\
   (gdg (name) + 0.01) % 2.0, \
   if (gdg ("incrementer" . {identifier}) > 0.0, gdg (name), (gdg (name) % 29.0) + 1.0)\
 ))
-
-; Space for convenience

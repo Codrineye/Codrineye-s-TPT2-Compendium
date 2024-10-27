@@ -1,6 +1,3 @@
-
-; Space for convenience
-
 :import Anvil Macros
 
 {special(damage, 0.1, 0.1, 0.3, 604800, "#6042A6")}
@@ -52,5 +49,3 @@
   end\
   return [["]] .. table.concat(anvil.assembly) .. [["]]\
 )}
-
-; Space for convenience

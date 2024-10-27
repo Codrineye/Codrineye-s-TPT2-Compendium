@@ -1,0 +1,256 @@
+:import Cods Spell Compactor MADE BETTER
+
+{lua(\
+  debug = {};\
+  debug.can_log = 0;\
+  debug.can_halt = 0;\
+  debug.should_halt = 0;\
+  debug.text = {};\
+  debug.text.can_concat = 0;\
+  debug.text.concat_format = '';\
+  debug.text.spacer_open = '[';\
+  debug.text.spacer_close = ']';\
+)}
+
+{lua(\
+  function debug.log()\
+      --[[/*\
+          * Debugger function for logging\
+          * featuring additional functions to\
+          * streamline the format in which data\
+          * is printed\
+          * using print instead of return to\
+          * provide as non-intrusive a logging experience\
+          * as possible\
+         */]]\
+    local function print_text(text_type, text_name, text)\
+        --[[/*\
+            * text_type is either [Spell] or [Sync]\
+            * text_name is the name of our text\
+            *   ex: Name, Name Size,\
+            *       Attribute, Attribute Size,\
+            *       coord_x, coord_y,\
+            *       timer, sync ...\
+            * text is the text we want returned\
+            * for simplicity, this is the beginning part\
+            * It's flexible and does little, but saves room\
+           */]]\
+      local printer = {};\
+      printer[1 + #printer] = text_type;\
+      printer[1 + #printer] = ' ';\
+      printer[1 + #printer] = text_name;\
+      printer[1 + #printer] = " = ";\
+      printer[1 + #printer] = text;\
+      return table.concat(printer)\
+    end\
+    local function print_text_type(text_type, text_name, text)\
+        --[[/*\
+            * text_type, text_name and text from print_text()\
+            * function to return the type of [text]\
+           */]]\
+      local printer = {};\
+      printer[1 + #printer] = print_text(text_type, text_name, text);\
+      printer[1 + #printer] = '\n';\
+      printer[1 + #printer] = "And is of type ";\
+      printer[1 + #printer] = type(text);\
+      return table.concat(printer);\
+    end\
+    local function print_text_size(text_type, text_name, text, max_length)\
+        --[[/*\
+            * text_type, text_name and text from print_text()\
+            * max_length is the size of the maximum in\
+            * spell.text\
+            * \
+            * function seems redundant, but it's\
+            * for flexibility and easier logging\
+           */]]\
+      local printer = {};\
+      local size_text_name = text_name .. " Size";\
+      printer[1 + #printer] = print_text(text_type, size_text_name, #text);\
+      printer[1 + #printer] = '\n';\
+      printer[1 + #printer] = print_text([[Max]], size_text_name, max_length);\
+      return table.concat(printer)\
+    end\
+      --[[/*\
+         * Separate functions for numbers\
+         * Parameters text<block> are replaced with\
+         * number<block> to easily differentiate the two\
+         * functions separated because text is logged\
+         * differently to how numbers are logged\
+         */]]\
+    local function print_number_type(number_type, number_name, number, expected_type)\
+        --[[/*\
+            * number_type, number_name and number are the same\
+            * as text in print_text()\
+            * expected_type is the type we expect this number to be\
+            */]]\
+      local printer = {};\
+      printer[1 + #printer] = print_text_type(number_type, number_name, number);\
+      printer[1 + #printer] = '\n';\
+      printer[1 + #printer] = "Should be a number, of type ";\
+      printer[1 + #printer] = expected_type;\
+      printer[1 + #printer] = ", and such \n";\
+      printer[1 + #printer] = "And is a number of type ";\
+      printer[1 + #printer] = math.type(number);\
+      return table.concat(printer)\
+    end\
+    local function print_number_size(number_type, number_name, number, max_length)\
+        --[[/*\
+           * number_type and number_name are the same\
+           * from print_number_type()\
+           * this time, number is the length for the number\
+           * max_length is the expected precision from\
+           * spell.precision\
+           */]]\
+      local printer = {};\
+      local size_number_name = number_name .. " Size"\
+      printer[1 + #printer] = print_text(number_type, size_number_name, number);\
+      printer[1 + #printer] = '\n';\
+      printer[1 + #printer] = print_text(size_number_name, [[Precision]], max_length);\
+      return table.concat(printer);\
+    end\
+      --[[/*\
+         * Special function calls\
+         * methods to output types\
+         * for the future\
+         * These require per-case formatting\
+         */]]\
+    local function print_sync(sync_name, sync, info)\
+      --[[/*\
+         * sync_name and sync are like text_name and text\
+         * in print_text()\
+         * sync requires representation sequences\
+         * to describe what it represents\
+         * \
+         * these sequences can have as many\
+         * line breaks in them, as the :gsub turns\
+         * all whitespace [ ] into 1 single space [ ]\
+         */]]\
+      local printer = {};\
+      printer[1 + #printer] = print_text([[Sync]], sync_name, sync);\
+      printer[1 + #printer] = '\n';\
+      local representation = info:gsub("%s+", " ");\
+      printer[1 + #printer] = representation;\
+      return table.concat(printer);\
+    end\
+    \
+    local active = spell.active;\
+    local spell_index = #active;\
+    print(print_text_type([[Spell]], [[Name]], active[spell_index].name));\
+    print(print_text_size(\
+      [[Spell]],\
+      [[Name]],\
+      active[spell_index].name, \
+      spell.text.name_max_length\
+    ));\
+    \
+    print(print_text_type([[Spell]], [[Attribute]], active[spell_index].attribute));\
+    print(print_text_size(\
+      [[Spell]],\
+      [[Attribute]],\
+      active[spell_index].attribute,\
+      spell.text.attribute_max_length\
+    ));\
+  \
+  \
+    print(print_number_type([[Spell]], [[coord_x]], active[spell_index].coord_x, [[float]]));\
+    print(print_number_type([[Spell]], [[coord_y]], active[spell_index].coord_y, [[float]]));\
+    print(print_number_size(\
+      [[Spell Max]],\
+      [[Coord]],\
+      #tostring(math.max(\
+        active[spell_index].coord_x,\
+        active[spell_index].coord_y\
+      )) - 1,\
+      spell.precision.placement\
+    ));\
+    \
+    print(print_number_type([[Spell]], [[timer]], active[spell_index].timer, [[float]]));\
+    print(print_number_size(\
+      [[Spell]],\
+      [[Timer]],\
+      #tostring(active[spell_index].timer) - 1,\
+      spell.precision.timer\
+    ))\
+    \
+    print(print_number_type([[Spell]], [[sync]], active[spell_index].sync, [[integer]]));\
+    print(print_number_size(\
+      [[Spell]],\
+      [[Sync]],\
+      #tostring(active[spell_index].sync),\
+      spell.precision.sync\
+    ))\
+    print(print_text([[Spell]], [[index]], spell_index));\
+  \
+    local sync = spell.active.sync;\
+    print(print_sync(\
+      [[internal copies]],\
+      sync.copies_internal,\
+      "Representing how many more sync itterations are left"\
+    ));\
+    print(print_sync(\
+      [[copies]],\
+      sync[sync.index].copies,\
+      "Being what the internal copies are based of"\
+    ));\
+    print(print_sync(\
+      [[internal delay]],\
+      sync.delay_internal,\
+      "Representing how much delay got added to the timer"\
+    ));\
+    print(print_sync(\
+      [[delay]],\
+      sync[sync.index].delay,\
+      "Being the ammount added to the \
+      internal delay"\
+    ))\
+    print(print_text([[Sync]], [[internal index]], sync.index));\
+    print("Blocker");\
+  end\
+  \
+  function debug.halt()\
+    local debugger = {};\
+    local debug_check = debug.can_halt + debug.text.can_concat;\
+    if debug_check <= 0 then\
+      return;\
+    end\
+    debugger[1 + #debugger] = "Compilation Stopped, Debug mode enabled";\
+    if debug.can_halt > debug.should_halt then\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Logging enabled, logs are visible in ";\
+      debugger[1 + #debugger] = "your browsers developer console";\
+    end\
+    if debug.text.can_concat > 0 then\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Output formatting enabled" .. '\n';\
+      debugger[1 + #debugger] = "Every component of the output will ";\
+      debugger[1 + #debugger] = "begin with the string inputed in ";\
+      debugger[1 + #debugger] = "debugging.output_separator" .. '\n';\
+      debugger[1 + #debugger] = "Every spacing sequence will be ";\
+      debugger[1 + #debugger] = "inbetween the characters" .. " ";\
+      debugger[1 + #debugger] = "'['";\
+      debugger[1 + #debugger] = " " .. "and" .. " ";\
+      debugger[1 + #debugger] = "']'" .. '\n';\
+      debugger[1 + #debugger] = "Retrieving output showing ";\
+      debugger[1 + #debugger] = #spell.active;\
+      debugger[1 + #debugger] = ' ' .. "recording";\
+      if #spell.active > 1 then\
+        debugger[1 + #debugger] = 's';\
+      end\
+      debugger[1 + #debugger] = spell.concat_actives();\
+    end\
+    return table.concat(debugger);\
+  end\
+)}
+
+
+#debug {lua(return debug.halt())}
+
+#debug.log(level) {lua(debug.can_log = {level})}
+
+#debug.halt_compilation(level) {lua(debug.can_halt = {level})}
+#debug.recordings_before_halt(limit) {lua(debug.should_halt = {limit})}
+
+#debug.display_spells(level) {lua(debug.text.can_concat = {level})}
+#debug.display_format(separator) {lua(debug.text.concat_format = {separator})}
+

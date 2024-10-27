@@ -1,6 +1,4 @@
 
-; Space for convenience
-
 :import Anvil Macros
 :name {package}:Drawer
 
@@ -20,5 +18,3 @@ canvas.rect (\
   {pos.relative(x(direction), y(direction), 0.0, 0.0)}, \
   gsg ("color" . selector . {identifier})\
 )
-
-; Space for convenience
