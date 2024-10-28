@@ -4,9 +4,10 @@
 
 {debug.log(0)}
 {debug.halt_compilation(0)}
-{debug.recordings_before_halt(0)}
-{debug.display_spells(1)}
-{debug.display_format('\n|')}
+{debug.recordings_before_halt(6)}
+{debug.display_spells(0)}
+{debug.display_spells_in_batch(1)}
+{debug.display_format('\n\t')}
 
 
 ; Welcome to the configuration
@@ -55,6 +56,7 @@
 ; the system will accept your input, but you will not cast anything
 
 {syncronize(3, 0.0)}
+{add_batch}
 {add_spell.instant(barrier.temporal, 0.0)}
 {add_spell.instant(spell.floof, 0.0)}
 
@@ -65,6 +67,7 @@
 {add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
 
 {syncronize(4, 0.0)}
+{add_batch}
 {add_spell.instant(spell.snapOfDestiny, 1.0)}
 {add_spell.instant(spell.recharge, 1.0)}
 {add_spell.instant(spell.cooling, 1.0)}

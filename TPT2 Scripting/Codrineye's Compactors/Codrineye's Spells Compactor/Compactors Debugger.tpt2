@@ -7,6 +7,7 @@
   debug.should_halt = 0;\
   debug.text = {};\
   debug.text.can_concat = 0;\
+  debug.text.concat_in_batch = 0;\
   debug.text.concat_format = '';\
   debug.text.spacer_open = '[';\
   debug.text.spacer_close = ']';\
@@ -179,8 +180,23 @@
       [[Sync]],\
       #tostring(active[spell_index].sync),\
       spell.precision.sync\
-    ))\
+    ));\
     print(print_text([[Spell]], [[index]], spell_index));\
+  \
+    local batch = spell.active.batch;\
+    print(print_number_type(\
+      [[Batch]],\
+      [[size]],\
+      batch[#batch].size,\
+      [[integer]]\
+    ));\
+    print(print_number_type(\
+      [[Spell]],\
+      [[active_max_length]],\
+      spell.active_max_length,\
+      [[integer]]\
+    ));\
+    print(print_text([[Batch]], [[index]], #batch));\
   \
     local sync = spell.active.sync;\
     print(print_sync(\
@@ -203,14 +219,14 @@
       sync[sync.index].delay,\
       "Being the ammount added to the \
       internal delay"\
-    ))\
+    ));\
     print(print_text([[Sync]], [[internal index]], sync.index));\
     print("Blocker");\
   end\
   \
   function debug.halt()\
     local debugger = {};\
-    local debug_check = debug.can_halt + debug.text.can_concat;\
+    local debug_check = debug.can_halt + debug.text.can_concat + debug.text.concat_in_batch;\
     if debug_check <= 0 then\
       return;\
     end\
@@ -220,7 +236,8 @@
       debugger[1 + #debugger] = "Logging enabled, logs are visible in ";\
       debugger[1 + #debugger] = "your browsers developer console";\
     end\
-    if debug.text.can_concat > 0 then\
+    local text_check = debug.text.can_concat + debug.text.concat_in_batch;\
+    if text_check > 0 then\
       debugger[1 + #debugger] = '\n';\
       debugger[1 + #debugger] = "Output formatting enabled" .. '\n';\
       debugger[1 + #debugger] = "Every component of the output will ";\
@@ -237,6 +254,9 @@
       if #spell.active > 1 then\
         debugger[1 + #debugger] = 's';\
       end\
+      if debug.text.concat_in_batch == text_check then\
+        debugger[1 + #debugger] = '\n';\
+      end\
       debugger[1 + #debugger] = spell.concat_actives();\
     end\
     return table.concat(debugger);\
@@ -252,5 +272,6 @@
 #debug.recordings_before_halt(limit) {lua(debug.should_halt = {limit})}
 
 #debug.display_spells(level) {lua(debug.text.can_concat = {level})}
+#debug.display_spells_in_batch(level) {lua(debug.text.concat_in_batch = {level})}
 #debug.display_format(separator) {lua(debug.text.concat_format = {separator})}
 
