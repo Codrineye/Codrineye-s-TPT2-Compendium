@@ -1,4 +1,5 @@
-:import Cods Spell Compactor MADE BETTER
+; Lua macros that define functions that
+; permit debugging Cods Spell Compactor
 
 {lua(\
   debug = {};\
@@ -9,9 +10,13 @@
   debug.text.can_concat = 0;\
   debug.text.concat_in_batch = 0;\
   debug.text.concat_format = '';\
+  debug.text.chunk = "Chunk Separation" .. '\n';\
   debug.text.spacer_open = '[';\
   debug.text.spacer_close = ']';\
 )}
+
+; 
+; 
 
 {lua(\
   function debug.log()\
@@ -26,7 +31,7 @@
          */]]\
     local function print_text(text_type, text_name, text)\
         --[[/*\
-            * text_type is either [Spell] or [Sync]\
+            * text_type is the starting attribute\
             * text_name is the name of our text\
             *   ex: Name, Name Size,\
             *       Attribute, Attribute Size,\
@@ -263,15 +268,33 @@
   end\
 )}
 
+; 
+; 
 
 #debug {lua(return debug.halt())}
 
-#debug.log(level) {lua(debug.can_log = {level})}
+#debug.log(level) {lua(debug.can_log = math.max(\
+  {level},\
+  0 - {level}\
+))}
 
-#debug.halt_compilation(level) {lua(debug.can_halt = {level})}
+#debug.halt_compilation(level) {lua(debug.can_halt = math.max(\
+  {level},\
+  0 - {level}\
+))}
 #debug.recordings_before_halt(limit) {lua(debug.should_halt = {limit})}
 
-#debug.display_spells(level) {lua(debug.text.can_concat = {level})}
-#debug.display_spells_in_batch(level) {lua(debug.text.concat_in_batch = {level})}
-#debug.display_format(separator) {lua(debug.text.concat_format = {separator})}
+#debug.display_spells(level) {lua(debug.text.can_concat = math.max(\
+  {level},\
+  0 - {level}\
+))}
+#debug.display_spells_in_batch(level) {lua(\
+  debug.text.concat_in_batch = math.max(\
+    {level},\
+    0 - {level}\
+  );\
+)}
+#debug.display_format(separator) {lua(\
+  debug.text.concat_format = {separator}\
+)}
 

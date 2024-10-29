@@ -1,13 +1,13 @@
-:import Compactors Debugger
+:import Cods Spell Compactor MADE BETTER
 
 :name Spell Config
 
 {debug.log(0)}
-{debug.halt_compilation(0)}
+{debug.halt_compilation(1)}
 {debug.recordings_before_halt(6)}
-{debug.display_spells(0)}
-{debug.display_spells_in_batch(1)}
-{debug.display_format('\n\t')}
+{debug.display_spells(1)}
+{debug.display_spells_in_batch(0)}
+{debug.display_format('\n|')}
 
 
 ; Welcome to the configuration
@@ -55,31 +55,29 @@
 ; I do not recommend defining a ground module as an instant module nor vice versa
 ; the system will accept your input, but you will not cast anything
 
-{syncronize(3, 0.0)}
-{add_batch}
+{syncronize(2, 0.0)}
 {add_spell.instant(barrier.temporal, 0.0)}
 {add_spell.instant(spell.floof, 0.0)}
 
-{syncronize(4, 0.0)}
+{syncronize(2, 0.0)}
 {add_spell.instant(spell.response.neutral, 0.0)}
 {add_spell.grounded(spell.void, 0.0, 0.0, 0.0)}
 
 {add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
 
 {syncronize(4, 0.0)}
-{add_batch}
 {add_spell.instant(spell.snapOfDestiny, 1.0)}
 {add_spell.instant(spell.recharge, 1.0)}
 {add_spell.instant(spell.cooling, 1.0)}
 {add_spell.grounded(spell.something, 1.0, 5.0, 15.0)}
 
-{syncronize(4, 0.0)}
+{syncronize(2, 0.0)}
 {add_spell.instant(spell.response.neutral, 2.0)}
 {add_spell.grounded(spell.void, 2.0, 0.0, 0.0)}
 
 {add_spell.instant(spell.snapOfDestiny, 3.0)}
 
-{syncronize(7, 0.0)}
+{syncronize(6, 0.0)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 {add_spell.instant(spell.refresh, 28.0)}
 {add_spell.instant(spell.recharge, 28.0)}
@@ -87,16 +85,15 @@
 {add_spell.instant(spell.floof, 28.0)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 
-{syncronize(3, 0.0)}
+{syncronize(2, 0.0)}
 {add_spell.instant(spell.cooling, 29.0)}
 {add_spell.instant(spell.recharge, 29.0)}
 
-{syncronize(4, 0.0)}
 {add_spell.grounded(spell.void, 29.0, 0.0, 0.0)}
 
 {add_spell.grounded(spell.something, 30.5, 12.0, 10.0)}
 
-{syncronize(7, 0.0)}
+{syncronize(5, 0.0)}
 {add_spell.instant(spell.snapOfDestiny, 31.0)}
 {add_spell.instant(spell.recharge, 31.0)}
 {add_spell.instant(spell.refresh, 31.0)}
@@ -105,7 +102,6 @@
 
 {add_spell.instant(spell.snapOfDestiny, 33.0)}
 
-{syncronize(4, 0.0)}
 {add_spell.instant(spell.snapOfDestiny, 57.0)}
 
 ; These are the constants you'll be dealing with
@@ -114,6 +110,7 @@
 ; create separate sequences if need be
 ; Such as for a fragment AI
 
+:const string actives '{lua(return spell.concat_actives())}'
 :const int spells_count {lua(return #spell.active)}
 
 :const int sync_precision {lua(return spell.precision.sync)}

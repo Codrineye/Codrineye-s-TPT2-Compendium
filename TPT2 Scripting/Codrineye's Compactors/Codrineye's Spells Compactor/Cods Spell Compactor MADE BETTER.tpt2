@@ -1,25 +1,6 @@
+:import Compactors Debugger
 :name lua madness but better
-; at least, I hope so XD
-; 
-; 
-; Original global declaration:
-; |-------------------------|
-; debugging = false;\
-; spell = {};\
-; spell.active_module = {};\
-; spell.active_module.module_instance = {};\
-; spell.active_module.placement_positions = {};\
-; spell.active_module.syncronization = {};\
-; spell.sync_delay = 0.0;\
-; spell.sync_precision = 2;\
-; spell.timer_precision = 6;\
-; spell.placement_precision = 4;\
-; spell.attribute_size = 8;\
-; spell.max_name_size = 0;\
-; spell.batch = {};\
-; spell.batch_instance = 1;\
-; spell.batch_max_size = 0;\
-; |----------------------|
+
 ; 
 ; 
 
@@ -69,7 +50,10 @@
     batch.checkpoint = #spell.active;\
     batch.size = 0;\
     if spell.active.batch[batch_index - 1] ~= nil then\
-      batch.size = batch.checkpoint - spell.active.batch[batch_index - 1].checkpoint;\
+      local curent_checkpoint = batch.checkpoint;\
+      active_batch = spell.active.batch;\
+      local previous_checkpoint = active_batch[#active_batch].checkpoint;\
+      batch.size = curent_checkpoint - previous_checkpoint;\
     end\
     spell.active.batch[batch_index] = batch;\
     spell.active.batch.max_batch = math.max(\
@@ -135,12 +119,6 @@
     \
     local sync_offset = add_sync();\
     new_spell.timer = sync_offset + tonumber(timer);\
-    if #spell.active.batch > 0 then\
-      spell.active.batch.max_batch = math.max(\
-        spell.active.batch.max_batch,\
-        actives_index - spell.active.batch[#spell.active.batch].size\
-      );\
-    end\
     spell.active[actives_index] = new_spell;\
     local debug_check = debug.can_halt + debug.can_log;\
     if debug_check > 0 then\
@@ -183,32 +161,36 @@
   end\
   \
   function spell.concat_actives()\
-    local active_count = #spell.active;\
-    local index = 0;\
     local spells = {};\
+  \
     local recordings = spell.active;\
+    local active_count = #spell.active;\
+  \
+    spell.add_batch();\
     local batches = spell.active.batch;\
     local batch_index = 1;\
-    if #batches > 0 then\
-      batch_index = 1;\
-    end\
     local batch_concat = '';\
+    local batch_view = '';\
+    local index = 0;\
+  \
     local spells_debug = {};\
     spells_debug.format = '';\
     spells_debug.spacer_open = '';\
     spells_debug.spacer_close = '';\
     spells_debug.chunk = '';\
-    local debug_text = debug.text.can_concat + debug.text.concat_in_batch;\
+    local debug_text = debug.text.concat_in_batch;\
+    debug_text = debug_text + debug.text.can_concat;\
     if debug_text > 0 then\
       if debug_text == debug.text.concat_in_batch then\
         batch_concat = debug.text.concat_format;\
       else\
         spells_debug.format = debug.text.concat_format;\
-        spells_debug.chunk = "Chunk Separation\n";\
+        spells_debug.chunk = debug.text.chunk;\
       end\
       spells_debug.spacer_open = debug.text.spacer_open;\
       spells_debug.spacer_close = debug.text.spacer_close\
     end\
+  \
   \
       --[[/*\
         * Sequence for concatenation\
@@ -218,7 +200,7 @@
         * and to improve overall readability\
        */]]\
   \
-    local function number_handling()\
+      local function number_handling()\
         --[[/*\
           * Function that handles numbers\
           * called by the for loop\
@@ -230,7 +212,7 @@
         return spells_debug.format .. x_digit_precision(digits, input);\
       end\
       \
-      if debug.text.can_concat > 0 then\
+      if debug_text > 0 then\
         spells[1 + #spells] = spells_number_formatting(\
           #tostring(#recordings),\
           index\
@@ -253,6 +235,18 @@
         recordings[index].coord_y\
       );\
     end\
+    local function batch_handling()\
+        --[[/*\
+            * Function that handles batch view\
+            * \
+           */]]\
+      if debug_text ~= debug.text.concat_in_batch then\
+        return;\
+      end\
+      if index == batch_index then\
+        spells[1 + #spells] = spells_debug.format .. batch_concat;\
+      end\
+    end\
     local function text_handling()\
         --[[/*\
           * Function to handle all text inputs\
@@ -267,29 +261,20 @@
       local function spells_text_formatting(text)\
          return spells_debug.format .. text;\
       end\
-      local function spacing(max_size)\
-        local spacing_size = max_size - #spells_text;\
+      local function spacing_encase(spacing)\
         local spacer = {};\
         spacer[1 + #spacer] = spells_debug.spacer_open;\
-        spacer[1 + #spacer] = string.rep('.', spacing_size);\
+        spacer[1 + #spacer] = spacing;\
         spacer[1 + #spacer] = spells_debug.spacer_close;\
-        return spells_text_formatting(table.concat(spacer));\
+        return table.concat(spacer);\
+      end\
+      local function spacing(max_size)\
+        local spacing_size = max_size - #spells_text;\
+        local space = string.rep('.', spacing_size);\
+        return spells_text_formatting(spacing_encase(space));\
       end\
       local function space_batch()\
-        spells_text = '';\
-        local space = 0;\
-        local temp_format = spells_debug.format;\
-        if index >= batches[batch_index].checkpoint then\
-          space = batches.max_batch - batches[batch_index].checkpoint;\
-          batches[batch_index].checkpoint = active_count + index;\
-          spells_debug.format = temp_format .. batch_concat;\
-          if batches[batch_index + 1] ~= nil then\
-            batch_index = batch_index + 1;\
-          end\
-        end\
-        spells_text = spacing(space * spell.active_max_length);\
-        spells_debug.format = temp_format;\
-        return spells_text;\
+        \
       end\
     \
       spells_text = recordings[index].attribute;\
@@ -300,11 +285,14 @@
       spells[1 + #spells] = spells_text_formatting(spells_text);\
       spells[1 + #spells] = spacing(spell.text.name_max_size);\
     \
-      spells[1 + #spells] = space_batch();\
+      spells[1 + #spells] = spells_text_formatting(\
+        spacing_encase(space_batch())\
+      );\
     end\
   \
     while index < active_count do\
       index = index + 1;\
+      batch_handling();\
       number_handling();\
       text_handling();\
       spells[1 + #spells] = spells_debug.format .. spells_debug.chunk;\
@@ -345,12 +333,4 @@
   {coord_y},\
   {timer}\
 )}
-
-
-; concat names =>
-; sync + timer + x_pos + y_pos + type + name
-
-#spells_concat {lua(return spell.concat_actives())}
-
-; Space for convenience
 
