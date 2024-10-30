@@ -37,11 +37,6 @@
       digits + 2\
     );\
   end\
-  \
-  local function text_formatting(input)\
-    local text = input:gsub(" ", ""):gsub("'", "");\
-    return text .. spell.text.text_ending_character;\
-  end\
 \
 \
   function spell.add_batch()\
@@ -49,7 +44,7 @@
     local batch = {};\
     batch.checkpoint = #spell.active;\
     batch.size = 0;\
-    if spell.active.batch[batch_index - 1] ~= nil then\
+    if batch_index > 1 then\
       local curent_checkpoint = batch.checkpoint;\
       active_batch = spell.active.batch;\
       local previous_checkpoint = active_batch[#active_batch].checkpoint;\
@@ -77,12 +72,7 @@
   function spell.add_spell(name, attribute, coord_x, coord_y, timer)\
     local actives_index = 1 + #spell.active;\
     local new_spell = {};\
-    if debug.can_halt > 0 then\
-      if debug.can_halt > debug.should_halt then\
-        return;\
-      end\
-    end\
-    new_spell.name = text_formatting(name);\
+    new_spell.name = name .. spell.text.text_ending_character;\
     new_spell.attribute = attribute:gsub(" ", "");\
     new_spell.coord_x = 0.0 + tonumber(coord_x);\
     new_spell.coord_y = 0.0 + tonumber(coord_y);\
@@ -91,20 +81,21 @@
     local sync = spell.active.sync;\
     local function add_sync()\
       --[[/*\
-         * Function to handle the sync system\
-         * if we've run through the internal copies\
-         *   if the next index holds a sync\
-         *     increment the index and update\
-         *     our internal copies\
-         *   setup so we only have 1 return\
-         *   1 return means only 1 logic sequence\
-         *   to follow\
-         * we can continue\
-         * by increasing the delay and\
-         * decreasing our internal copies\
+          * Function to handle the sync system\
+          * if we've run through the internal copies\
+          *   if the next sync exists\
+          *     increment the index\
+          *     update our internal copies\
+          *     add a sync to the spell\
+          *   setup so we only have 1 return\
+          *   1 return means only 1 logic sequence\
+          *   to follow\
+          * we can continue\
+          * by increasing the delay and\
+          * decreasing our internal copies\
          */]]\
       if sync.copies_internal == 0 then\
-        if sync[1 + sync.index] ~= nil then\
+        if #sync > sync.index then\
           sync.index = sync.index + 1;\
           sync.copies_internal = sync[sync.index].copies;\
           new_spell.sync = sync[sync.index].copies;\
@@ -120,10 +111,6 @@
     local sync_offset = add_sync();\
     new_spell.timer = sync_offset + tonumber(timer);\
     spell.active[actives_index] = new_spell;\
-    local debug_check = debug.can_halt + debug.can_log;\
-    if debug_check > 0 then\
-      debug.log();\
-    end\
     \
     spell.text.name_max_size = math.max(\
       spell.text.name_max_length,\
@@ -135,25 +122,35 @@
     );\
     spell.precision.placement = math.max(\
       spell.precision.placement,\
-      -1 + #tostring(math.max(new_spell.coord_x, new_spell.coord_y))\
+      #tostring(math.max(new_spell.coord_x, new_spell.coord_y)) - 1\
     );\
     spell.precision.timer = math.max(\
       spell.precision.timer,\
       #tostring(new_spell.timer) - 1\
     );\
+  \
+    local active_length = spell.precision.timer;\
+    active_length = active_length + spell.precision.sync;\
+    active_length = active_length + spell.precision.placement;\
+    active_length = active_length + spell.precision.placement;\
+    active_length = active_length + spell.text.attribute_max_length;\
+    active_length = active_length + spell.text.name_max_length;\
+  \
     spell.active_max_length = math.max(\
       spell.active_max_length,\
-      spell.precision.timer + spell.precision.sync\
-      + 2 * spell.precision.placement + \
-      spell.text.attribute_max_length + \
-      spell.text.name_max_length\
+      active_length\
     );\
-    local halt_limit = debug.should_halt;\
+    local debug_check = debug.can_halt;\
+    debug_check = debug_check + debug.can_log;\
+    if debug_check > 0 then\
+      debug.log();\
+    end\
+    local halt_limit = debug.can_halt - debug.should_halt;\
     if debug.can_halt > 0 then\
-      if debug.can_halt > halt_limit then\
+      if halt_limit > 0 then\
         return debug.halt();\
       end\
-      debug.should_halt = halt_limit - 1;\
+      debug.should_halt = debug.should_halt - 1;\
     end\
     local constant_int = "spell." .. actives_index;\
     local spell_name = [[']] .. new_spell.name .. [[']];\
@@ -170,7 +167,6 @@
     local batches = spell.active.batch;\
     local batch_index = 1;\
     local batch_concat = '';\
-    local batch_view = '';\
     local index = 0;\
   \
     local spells_debug = {};\
@@ -178,46 +174,73 @@
     spells_debug.spacer_open = '';\
     spells_debug.spacer_close = '';\
     spells_debug.chunk = '';\
+  \
+    local spells_format = {};\
+    spells_format.encase = 0;\
+    spells_format.batch = 0;\
+    \
+    \
     local debug_text = debug.text.concat_in_batch;\
     debug_text = debug_text + debug.text.can_concat;\
     if debug_text > 0 then\
+      spells_debug.spacer_open = debug.text.spacer_open;\
+    \
       if debug_text == debug.text.concat_in_batch then\
         batch_concat = debug.text.concat_format;\
+        spells[1 + #spells] = batch_concat;\
       else\
         spells_debug.format = debug.text.concat_format;\
         spells_debug.chunk = debug.text.chunk;\
       end\
-      spells_debug.spacer_open = debug.text.spacer_open;\
-      spells_debug.spacer_close = debug.text.spacer_close\
+    \
+      spells_debug.spacer_close = debug.text.spacer_close;\
     end\
   \
   \
       --[[/*\
-        * Sequence for concatenation\
-        * It will get broken up into separate\
-        * local functions\
-        * This is done to add implementation flexibility\
-        * and to improve overall readability\
-       */]]\
-  \
-      local function number_handling()\
-        --[[/*\
-          * Function that handles numbers\
-          * called by the for loop\
-          * actions performed outside the for loop\
-          * for a clean and easy to understand\
-          * sequence\
+          * Sequence for concatenation\
+          * It will get broken up into separate\
+          * local functions\
+          * This is done to add implementation flexibility\
+          * and to improve overall readability\
          */]]\
+  \
+    local function sequence_encase(sequence)\
+        --[[/*\
+            * General purpose function\
+            * permits easy encasing of\
+            * any section of code\
+           */]]\
+      local spacer = {};\
+      spacer[1 + #spacer] = spells_debug.spacer_open;\
+      spacer[1 + #spacer] = sequence;\
+      spacer[1 + #spacer] = spells_debug.spacer_close;\
+      return table.concat(spacer);\
+    end\
+    local function concat_format()\
+        --[[/*\
+            * Function that formats the\
+            * contents of spells according\
+            * to the debugging values\
+           */]]\
+      local start = '';\
+      if text_debug == 0 then\
+        return;\
+      end\
+      \
+    end\
+    local function number_handling()\
+        --[[/*\
+            * Function that handles numbers\
+            * called by the for loop\
+            * actions performed outside the for loop\
+            * for a clean and easy to understand\
+            * sequence\
+           */]]\
       local function spells_number_formatting(digits, input)\
         return spells_debug.format .. x_digit_precision(digits, input);\
       end\
       \
-      if debug_text > 0 then\
-        spells[1 + #spells] = spells_number_formatting(\
-          #tostring(#recordings),\
-          index\
-        );\
-      end\
       spells[1 + #spells] = spells_number_formatting(\
         spell.precision.sync,\
         recordings[index].sync\
@@ -235,46 +258,24 @@
         recordings[index].coord_y\
       );\
     end\
-    local function batch_handling()\
-        --[[/*\
-            * Function that handles batch view\
-            * \
-           */]]\
-      if debug_text ~= debug.text.concat_in_batch then\
-        return;\
-      end\
-      if index == batch_index then\
-        spells[1 + #spells] = spells_debug.format .. batch_concat;\
-      end\
-    end\
     local function text_handling()\
         --[[/*\
-          * Function to handle all text inputs\
-          * featuring an internal function spacing()\
-          * that returns a spacing string\
-          * This is done to keep spacing consistent\
-          * since spacing is so important, all actions get\
-          * filtered down through it\
-         */]]\
+            * Function to handle all text inputs\
+            * featuring an internal function spacing()\
+            * that returns a spacing string\
+            * This is done to keep spacing consistent\
+            * since spacing is so important, all actions get\
+            * filtered down through it\
+           */]]\
       local spells_text = '';\
     \
       local function spells_text_formatting(text)\
          return spells_debug.format .. text;\
       end\
-      local function spacing_encase(spacing)\
-        local spacer = {};\
-        spacer[1 + #spacer] = spells_debug.spacer_open;\
-        spacer[1 + #spacer] = spacing;\
-        spacer[1 + #spacer] = spells_debug.spacer_close;\
-        return table.concat(spacer);\
-      end\
       local function spacing(max_size)\
         local spacing_size = max_size - #spells_text;\
         local space = string.rep('.', spacing_size);\
-        return spells_text_formatting(spacing_encase(space));\
-      end\
-      local function space_batch()\
-        \
+        return spells_text_formatting(sequence_encase(space));\
       end\
     \
       spells_text = recordings[index].attribute;\
@@ -284,29 +285,40 @@
       spells_text = recordings[index].name;\
       spells[1 + #spells] = spells_text_formatting(spells_text);\
       spells[1 + #spells] = spacing(spell.text.name_max_size);\
-    \
-      spells[1 + #spells] = spells_text_formatting(\
-        spacing_encase(space_batch())\
-      );\
+    end\
+    local function batch_handling()\
+        --[[/*\
+            * Function that handles batch\
+            * creation and formatting\
+           */]]\
+      local function d()\
+      end\
+      \
+      if debug.text.concat_in_batch == text_debug then\
+        \
+      end\
+      if #batches > batch_index then\
+        batch_index = batch_index + 1;\
+      end\
     end\
   \
     while index < active_count do\
       index = index + 1;\
-      batch_handling();\
       number_handling();\
       text_handling();\
+      batch_handling();\
       spells[1 + #spells] = spells_debug.format .. spells_debug.chunk;\
     end\
     return table.concat(spells);\
   end\
 )}
 
+#add_batch {lua(return spell.add_batch())}
+
 #syncronize(copies, delay) {lua(return spell.syncronization(\
   [[{copies}]],\
   [[{delay}]]\
 ))}
-
-#add_batch {lua(return spell.add_batch())}
 
 #add_spell(name, attribute, placement_x, placement_y, timer) {lua(\
   return spell.add_spell(\

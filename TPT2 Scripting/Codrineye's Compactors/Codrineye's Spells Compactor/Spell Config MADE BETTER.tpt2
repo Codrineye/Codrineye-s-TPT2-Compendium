@@ -3,10 +3,10 @@
 :name Spell Config
 
 {debug.log(0)}
-{debug.halt_compilation(1)}
+{debug.halt_compilation(0)}
 {debug.recordings_before_halt(6)}
-{debug.display_spells(1)}
-{debug.display_spells_in_batch(0)}
+{debug.display_spells(0)}
+{debug.display_spells_in_batch(1)}
 {debug.display_format('\n|')}
 
 
