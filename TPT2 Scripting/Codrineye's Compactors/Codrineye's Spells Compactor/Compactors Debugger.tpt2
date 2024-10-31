@@ -123,15 +123,6 @@
         name,\
         number\
       );\
-<<<<<<< HEAD
-      printer[1 + #printer] = '\n';\
-      printer[1 + #printer] = "Should be a number, of type ";\
-      printer[1 + #printer] = expected_type;\
-      printer[1 + #printer] = ", and such " .. '\n';\
-      printer[1 + #printer] = "And is a number of type" .. ' ';\
-      printer[1 + #printer] = math.type(number);\
-      return table.concat(printer)\
-=======
       debugger[1 + #debugger] = '\n';\
       debugger[1 + #debugger] = "Should be a number, of type ";\
       debugger[1 + #debugger] = expected_type;\
@@ -139,7 +130,6 @@
       debugger[1 + #debugger] = "And is a number of type" .. ' ';\
       debugger[1 + #debugger] = math.type(number);\
       return table.concat(debugger)\
->>>>>>> 61dd9fc2f5f4d50c3b6179191bc9261c12964f8f
     end\
     local function print_number_size(type, name, number, max_length)\
         --[[/*\
