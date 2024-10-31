@@ -25,20 +25,6 @@
 )}
 
 {lua(\
-  local function x_digit_precision(digits, input)\
-    local number = tostring(input):gsub(" ", ""):gsub("'", "");\
-    local format = "%.";\
-    if math.type(tonumber(number)) == 'integer' then\
-      format = "%0"; \
-    end\
-    return string.sub(\
-      string.format(format .. digits .. "f", number),\
-      1,\
-      digits + 2\
-    );\
-  end\
-\
-\
   function spell.add_batch()\
     local batch_index = 1 + #spell.active.batch;\
     local batch = {};\
@@ -260,32 +246,44 @@
             * for a clean and easy to understand\
             * sequence\
            */]]\
+      local function number_format(digits, input)\
+        local number = tostring(input):gsub(" ", ""):gsub("'", "");\
+        local format = "%.";\
+        if math.type(tonumber(number)) == 'integer' then\
+          format = "%0"; \
+        end\
+        return string.sub(\
+          string.format(format .. digits .. "f", number),\
+          1,\
+          digits + 2\
+        );\
+      end\
       \
       if debug_batch > 0 then\
         spells_format.encase = 1;\
-        spells[1 + #spells] = x_digit_precision(\
+        spells[1 + #spells] = number_format(\
           #tostring(#recordings),\
           math.tointeger(index)\
         );\
         concat_format();\
       end\
       concat_format();\
-      spells[1 + #spells] = x_digit_precision(\
+      spells[1 + #spells] = number_format(\
         spell.precision.sync,\
         recordings[index].sync\
       );\
       concat_format();\
-      spells[1 + #spells] = x_digit_precision(\
+      spells[1 + #spells] = number_format(\
         spell.precision.timer,\
         recordings[index].timer\
       );\
       concat_format();\
-      spells[1 + #spells] = x_digit_precision(\
+      spells[1 + #spells] = number_format(\
         spell.precision.placement,\
         recordings[index].coord_x\
       );\
       concat_format();\
-      spells[1 + #spells] = x_digit_precision(\
+      spells[1 + #spells] = number_format(\
         spell.precision.placement,\
         recordings[index].coord_y\
       );\
