@@ -123,6 +123,7 @@
         name,\
         number\
       );\
+<<<<<<< HEAD
       printer[1 + #printer] = '\n';\
       printer[1 + #printer] = "Should be a number, of type ";\
       printer[1 + #printer] = expected_type;\
@@ -130,6 +131,15 @@
       printer[1 + #printer] = "And is a number of type" .. ' ';\
       printer[1 + #printer] = math.type(number);\
       return table.concat(printer)\
+=======
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Should be a number, of type ";\
+      debugger[1 + #debugger] = expected_type;\
+      debugger[1 + #debugger] = ", and such " .. '\n';\
+      debugger[1 + #debugger] = "And is a number of type" .. ' ';\
+      debugger[1 + #debugger] = math.type(number);\
+      return table.concat(debugger)\
+>>>>>>> 61dd9fc2f5f4d50c3b6179191bc9261c12964f8f
     end\
     local function print_number_size(type, name, number, max_length)\
         --[[/*\
@@ -394,16 +404,10 @@
   debug.text.can_concat = debug.data_validation({level});\
 )}
 
-#debug.display_batch_in_numbers(level) {lua(\
-  debug.text.batch_in_number = debug.data_validation({level});\
-)}
 #debug.display_spells_in_batch(level) {lua(\
   debug.text.concat_in_batch = debug.data_validation(\
     {level}\
   );\
-  if debug.text.concat_in_batch > 0 then\
-    debug.text.batch_in_number = 1;\
-  end\
 )}
 
 #debug.display_format(separator) {lua(\
