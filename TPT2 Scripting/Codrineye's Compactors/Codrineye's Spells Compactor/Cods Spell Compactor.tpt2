@@ -1,243 +1,396 @@
-:name Lua Madness
-; 
-; Package found on discord or on my github repo
-; discord: https://discord.com/channels/488444879836413975/1275961817151307847/1275961817151307847
-; github: https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/main/TPT2%20Scripting/Codrineye's%20Compact%20Spell-Caster/README.md
-; 
-; This macro handles every single action
-; The way it works is by creating a string value
-; :const string spellname<spell number> 'data given for the spell'
-; you will get a string dictated as the following values
-; 
-; A timer for the module activation, this works in conjunction with winemast
-;   this timer is cut/extended to contain the number of digits seen
-;   in spell.timer_precision
-; 
-; A coordinate x for the module, if this spell is placed
-;  similarly to our timer, this too is cut but it is linked
-;  to spell.placement_precision
-; Coordinate y is the same as coordinate x
-; 
-; An attribute that is either 'instant ' or 'grounded'
-;   This is always sized 8 characters
-; That permits active modules to be used without a delay
-; 
-; And finally, the spell name
-; It is the internal spell name, followed by a ';' to mark its end
-; 
-; an extra function of this macro is to create a "sync" constant
-; This constant is given a precision dictated by spell.sync_precision
-; 
-; There is no need to look beneath this, sync already
-; has you covered on the activation sequence
-; The only requirement is that you have the following macros
-;  * a pointer macro that "points" to our curent index block
-;  * a pointer_get that gets the value of your pointer
-;  * a pointer_set that updates your pointer via the pre-defined 'increment'
-;  * a timer macro that indicates the winemast timer
-;  and finally
-;  * a timer_get macro, that retrieves the value of our timer
-; 
-; All of these macros are defined inside of winAI_lib
+:import Compactors Debugger
+:name lua madness but better
+
 ; 
 ; 
 
 {lua(\
-  debugging = false;\
   spell = {};\
-  spell.active_module = {};\
-  spell.active_module.module_instance = {};\
-  spell.active_module.placement_positions = {};\
-  spell.active_module.syncronization = {};\
-  spell.sync_delay = 0.0;\
-  spell.sync_precision = 2;\
-  spell.timer_precision = 6;\
-  spell.placement_precision = 4;\
-  spell.attribute_size = 8;\
-  spell.max_name_size = 0;\
-  spell.batch = {};\
-  spell.batch_instance = 1;\
-  spell.batch_max_size = 0;\
-\
+  spell.active = {};\
+  spell.active.batch = {};\
+  spell.active.batch.max_batch = 0;\
+  spell.active.sync = {};\
+  spell.active.sync.index = 0;\
+  spell.active.sync.copies_internal = 0;\
+  spell.active.sync.delay_internal = 0;\
+  spell.active_max_length = 0;\
+  spell.text = {};\
+  spell.text.name_max_length = 0;\
+  spell.text.attribute_max_length = 0;\
+  spell.text.text_ending_character = ':';\
+  spell.precision = {};\
+  spell.precision.sync = 0;\
+  spell.precision.timer = 0;\
+  spell.precision.placement = 0;\
+)}
+
+{lua(\
   local function x_digit_precision(digits, input)\
-    return string.sub(string.format("%." .. digits .. "f", input), 1, digits + 2);\
-  end\
-\
-  function spell.add_spell(name, timer, attribute, coord_1, coord_2)\
-    local excess = table.pack(coord_1, coord_2);\
-    local spell_index = 1 + #spell.active_module.module_instance;\
-  \
-    local batch_update = 1;\
-    if spell.batch[spell.batch_instance] ~= nil then\
-      batch_update = batch_update + spell.batch[spell.batch_instance];\
+    local number = tostring(input):gsub(" ", ""):gsub("'", "");\
+    local format = "%.";\
+    if math.type(tonumber(number)) == 'integer' then\
+      format = "%0"; \
     end\
-    spell.batch_max_size = math.max(\
-      spell.batch_max_size, \
-      batch_update\
+    return string.sub(\
+      string.format(format .. digits .. "f", number),\
+      1,\
+      digits + 2\
     );\
-    spell.batch[spell.batch_instance] = batch_update;\
-  \
-    local new_spell = {};\
-    new_spell.name = string.gsub(name, " ", "");\
-    local syncronization_timer_delay = 0.0;\
-    if #spell.active_module.syncronization ~= 0 then\
-      local syncronization_index = #spell.active_module.syncronization;\
-      local syncronization_parent = spell.active_module.syncronization[syncronization_index].name;\
-      syncronization_timer_delay = spell.sync_delay * (spell_index - syncronization_parent);\
-    end\
-    \
-    new_spell.timer = x_digit_precision(spell.timer_precision, syncronization_timer_delay + timer);\
-    new_spell.attribute = string.gsub(attribute, " ", "");\
-    local attribute_fit = string.rep([[.]], spell.attribute_size);\
-    new_spell.attribute = string.sub(new_spell.attribute .. attribute_fit, 1, spell.attribute_size);\
-    new_spell.identifier = [[spellname]] .. spell_index;\
-    \
-    if excess[1] == nil then\
-      excess[1] = 0.0;\
-    end\
-    if excess[2] == nil then\
-      excess[2] = 0.0;\
-    end\
-    new_spell.coords = {};\
-    new_spell.coords[1] = x_digit_precision(spell.placement_precision, excess[1]);\
-    new_spell.coords[2] = x_digit_precision(spell.placement_precision, excess[2]);\
-    new_spell.constant = new_spell.timer .. \
-      new_spell.coords[1] .. new_spell.coords[2] .. \
-      new_spell.attribute .. new_spell.name;\
-    new_spell.name_size = spell.sync_precision + #new_spell.constant;\
-    \
-    spell.active_module.module_instance[spell_index] = new_spell;\
-    spell.active_module.placement_positions[spell_index] = new_spell.coords;\
-    spell.max_name_size = math.max(\
-      spell.max_name_size, \
-      new_spell.name_size\
-    );\
-    return [[:const string ]] .. new_spell.identifier .. \
-      [[ ']] .. new_spell.constant .. [[']];\
   end\
 \
-  function spell.concatinate_spell_names()\
-    print("run");\
-    local batch = 1;\
-    local inc = 1;\
-    local spells_concat = {};\
-    local sync = 1;\
-    if spell.active_module.syncronization[sync] == nil then\
-      spell.active_module.syncronization[sync] = {};\
-      spell.active_module.syncronization[sync].name = {};\
-      spell.active_module.syncronization[sync].name = 0;\
-      print(spell.active_module.syncronization[sync].name);\
-    end\
-    \
-    local function batch_loop()\
-      for i = 1, spell.batch[batch] do\
-        if debugging == true then\
-          print("spell(" .. i .. ") in batch(" .. batch .. ") limit to " .. spell.batch[batch]);\
-          print("inc = " .. inc);\
-          print("sync(" .. sync .. ")" .. spell.active_module.syncronization[sync].name);\
-        end\
-        if inc == spell.active_module.syncronization[sync].name then\
-          spells_concat[1 + #spells_concat] = [[" . sync]] .. sync .. [[ . "]];\
-          sync = math.min(sync + 1, #spell.active_module.syncronization);\
-        else\
-          spells_concat[1 + #spells_concat] = string.sub(math.floor(10 ^ spell.sync_precision), 2);\
-        end\
-        spells_concat[1 + #spells_concat] = [[" . spellname]] .. inc .. [[ . "]];\
-        spells_concat[1 + #spells_concat] = string.rep(\
-          [[.]], \
-          spell.max_name_size - spell.active_module.module_instance[inc].name_size\
-        );\
-        if debugging == true then\
-          print(spell.batch[batch] .. "-" .. i .. ">" .. 0);\
-          print(spell.batch[batch] - i > 0);\
-        end\
-        inc = inc + 1;\
-      end\
-    end\
-    \
-    spells_concat[1] = [["]];\
-    while (batch < spell.batch_instance) or (inc < #spell.active_module.module_instance) do\
-      if debugging == true then\
-        print("spell.batch[" .. batch .. "] = " .. spell.batch[batch]);\
-        print(batch .. "<" .. spell.batch_instance);\
-        print(batch < spell.batch_instance);\
-        print(inc .. "<" .. #spell.active_module.module_instance);\
-        print(inc < #spell.active_module.module_instance);\
-      end\
-      batch_loop();\
-      if debugging == true then\
-        print("\n" .. "inc = " .. inc .. "\n");\
-      end\
-      local spacer = spell.batch_max_size - spell.batch[batch];\
-      spacer = spacer * spell.max_name_size;\
-      spells_concat[1 + #spells_concat] = string.rep([[.]], spacer);\
-      batch = math.min(\
-        batch + 1,\
-        spell.batch_instance\
-      );\
-    end\
-    \
-    spells_concat[#spells_concat + 1] = [["]];\
-    return table.concat(spells_concat);\
-  end\
-\
-  function spell.syncronize(copies, delay)\
-    local sync_amount = copies - 1;\
-    local sync = {};\
-    sync.count = math.floor(10 ^ spell.sync_precision + sync_amount);\
-    sync.name = 1 + #spell.active_module.module_instance;\
-    local sync_index = 1 + #spell.active_module.syncronization;\
-    spell.active_module.syncronization[sync_index] = sync;\
-    spell.sync_delay = delay;\
-    return [[:const string sync]] .. sync_index .. [[ ']] .. string.sub(\
-      sync.count, \
-      spell.sync_precision\
-    ) .. [[']];\
-  end\
 \
   function spell.add_batch()\
-    local batch_checkpoint = spell.batch_instance;\
-    local batch_recording = 0;\
-    if spell.batch[batch_checkpoint] ~= nil then\
-      batch_recording = spell.batch[batch_checkpoint];\
+    local batch_index = 1 + #spell.active.batch;\
+    local batch = {};\
+    batch.checkpoint = #spell.active;\
+    batch.size = 0;\
+    if batch_index > 1 then\
+      local curent_checkpoint = batch.checkpoint;\
+      active_batch = spell.active.batch;\
+      local previous_checkpoint = active_batch[#active_batch].checkpoint;\
+      batch.size = curent_checkpoint - previous_checkpoint;\
     end\
-    spell.batch[batch_checkpoint] = batch_recording;\
-    spell.batch_instance = batch_checkpoint + 1;\
-    return [[:const int batch]] .. batch_checkpoint .. [[ ]] .. batch_recording;\
+    spell.active.batch[batch_index] = batch;\
+    spell.active.batch.max_batch = math.max(\
+      spell.active.batch.max_batch,\
+      batch.size\
+    );\
+  end\
+  \
+  function spell.syncronization(copies, delay)\
+    local sync_index = 1 + #spell.active.sync;\
+    local sync = {};\
+    sync.copies = -1 + math.tointeger(tonumber(copies));\
+    sync.delay = 0.0 + tonumber(delay);\
+    spell.active.sync[sync_index] = sync;\
+    spell.precision.sync = math.max(\
+      spell.precision.sync,\
+      #tostring(sync.copies)\
+    );\
+  end\
+  \
+  function spell.add_spell(name, attribute, coord_x, coord_y, timer)\
+    local actives_index = 1 + #spell.active;\
+    if debug.can_halt > 0 then\
+      if debug.can_halt > debug.should_halt then\
+        return;\
+      end\
+    end\
+    local new_spell = {};\
+    new_spell.name = name .. spell.text.text_ending_character;\
+    new_spell.attribute = attribute:gsub(" ", "");\
+    new_spell.coord_x = 0.0 + tonumber(coord_x);\
+    new_spell.coord_y = 0.0 + tonumber(coord_y);\
+    \
+    new_spell.sync = 0;\
+    local sync = spell.active.sync;\
+    local function add_sync()\
+      --[[/*\
+          * Function to handle the sync system\
+          * if we've run through the internal copies\
+          *   if the next sync exists\
+          *     increment the index\
+          *     update our internal copies\
+          *     add a sync to the spell\
+          *   setup so we only have 1 return\
+          *   1 return means only 1 logic sequence\
+          *   to follow\
+          * we can continue\
+          * by increasing the delay and\
+          * decreasing our internal copies\
+         */]]\
+      if sync.copies_internal == 0 then\
+        if #sync > sync.index then\
+          sync.index = sync.index + 1;\
+          sync.copies_internal = sync[sync.index].copies;\
+          new_spell.sync = sync[sync.index].copies;\
+        end\
+        sync.copies_internal = sync.copies_internal + 1;\
+        sync.delay_internal = 0.0 - sync[sync.index].delay;\
+      end\
+      sync.delay_internal = sync.delay_internal + sync[sync.index].delay;\
+      sync.copies_internal = sync.copies_internal - 1;\
+      return sync.delay_internal;\
+    end\
+    \
+    local sync_offset = add_sync();\
+    new_spell.timer = sync_offset + tonumber(timer);\
+    spell.active[actives_index] = new_spell;\
+    \
+    spell.text.name_max_size = math.max(\
+      spell.text.name_max_length,\
+      #new_spell.name\
+    );\
+    spell.text.attribute_max_size = math.max(\
+      spell.text.attribute_max_length,\
+      #new_spell.attribute\
+    );\
+    spell.precision.placement = math.max(\
+      spell.precision.placement,\
+      #tostring(math.max(new_spell.coord_x, new_spell.coord_y)) - 1\
+    );\
+    spell.precision.timer = math.max(\
+      spell.precision.timer,\
+      #tostring(new_spell.timer) - 1\
+    );\
+  \
+    local active_length = spell.precision.timer;\
+    active_length = active_length + spell.precision.sync;\
+    active_length = active_length + spell.precision.placement;\
+    active_length = active_length + spell.precision.placement;\
+    active_length = active_length + spell.text.attribute_max_length;\
+    active_length = active_length + spell.text.name_max_length;\
+  \
+    spell.active_max_length = math.max(\
+      spell.active_max_length,\
+      active_length\
+    );\
+    local debug_check = debug.can_halt;\
+    debug_check = debug_check + debug.can_log;\
+    if debug_check > 0 then\
+      debug.log();\
+    end\
+    local halt_limit = debug.can_halt - debug.should_halt;\
+    if debug.can_halt > 0 then\
+      if halt_limit > 0 then\
+        return debug.halt();\
+      end\
+      debug.should_halt = debug.should_halt - 1;\
+    end\
+    local constant_int = "spell." .. actives_index;\
+    local spell_name = [[']] .. new_spell.name .. [[']];\
+    return [[:const string ]] .. constant_int .. [[ ]] .. spell_name;\
+  end\
+  \
+  function spell.concat_actives()\
+    if debug.print > 0 then\
+      return;\
+    end\
+    debug.print = debug.print + 1;\
+    local spells = {};\
+  \
+    local recordings = spell.active;\
+    local active_count = #spell.active;\
+  \
+    spell.add_batch();\
+    local batches = spell.active.batch;\
+    local batch_index = 1;\
+    local batch_concat = '';\
+    local index = 0;\
+  \
+    local spells_debug = {};\
+    local last_log = debug.can_log;\
+    last_log = last_log + debug.can_halt;\
+    if last_log > 0 then\
+      debug.log()\
+    end\
+    spells_debug.format = '';\
+    spells_debug.spacer_open = '';\
+    spells_debug.spacer_close = '';\
+    spells_debug.chunk = '';\
+  \
+    local spells_format = {};\
+    spells_format.encase = 0;\
+    spells_format.batch = 0;\
+    spells_format.chunk = 0;\
+    \
+    \
+    local debug_text = debug.text.concat_in_batch;\
+    debug_text = debug_text + debug.text.can_concat;\
+    local debug_batch = debug_text + debug.text.batch_in_number;\
+    if debug_text > 0 then\
+      spells_debug.spacer_open = debug.text.spacer_open;\
+    \
+      if debug_text == debug.text.concat_in_batch then\
+        batch_concat = debug.text.concat_format;\
+        spells_format.batch = 1;\
+      else\
+        spells_debug.format = debug.text.concat_format;\
+        spells_debug.chunk = debug.text.chunk;\
+      end\
+    \
+      spells_debug.spacer_close = debug.text.spacer_close;\
+    end\
+  \
+  \
+      --[[/*\
+          * Sequence for concatenation\
+          * It will get broken up into separate\
+          * local functions\
+          * This is done to add implementation flexibility\
+          * and to improve overall readability\
+         */]]\
+  \
+    local function concat_format()\
+        --[[/*\
+            * Function that formats the\
+            * contents of spells according\
+            * to the spells_format values\
+           */]]\
+      local printer = {};\
+      local spells_pos = 1 + #spells;\
+      printer[1 + #printer] = spells_debug.format;\
+      \
+      local fmt = spells_format;\
+      if fmt.batch == 1 then\
+        printer[1 + #printer] = batch_concat;\
+      end\
+      if fmt.encase == 1 then\
+        spells_pos = #spells;\
+        local sequence = spells[#spells];\
+        printer[1 + #printer] = spells_debug.spacer_open;\
+        printer[1 + #printer] = sequence;\
+        printer[1 + #printer] = spells_debug.spacer_close;\
+      end\
+      if fmt.chunk == 1 then\
+        printer[1 + #printer] = spells_debug.format;\
+        printer[1 + #printer] = spells_debug.chunk;\
+      end\
+      \
+      fmt.batch = 0;\
+      fmt.encase = 0;\
+      fmt.chunk = 0;\
+      spells[spells_pos] = table.concat(printer);\
+    end\
+    local function number_handling()\
+        --[[/*\
+            * Function that handles numbers\
+            * called by the for loop\
+            * actions performed in functions\
+            * for a clean and easy to understand\
+            * sequence\
+           */]]\
+      \
+      if debug_batch > 0 then\
+        spells_format.encase = 1;\
+        spells[1 + #spells] = x_digit_precision(\
+          #tostring(#recordings),\
+          math.tointeger(index)\
+        );\
+        concat_format();\
+      end\
+      concat_format();\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.precision.sync,\
+        recordings[index].sync\
+      );\
+      concat_format();\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.precision.timer,\
+        recordings[index].timer\
+      );\
+      concat_format();\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.precision.placement,\
+        recordings[index].coord_x\
+      );\
+      concat_format();\
+      spells[1 + #spells] = x_digit_precision(\
+        spell.precision.placement,\
+        recordings[index].coord_y\
+      );\
+    end\
+    local function text_handling()\
+        --[[/*\
+            * Function to handle all text inputs\
+            * featuring an internal function spacing()\
+            * that returns a spacing string\
+            * This is done to keep spacing consistent\
+            * since spacing is so important, all actions get\
+            * filtered down through it\
+           */]]\
+      local spells_text = '';\
+    \
+      local function spacing(max_size)\
+        local spacing_size = max_size - #spells_text;\
+        local space = string.rep('.', spacing_size);\
+        return space;\
+      end\
+    \
+      spells_text = recordings[index].attribute;\
+      concat_format();\
+      spells[1 + #spells] = spells_text;\
+      spells[1 + #spells] = spacing(spell.text.attribute_max_size);\
+      spells_format.encase = 1;\
+      concat_format();\
+    \
+      spells_text = recordings[index].name;\
+      concat_format();\
+      spells[1 + #spells] = spells_text;\
+      spells[1 + #spells] = spacing(spell.text.name_max_size);\
+      spells_format.encase = 1;\
+      concat_format();\
+    end\
+    local function batch_handling()\
+        --[[/*\
+            * Function that handles batch\
+            * creation and formatting\
+           */]]\
+      local batch = batches.max_batch;\
+      batch = batch - batches[batch_index].size;\
+      if batches[batch_index].checkpoint ~= index then\
+        batch = 0;\
+      end\
+      batch = batch * spell.active_max_length;\
+      local spacer = string.rep('.', batch);\
+      if debug.text.batch_in_number > 0 then\
+        spacer = batch;\
+      end\
+      if debug_batch > 0 then\
+        spells_format.encase = 1;\
+      end\
+      spells[1 + #spells] = spacer;\
+      if #batches > batch_index then\
+        if index == batches[batch_index].checkpoint then\
+          batch_index = batch_index + 1;\
+          spells_format.batch = 1;\
+        end\
+      end\
+    end\
+  \
+    while index < active_count do\
+      index = index + 1;\
+      number_handling();\
+      text_handling();\
+      batch_handling();\
+      spells_format.chunk = debug.text.can_concat;\
+      concat_format();\
+    end\
+    concat_format();\
+    return table.concat(spells);\
   end\
 )}
 
-#syncronize_module_activation(modules_count, added_dellay) {lua(\
-  return spell.syncronize(\
-    [[{modules_count}]], \
-    [[{added_dellay}]]\
-  );\
-)}
-#add_active_module.instant(spell_name, spell_timer) {lua(\
+#add_batch {lua(return spell.add_batch())}
+
+#syncronize(copies, delay) {lua(return spell.syncronization(\
+  [[{copies}]],\
+  [[{delay}]]\
+))}
+
+#add_spell(name, attribute, placement_x, placement_y, timer) {lua(\
   return spell.add_spell(\
-    [[{spell_name};]], \
-    [[{spell_timer}]], \
-    [[instant]],\
-    0.0,\
-    0.0\
+    {name},\
+    {attribute},\
+    [[{placement_x}]],\
+    [[{placement_y}]],\
+    [[{timer}]]\
   );\
-)}
-#add_active_module.grounded(spell_name, spell_timer, spell_location_x, spell_location_y) {lua(\
-  return spell.add_spell(\
-    [[{spell_name};]], \
-    [[{spell_timer}]], \
-    [[grounded]], \
-    {spell_location_x}, \
-    {spell_location_y}\
-  );\
-)}
-#add_batch {lua(\
-  return spell.add_batch()\
 )}
 
-; This is the macro that concatinates every
-; added active module together
-#active_module_list {lua(\
-  return spell.concatinate_spell_names();\
+#add_spell.instant(name, timer) {add_spell(\
+  '{name}',\
+  'instant',\
+  0.0,\
+  0.0,\
+  {timer}\
+)}
+
+#add_spell.grounded(name, timer, coord_x, coord_y) {add_spell(\
+  '{name}',\
+  'grounded',\
+  {coord_x},\
+  {coord_y},\
+  {timer}\
 )}
 
