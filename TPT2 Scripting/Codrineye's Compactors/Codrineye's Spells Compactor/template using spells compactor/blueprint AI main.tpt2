@@ -1,0 +1,3 @@
+:import example_text library
+:name {package}:blueprint AI main
+
