@@ -406,6 +406,7 @@
     spells_debug.chunk = '';\
   \
     local spells_format = {};\
+    spells_format.debug_format = 1;\
     spells_format.batch = 0;\
     \
     spells_format.number = 0;\
@@ -454,9 +455,9 @@
       local printer = {};\
       local fmt = spells_format;\
       \
-    \
-      printer[1 + #printer] = spells_debug.format;\
-      \
+      if fmt.debug_format == 1 then\
+        printer[1 + #printer] = spells_debug.format;\
+      end\
       if fmt.batch == 1 then\
         printer[1 + #printer] = batch_concat;\
       end\
@@ -503,6 +504,7 @@
         printer[1 + #printer] = spells_debug.chunk;\
       end\
       \
+      fmt.debug_format = 1;\
       fmt.batch = 0;\
       fmt.number = 0;\
       fmt.text = 0;\
@@ -554,6 +556,7 @@
       \
       for i = 1, #texts do\
         spells[1 + #spells] = texts[i];\
+        spells_format.debug_format = #texts - i;\
         spells_format.text = 1;\
         spells_format.target = lengths[i];\
         spells_format.encase = 1;\
@@ -570,6 +573,7 @@
       batch = batch * spell.active_max_length;\
       batch = batch + #spells[#spells];\
     \
+      spells_format.debug_format = 0;\
       spells_format.text = 1;\
       spells_format.target = batch;\
       if debug_batch > 0 then\
