@@ -1,14 +1,13 @@
 :import winAI_lib
-:import Spell Config
 :name {package(sync)}
-
+ 
 #substring(value, size) sub(\
-  {active_module_list}, \
+  actives, \
   index + {value}, \
   {size}\
 )
 #substring_index(search, value) index(\
-  {active_module_list}, \
+  actives, \
   {search}, \
   index + {value}\
 ) - (index + {value})
@@ -61,15 +60,8 @@ spell_name = {substring(\
 )}
 
 waitwhile(time.scale() == 0.0 || {timer_get} % timer > threshold || {timer_get} < timer)
-gotoif(ground, contains({substring(0, increment)}, "ground"))
-
 useinstant(active.index(spell_name))
-goto(ground_or_instant_end)
-
-ground:
 useposition(active.index(spell_name), vec(placement_x, placement_y))
-
-ground_or_instant_end:
 goto(if(copy_activator, 99, check))
 
 syncronization_needed:
@@ -77,6 +69,6 @@ syncronize = s2i({substring(0, sync_precision)}, 0)
 
 copy:
 syncronize = syncronize - 1
-{execute_package(sync)}
+execute("{package(sync)}")
 goto(if(syncronize <= 0, check, copy))
 

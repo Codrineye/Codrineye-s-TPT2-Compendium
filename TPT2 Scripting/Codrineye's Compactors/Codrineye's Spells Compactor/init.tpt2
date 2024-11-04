@@ -22,9 +22,9 @@ exit:
 global.double.set({timer}, time.delta() * 2.0)
 useinstant(active.index("barrier.temporal"))
 
-{execute_package(tick)}
-{execute_package(sync)}
-{execute_package(inf)}
+execute("{package(tick)}")
+execute("{package(sync)}")
+execute("{package(inf)}")
 
 useinstant(active.index("crate.rex"))
 waitwhile(health(false) > 0.0 && disable.cost("nature") < 0.0)

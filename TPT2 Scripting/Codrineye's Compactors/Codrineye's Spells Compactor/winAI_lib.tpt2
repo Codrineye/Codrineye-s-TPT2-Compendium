@@ -1,6 +1,6 @@
+:import Spell Config
 ; Consistent naming across scripts
 #package(name) winAI:{name}
-#execute_package(script) execute("{package({script})}")
 
 ; A package identifier used within
 ; the names of global variables for a unique value

@@ -1,27 +1,55 @@
+
+; 
 ; Lua macros that define functions that
-; permit debugging Cods Spell Compactor
+; permit debugging the Spell Compactor
+; 
+; Debugging is an essential part of developing
+; a compactor, so having a dedicated
+; script to manage this is very important
+; 
+; 
+; The debugger is separated in 2 macros
+; * the variable declarations
+; * the function definitions
+; 
+; the variable declarations have the job
+; of defining what you want to use
+; 
+; values whose names start with `can_` are
+; integer values that get treated as bools
+; 
+; should_halt is a decrementing value, which cannot
+; go bellow 0, that's modified inside of spell.add_spell()
+; 
+; the .text table is used for concatenating text
+; since we've got batch implementation, it's more
+; convenient to look at the number than the respective
+; number of dots
+; 
+; 
+; 
+; 
 
 {lua(\
-  debug = {};\
-  debug.can_log = 0;\
-  debug.can_halt = 0;\
-  debug.should_halt = 0;\
-  debug.text = {};\
-  debug.text.can_concat = 0;\
-  debug.text.batch_in_number = 0;\
-  debug.text.concat_in_batch = 0;\
-  debug.text.concat_format = '';\
-  debug.text.chunk = "Chunk Separation" .. '\n';\
-  debug.text.spacer_open = '[';\
-  debug.text.spacer_close = ']';\
-  debug.print = 0;\
+  spell_debug = {};\
+  spell_debug.can_log = 0;\
+  spell_debug.can_halt = 0;\
+  spell_debug.should_halt = 0;\
+  spell_debug.text = {};\
+  spell_debug.text.can_concat = 0;\
+  spell_debug.text.spacer_in_number = 0;\
+  spell_debug.text.concat_in_batch = 0;\
+  spell_debug.text.concat_format = '';\
+  spell_debug.text.chunk = "Chunk Separation" .. '\n';\
+  spell_debug.text.spacer_open = '[';\
+  spell_debug.text.spacer_close = ']';\
 )}
 
 ; 
 ; 
 
 {lua(\
-  function debug.log()\
+  function spell_debug.log()\
       --[[/*\
           * Debugger function for logging\
           * featuring additional functions to\
@@ -123,13 +151,13 @@
         name,\
         number\
       );\
-      debugger[1 + #debugger] = '\n';\
-      debugger[1 + #debugger] = "Should be a number, of type ";\
-      debugger[1 + #debugger] = expected_type;\
-      debugger[1 + #debugger] = ", and such " .. '\n';\
-      debugger[1 + #debugger] = "And is a number of type" .. ' ';\
-      debugger[1 + #debugger] = math.type(number);\
-      return table.concat(debugger)\
+      printer[1 + #printer] = '\n';\
+      printer[1 + #printer] = "Should be a number, of type ";\
+      printer[1 + #printer] = expected_type;\
+      printer[1 + #printer] = ", and such " .. '\n';\
+      printer[1 + #printer] = "And is a number of type" .. ' ';\
+      printer[1 + #printer] = math.type(number);\
+      return table.concat(printer)\
     end\
     local function print_number_size(type, name, number, max_length)\
         --[[/*\
@@ -312,23 +340,25 @@
     print(print_spacer("Blocker"));\
   end\
   \
-  function debug.halt()\
+  function spell_debug.halt()\
     local debugger = {};\
-    local debug_check = debug.can_halt;\
-    debug_check = debug_check + debug.text.can_concat;\
-    debug_check = debug_check + debug.text.concat_in_batch;\
+    local debug_check = spell_debug.can_halt;\
+    debug_check = debug_check + spell_debug.text.can_concat;\
+    debug_check = debug_check + spell_debug.text.concat_in_batch;\
+    debug_check = debug_check + spell_debug.text.spacer_in_number;\
     if debug_check <= 0 then return; end\
     \
     debugger[1 + #debugger] = "Compilation Stopped," .. ' ';\
-    debugger[1 + #debugger] = "Debug mode enabled";\
+    debugger[1 + #debugger] = "debug mode enabled";\
     \
-    if debug.can_halt > debug.should_halt then\
+    if spell_debug.can_halt > spell_debug.should_halt then\
       debugger[1 + #debugger] = '\n';\
       debugger[1 + #debugger] = "Logging enabled, logs are visible in ";\
       debugger[1 + #debugger] = "your browsers developer console";\
     end\
     \
-    local text_check = debug.text.can_concat + debug.text.concat_in_batch;\
+    local text_check = spell_debug.text.can_concat;\
+    text_check = text_check + spell_debug.text.concat_in_batch;\
     if text_check > 0 then\
       debugger[1 + #debugger] = '\n';\
       debugger[1 + #debugger] = "Output formatting enabled" .. '\n';\
@@ -348,6 +378,18 @@
       if #spell.active > 1 then\
         debugger[1 + #debugger] = 's';\
       end\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Featuring precisions:";\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Sync precision = ";\
+      debugger[1 + #debugger] = spell.precision.sync;\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Placement precision = ";\
+      debugger[1 + #debugger] = spell.precision.placement;\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Timer precision = ";\
+      debugger[1 + #debugger] = spell.precision.timer;\
+      \
       debugger[1 + #debugger] = spell.concat_actives();\
     end\
     return table.concat(debugger);\
@@ -358,7 +400,7 @@
 ; 
 
 {lua(\
-  function debug.data_validation(level)\
+  function spell_debug.data_validation(level)\
     local data = tonumber(level);\
     data = math.max(\
       data, \
@@ -377,30 +419,36 @@
   end\
 )}
 
-#debug {lua(return debug.halt())}
+#spell_debug {lua(return spell_debug.halt())}
 
-#debug.log(level) {lua(\
-  debug.can_log = debug.data_validation({level});\
+#spell_debug.log(level) {lua(\
+  spell_debug.can_log = spell_debug.data_validation({level});\
 )}
 
-#debug.halt_compilation(level) {lua(\
-  debug.can_halt = debug.data_validation({level});\
+#spell_debug.halt_compilation(level) {lua(\
+  spell_debug.can_halt = spell_debug.data_validation({level});\
 )}
-#debug.recordings_before_halt(limit) {lua(\
-  debug.should_halt = {limit};\
-)}
-
-#debug.display_spells(level) {lua(\
-  debug.text.can_concat = debug.data_validation({level});\
+#spell_debug.recordings_before_halt(limit) {lua(\
+  spell_debug.should_halt = {limit};\
 )}
 
-#debug.display_spells_in_batch(level) {lua(\
-  debug.text.concat_in_batch = debug.data_validation(\
+#spell_debug.display_spells(level) {lua(\
+  spell_debug.text.can_concat = spell_debug.data_validation({level});\
+)}
+
+#spell_debug.display_spacers_as_numbers(level) {lua(\
+  spell_debug.text.spacer_in_number = spell_debug.data_validation(\
     {level}\
   );\
 )}
 
-#debug.display_format(separator) {lua(\
-  debug.text.concat_format = {separator}\
+#spell_debug.display_spells_in_batch(level) {lua(\
+  spell_debug.text.concat_in_batch = spell_debug.data_validation(\
+    {level}\
+  );\
+)}
+
+#spell_debug.display_format(separator) {lua(\
+  spell_debug.text.concat_format = {separator};\
 )}
 

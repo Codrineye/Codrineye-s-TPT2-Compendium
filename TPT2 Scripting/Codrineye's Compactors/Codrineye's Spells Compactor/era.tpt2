@@ -21,10 +21,10 @@ game.newround()
 
 era:
 element_name = sub({elements_list}, index, index({elements_list}, ";", index) - index)
-global.string.set("no more hiding", "</size>")
 
 loop:
 disable.era(element_name)
+global.string.set("no more hiding", "</size>")
 
 gotoif(loop, disable.cost(element_name) >= 0.0)
 index = index + element_length
