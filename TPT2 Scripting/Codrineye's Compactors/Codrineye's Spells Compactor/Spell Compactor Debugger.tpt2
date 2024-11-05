@@ -349,9 +349,11 @@
     if debug_check <= 0 then return; end\
     \
     debugger[1 + #debugger] = "Compilation Stopped," .. ' ';\
-    debugger[1 + #debugger] = "debug mode enabled";\
+    debugger[1 + #debugger] = "debug mode enabled" .. '\n';\
+    debugger[1 + #debugger] = "Output has been modified" .. ' ';\
+    debugger[1 + #debugger] = "by a spell_debug macro"\
     \
-    if spell_debug.can_halt > spell_debug.should_halt then\
+    if spell_debug.can_halt >= spell_debug.should_halt then\
       debugger[1 + #debugger] = '\n';\
       debugger[1 + #debugger] = "Logging enabled, logs are visible in ";\
       debugger[1 + #debugger] = "your browsers developer console";\
@@ -365,7 +367,7 @@
       debugger[1 + #debugger] = "Every component of the" .. ' ';\
       debugger[1 + #debugger] = "output will begin with the" .. ' ';\
       debugger[1 + #debugger] = "string inputed in" .. ' ';\
-      debugger[1 + #debugger] = "debugging.output_separator" .. '\n';\
+      debugger[1 + #debugger] = "spell_debug.display_format" .. '\n';\
       debugger[1 + #debugger] = "Every spacing sequence will be" .. ' ';\
       debugger[1 + #debugger] = "inbetween the characters" .. " ";\
       debugger[1 + #debugger] = "'['";\
@@ -384,11 +386,11 @@
       debugger[1 + #debugger] = "Sync precision = ";\
       debugger[1 + #debugger] = spell.precision.sync;\
       debugger[1 + #debugger] = '\n';\
-      debugger[1 + #debugger] = "Placement precision = ";\
-      debugger[1 + #debugger] = spell.precision.placement;\
-      debugger[1 + #debugger] = '\n';\
       debugger[1 + #debugger] = "Timer precision = ";\
       debugger[1 + #debugger] = spell.precision.timer;\
+      debugger[1 + #debugger] = '\n';\
+      debugger[1 + #debugger] = "Placement precision = ";\
+      debugger[1 + #debugger] = spell.precision.placement;\
       \
       debugger[1 + #debugger] = spell.concat_actives();\
     end\

@@ -32,7 +32,7 @@ gotoif(if(\
   ), false == contains("00", {substring(0, sync_precision)})\
 )
 skip:
-{pointer_set(increment)}
+{pointer_set(spell_size)}
 timer = s2d(\
   {substring(sync_precision, time_precision)}, \
   0.0\
@@ -52,10 +52,10 @@ placement_y = s2d(\
   0.0\
 )
 spell_name = {substring(\
-  sync_precision + time_precision + placement_precision + placement_precision + attribute_size, \
+  sync_precision + time_precision + placement_precision + placement_precision, \
   {substring_index(\
     ";",\
-    sync_precision + time_precision + placement_precision + placement_precision + attribute_size\
+    sync_precision + time_precision + placement_precision + placement_precision\
   )}\
 )}
 

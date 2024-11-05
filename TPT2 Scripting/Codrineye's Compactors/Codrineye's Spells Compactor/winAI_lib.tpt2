@@ -10,7 +10,7 @@
 #pointer_get global.int.get({pointer})
 #pointer_set(value) global.int.set(\
   {pointer}, \
-  ({pointer_get} + {value}) % (spells_count * increment)\
+  ({pointer_get} + {value}) % (spells_count * spell_size)\
 )
 
 ; The pointer chunk

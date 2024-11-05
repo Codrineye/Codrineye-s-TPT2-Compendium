@@ -1,64 +1,84 @@
 :import Cods Spell Compactor
 
-:name Spell Config
+; 
+; Welcome to the configuration
+; This script has macros that allow you to
+; communicate with the compactor and its debugger
+; 
+; The following macros let you communicate
+; with the debugger
+; spell_debug.log permits logging to the console
+; 
+; spell_debug.halt_compilation signals to the
+; compactor that compilation should halt eventually
+; 
+; spell_debug.recordings_before_halt is the amount
+; of spells you can add before compilation halts
+; this value has no effect if you haven't signaled
+; to the compactor that compilation should halt eventually
+; 
+; spell_debug.display_spells tells the debugger to
+; display the spells you added
+; 
+; spell_debug.display_spacers_as_numbers is a
+; field that converts all spacers into the amount of
+; space they would have added, this improves visibility
+; when debugging the output
+; 
+; spell_debug.display_spells_in_batch signals the
+; compactor to display your spells, but to only add
+; a separator at the start of a new batch 
+; 
+; spell_debug.display_format is a string that
+; acts as a separtor for inputs
+; the string you input in this field will be
+; at the beginning of every recorded field
+; this only applies if you want to display the output
+; 
 
 {spell_debug.log(0)}
 {spell_debug.halt_compilation(0)}
-{spell_debug.recordings_before_halt(6)}
+{spell_debug.recordings_before_halt(2)}
 {spell_debug.display_spells(0)}
 {spell_debug.display_spacers_as_numbers(0)}
 {spell_debug.display_spells_in_batch(0)}
 {spell_debug.display_format('\n|')}
 
-
-; Welcome to the configuration
-; This is the only area you have to make changes to
-; Here you will configure the following properties
-; *  what active modules you want to be used
-; *  the order in which you want them to be used
-; *  the timings of the activation
-; *  and lastly
-; *  if the module is placed, you will have to specify the coordinates
 ; 
-; you have 4 functions at your disposal:
-; All of these macros generate :const <type> <token> 'contents'
+; Time for the actual recording
+; you have 4 functions at your disposal
 ; 
-; limit
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; over this is too much
+; add_spell.instant()
+; this takes in 2 parameters 
+; * the name of the spell, this can be obtained by
+;   simply importing a script that uses all the modules you want
+; * the timer for the spell, being the amount of time you want
+;   to pass before activation
 ; 
-; syncronize_module_activation()
-; This macro will create a token sync<sync count> containing the value 'module_count - 1'
-; You will need to specify the amount of modules you want to activate at this time and
-; a delay to the activation
-; This will make it so you have <module_count> sync scripts active at once
-; The excess scripts will remove themselves after spell activation
+; add_spell.grounded()
+; this takes in 4 parameters
+; * the name, just like in add_spell.instant()
+; * the timer, just like in add_spell.instant()
+; * the x position of where you want to cast the spell
+; * the y position of where you want to cast the spell
+; 
+; blueprint AI's usually use winemast for the timer t
+; the timer is the value of `t` at the time of activation
+; 
+; syncronize()
+; this takes in 2 parameters
+; * the number of modules you want to activate at once
+; * a potential delay you may want to add to the spell timers
 ; 
 ; add_batch()
-; This macro will declare the end of one batch and the start of another
-;   it's curently the only macro that returns a :const int, with the token being batch<batch count>
-; A 'batch' means a sellection of modules so that you may separate module sequences
-;   with only needing arithmetic operations
-; By default you're in batch1, if you call for this macro you will move to batch2
-;   by calling this macro, you change the string within sync created by <active_module_list> 
-;   so that each batch has equal length
+; this takes in 0 parameters
+; it defines a batch chunk, meaning a separation
+; between one spell sequence and another
 ; 
-; add_active_module.type()
-; This macro will create a token spellname<spell count> containing the following values
-; 'spell_timer' . 'coord_x' . 'coord_y' . 'attribute' . 'spell_name' . ';'
+; I do not recommend defining a grounded module as an instant module
+; nor vice versa the system will accept your input
+; but you will cast the grounded module at position 0.0
 ; 
-; add_active_module.instant()
-; The first type of addition, where you need to specify the spell name and the timer
-; coord_x and coord_y are 0.0 and the attribute is 'instant '
-; the extra ' ' is there for consistent spacing
-; 
-; add_active_module.grounded()
-; The second type of addition, where you need to specify everything field
-; The field meaning spell_name, spell_timer, coord_x and coord_y
-; the attribute for it is 'grounded'
-; 
-; I do not recommend defining a ground module as an instant module nor vice versa
-; the system will accept your input, but you will not cast anything
 
 {syncronize(2, 0.0)}
 {add_spell.instant(barrier.temporal, 0.0)}
@@ -109,21 +129,32 @@
 
 {add_spell.instant(spell.snapOfDestiny, 57.0)}
 
-; These are the constants you'll be dealing with
-; It's more convenient to put them at the end of this file rather than copy them
-; Putting the const declaration here is also beneficial since it shows you can
-; create separate sequences if need be
-; Such as for a fragment AI
+; 
+; This marks the end of spell configuration
+; we now have a macro spell_debug
+; this is in charge of outputing debugging data
+; and prevents the output string from being read
+; when its contents are modified for displaying
+; 
 
 {spell_debug}
+
+; 
+; These are the constants you'll be dealing with
+; It's more convenient to put them at the end of this file
+; rather than copy them
+; Putting the const declaration here is
+; also beneficial since it shows you can
+; create separate sequences if need be
+; Such as for a fragment AI
+; 
 
 :const string actives '{lua(return spell.concat_actives())}'
 :const string text_end_character '{lua(return spell.text.text_ending_character)}'
 :const int spells_count {lua(return #spell.active)}
+:const int spell_size {lua(return spell.active_max_length)}
 
 :const int sync_precision {lua(return spell.precision.sync)}
 :const int time_precision {lua(return 2 + spell.precision.timer)}
 :const int placement_precision {lua(return 2 + spell.precision.placement)}
-:const int attribute_size {lua(return spell.text.attribute_max_length)}
 
-:const int increment {lua(return spell.active_max_length)}

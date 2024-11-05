@@ -1,0 +1,132 @@
+; 
+; This is a library that declairs for you
+; the naming scheme needed to use the spell compactor
+; 
+; starting with a pointer
+; the pointer needs an identifier, this is defined within
+; your blueprint AI's library file
+; 
+; the pointer lets you read from
+; your spells constant by cycling through them
+; 
+; the pointer is also a block hider
+; this is so that it doesn't messy up the users screen
+; 
+
+#hider.start "<size=0><line-height=0%>"
+#hider.close "</line-height></size>"
+
+#pointer {hider.start} . "pointer" . {identifier}
+#pointer.get global.int.get({pointer})
+#pointer.set(value) global.int.set({pointer}, {value})
+
+; 
+; this helper macro encases our
+; global variable inbetween 2
+; macros
+; * compactor_type is a multipurpose macro
+;   that can be used for data transfer
+;   without disturbing the overlay
+; 
+; * identifier is a macro for script identification
+;   this should be equivalent to the name of our package
+;   for the compactor to easily read it
+; 
+
+#compactor_encasement(caller) {compactor_type} . {caller} . {identifier}
+
+; 
+; moving on to spell_size
+; this is contained within the pointers
+; hiding block, and it contains the
+; constant int spell_size
+; this is for comunication with the
+; standalone spell compactor, to
+; trim down the scripts needed for
+; blueprint AI's
+; 
+
+#spell_size {compactor_encasement("spell_size")}
+#spell_size.get global.int.get({spell_size})
+#spell_size.set(value) global.int.set({spell_size}, {value})
+
+; 
+; Precision field
+; This is another helper macro
+; that lets me easily assign
+; const int precision variables
+; in a global manner, for using
+; the stand-alone spell compactor
+; 
+
+#precision(type) {compactor_encasement("precision" . {type})}
+#precision.get(type) global.int.get({precision({type})})
+#precision.set(type, value) global.int.set({precision({type})}, {value})
+
+; 
+; I will now create the macros
+; * count to define the number of spells in the
+;   provided active_spells string
+; * sync to define sync_precision
+; * timer to define timer_precision
+; * placement to define placement_precision
+; 
+; built by using the previously
+; defined precision macros
+; 
+
+#count_precision {precision("count")} 
+#count_precision.get {precision.get("count")}
+#count_precision.set(value) {precision.set("count", {value})}
+
+#sync_precision (precision("sync"))
+#sync_precision.get {precision.get("sync")}
+#sync_precision.set(value) {precision.set("sync", {value})}
+
+#timer_precision {precision("timer")}
+#timer_precision.get {precision.get("timer")}
+#timer_precision.set(value) {precision.set("timer", {value})}
+
+#placement_precision {precision("placement")}
+#placement_precision.get {precision.get("placement")}
+#placement_precision.set(value) {precision.set("placement", {value})}
+
+; 
+; we have a dedicated string that
+; gives us the `text_ending_character` character
+; 
+; this is done for the explicit definition
+; 
+
+#text_ending_character {compactor_encasement("text_ending_character")}
+#text_ending_character.get global.string.get({text_ending_character})
+#text_ending_character.set(value) global.string.set(\
+  {text_ending_character},\
+  ({value})\
+)
+
+; 
+; we end the block hider by storing
+; our active_spells string
+; this way, we can use the stand-alone compactor
+; without needing a complete design overhaul
+; 
+
+#active_spells {compactor_encasement("active_spells")}
+#active_spells.get global.string.get({active_spells})
+#active_spells.set(value) global.string.set(\
+  {active_spells},\
+  {value} . {hider.close}\
+)
+
+; 
+; ending with the timer
+; the timer is just t, to keep
+; backwards compatibility with other
+; scripts using winemast
+; 
+
+#timer "t"
+#timer.get global.double.get({timer})
+#timer.set(value) global.double.set({timer}, {value})
+#timer.add(value) {timer.set({timer.get} + ({value}))}

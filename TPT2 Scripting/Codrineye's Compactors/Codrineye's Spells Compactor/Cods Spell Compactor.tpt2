@@ -97,8 +97,10 @@
 ; all function definitions are here
 ; 
 ; first function, spell.add_batch()
-; it takes 0 parameters, as a batch is
-; an internal structure of using spells
+; it takes 1 parameter
+; * batch_name is the name assigned to this batch
+;   this name can be used for identifying the
+;   sequence we're looking at
 ; 
 ; we initialize 2 local variables
 ; the next batch index, being 1 + how many batches
@@ -118,6 +120,9 @@
 ; 
 ; we record this batch, by adding it to the root table
 ; spell.active.batch and update our max_batch
+; 
+; we end by creating a table 'printer' and
+; building a :const int batch_name #spell.active
 ; 
 ; 
 ; spell.syncronization()
@@ -262,7 +267,7 @@
 ; 
 
 {lua(\
-  function spell.add_batch()\
+  function spell.add_batch(batch_name)\
     local batch_index = 1 + #spell.active.batch;\
     local batch = {};\
     batch.checkpoint = #spell.active;\
@@ -278,6 +283,12 @@
       spell.active.batch.max_batch,\
       batch.size\
     );\
+    local printer = {};\
+    printer[1 + #printer] = ":const int" .. ' ';\
+    printer[1 + #printer] = batch_name:gsub(" ", "");\
+    printer[1 + #printer] = ' ';\
+    printer[1 + #printer] = #spell.active;\
+    return table.concat(printer);\
   end\
   \
   function spell.syncronization(copies, delay)\
@@ -292,7 +303,7 @@
     );\
   end\
   \
-  function spell.add_spell(name, attribute, coord_x, coord_y, timer)\
+  function spell.add_spell(name, coord_x, coord_y, timer)\
     local halt_limit = spell_debug.should_halt;\
     halt_limit = halt_limit - spell_debug.can_halt;\
     if spell_debug.can_halt > 0 then\
@@ -303,7 +314,6 @@
     local actives_index = 1 + #spell.active;\
     local new_spell = {};\
     new_spell.name = name .. spell.text.text_ending_character;\
-    new_spell.attribute = attribute:gsub(" ", "");\
     new_spell.coord_x = 0.0 + tonumber(coord_x);\
     new_spell.coord_y = 0.0 + tonumber(coord_y);\
     \
@@ -346,10 +356,6 @@
       spell.text.name_max_length,\
       #new_spell.name\
     );\
-    spell.text.attribute_max_length = math.max(\
-      spell.text.attribute_max_length,\
-      #new_spell.attribute\
-    );\
     spell.precision.placement = math.max(\
       spell.precision.placement,\
       #tostring(math.max(new_spell.coord_x, new_spell.coord_y)) - 1\
@@ -363,7 +369,6 @@
     active_length = active_length + spell.precision.sync;\
     active_length = active_length + spell.precision.placement;\
     active_length = active_length + spell.precision.placement;\
-    active_length = active_length + spell.text.attribute_max_length;\
     active_length = active_length + spell.text.name_max_length;\
   \
     spell.active_max_length = math.max(\
@@ -393,7 +398,7 @@
     local recordings = spell.active;\
     local active_count = #spell.active;\
     \
-    spell.add_batch();\
+    spell.add_batch('');\
     local batches = spell.active.batch;\
     local batch_index = 1;\
     local batch_concat = '';\
@@ -519,12 +524,6 @@
       local numbers = {};\
       local precisions = {};\
       \
-      if debug_batch > 0 then\
-        spells_format.encase = 1;\
-        table.insert(numbers, index);\
-        table.insert(precisions, #tostring(#recordings));\
-      end\
-    \
       table.insert(numbers, recordings[index].sync);\
       table.insert(numbers, recordings[index].timer);\
       table.insert(numbers, recordings[index].coord_x);\
@@ -539,19 +538,16 @@
       for i = 1, #numbers do\
         spells_format.number = 1;\
         spells_format.target = precisions[i];\
-        spells_format.encase = 1;\
         spells[1 + #spells] = numbers[i];\
         concat_format();\
       end\
     end\
     local function text_handling()\
       local texts = {};\
-      table.insert(texts, recordings[index].attribute);\
       table.insert(texts, recordings[index].name);\
       \
       local lengths = {};\
       local stxt = spell.text;\
-      table.insert(lengths, stxt.attribute_max_length);\
       table.insert(lengths, stxt.name_max_length);\
       \
       for i = 1, #texts do\
@@ -606,7 +602,8 @@
 ; compactor in an easier manner
 ; 
 
-#add_batch {lua(return spell.add_batch())}
+#add_batch(name) {lua(return spell.add_batch("{name}"))}
+
 
 #syncronize(copies, delay) {lua(return spell.syncronization(\
   [[{copies}]],\
@@ -614,14 +611,13 @@
 ))}
 
 ; 
-; Root add_spell that all spell_types get filtered
-; down into
+; Root add_spell that all spell_types
+; get filtered down through
 ; 
 
-#add_spell(name, attribute, placement_x, placement_y, timer) {lua(\
+#add_spell(name, placement_x, placement_y, timer) {lua(\
   return spell.add_spell(\
     {name},\
-    {attribute},\
     [[{placement_x}]],\
     [[{placement_y}]],\
     [[{timer}]]\
@@ -630,7 +626,6 @@
 
 #add_spell.instant(name, timer) {add_spell(\
   '{name}',\
-  'instant',\
   0.0,\
   0.0,\
   {timer}\
@@ -638,7 +633,6 @@
 
 #add_spell.grounded(name, timer, coord_x, coord_y) {add_spell(\
   '{name}',\
-  'grounded',\
   {coord_x},\
   {coord_y},\
   {timer}\
