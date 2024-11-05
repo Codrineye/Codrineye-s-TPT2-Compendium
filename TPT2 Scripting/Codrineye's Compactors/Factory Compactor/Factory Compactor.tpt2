@@ -1,0 +1,42 @@
+:import Factory Compactor Debugger
+
+{lua(\
+  factory = {};\
+  factory.item = {};\
+)}
+
+{lua(\
+  function factory.add_item(name, tiers, game_name)\
+    local new_item = {};\
+    new_item.id = 1 + #factory.item;\
+    new_item.name = name:gsub(" ", "");\
+    new_item.tiers = tonumber(tiers);\
+    if new_item.tiers == nil then\
+      local printer = {};\
+      printer[1 + #printer] = "Invalid tiers input" .. '\n';\
+      printer[1 + #printer] = "Inputed tiers returned nil";\
+      return table.concat(printer);\
+    end\
+    if 10 < new_item.tiers or new_item.tiers < 1 then\
+      local printer = {};\
+      printer[1 + #printer] = "Invalid tiers input" .. '\n';\
+      printer[1 + #printer] = "Tiers cannot be smaller than" .. ' ';\
+      printer[1 + #printer] = "0 or bigger than 10";\
+      return table.concat(printer);\
+    end\
+    factory.item[new_item.id] = new_item;\
+    local printer = {};\
+    printer[1 + #printer] = ":const int" .. ' ';\
+    printer[1 + #printer] = new_item.name;\
+    printer[1 + #printer] = ' ';\
+    printer[1 + #printer] = new_item.id;\
+    return table.concat(printer)\
+  end\
+)}
+
+#make(name, tiers, game_name) {lua(return factory.add_item(\
+  "{name}",\
+  {tiers},\
+  {game_name}\
+))}
+
