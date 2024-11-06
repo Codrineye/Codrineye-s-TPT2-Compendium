@@ -1,0 +1,9 @@
+:import Spell Config winAI
+:import Spell Compactor resources
+; Consistent naming across scripts
+#package(name) winAI:{name}
+#compactor_type "external"
+
+; A package identifier used within
+; the names of global variables for a unique value
+#identifier "winAI"

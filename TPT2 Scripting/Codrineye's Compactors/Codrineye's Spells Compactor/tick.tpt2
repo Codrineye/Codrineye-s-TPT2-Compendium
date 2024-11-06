@@ -1,11 +1,10 @@
-:import winAI_lib
+:import Spell Compactor lib
 :name {package(tick)}
 
-global.double.set({timer}, {timer_get} + time.delta())
-execute("{package(tick)}")
-gotoif(99, contains(impulse(), "{package(tick)}"))
+{timer.set(time.delta() * 2.0)}
 
-stop("Codrineye's TowerTesting:Stats Exit Diff_Change")
-execute(if(true, "Codrineye's TowerTesting:Stats Exit Diff_Change", "{package(Null_Cond)}"))
-waituntil({timer_get} >= 2.0)
-execute("{package(3spam)}")
+loop:
+{timer.add(time.delta())}
+waitframe()
+goto(loop)
+

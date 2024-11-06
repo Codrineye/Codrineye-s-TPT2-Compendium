@@ -1,0 +1,26 @@
+:import Spell Compactor lib
+:name {package(main)}
+
+; 
+; spells_count        = precision_count
+; spells_size         = spells_size
+; sync_precision      = precision_sync
+; time_precision      = precision_timer
+; placement_precision = precision_placement
+; text_end_character  = text_ending_character
+; actives             = active_spells
+; 
+
+{spells_count.set({precision_count.get})}
+{spell_size.set({spells_size.get})}
+
+{sync_precision.set({precision_sync.get})}
+{time_precision.set({precision_timer.get})}
+{placement_precision.set({precision_placement.get})}
+
+{text_end_character.set({text_ending_character.get})}
+{actives.set({active_spells.get})}
+{active_spells.set({hider.start})}
+
+execute("{package(sync)}")
+execute("{package(tick)}")

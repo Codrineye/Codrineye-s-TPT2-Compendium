@@ -1,0 +1,21 @@
+:import winAI_lib
+:name {package(init)}
+
+game.newround()
+
+global.int.set({pointer}, 0)
+useinstant(active.index("barrier.temporal"))
+
+{precision_count.set(spells_count)}
+
+{spells_size.set(spell_size)}
+
+{precision_sync.set(sync_precision)}
+{precision_timer.set(time_precision)}
+{precision_placement.set(placement_precision)}
+
+{text_ending_character.set(text_end_character)}
+{active_spells.set(actives)}
+
+stop("{package(3spam)}")
+execute("{package(3spam)}")

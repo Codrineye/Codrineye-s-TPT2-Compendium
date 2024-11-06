@@ -1,74 +1,77 @@
-:import winAI_lib
+:import Spell Compactor lib
 :name {package(sync)}
- 
-#substring(value, size) sub(\
-  actives, \
-  index + {value}, \
-  {size}\
+
+; sync + timer + coord_x + coord_y + name
+
+#actives.displace(sync, timer, positions) position + (\
+  {sync} * {sync_precision.get} + \
+  {timer} * {time_precision.get} + \
+  {positions} * {placement_precision.get}\
 )
-#substring_index(search, value) index(\
-  actives, \
-  {search}, \
-  index + {value}\
-) - (index + {value})
 
-:const double threshold 0.50
+#actives.substring(sync, timer, positions, length) sub(\
+  {actives},\
+  {actives.displace({sync}, {timer}, {positions})},\
+  {length}\
+)
 
-:local string spell_name
-:local double timer
-:local double placement_x
-:local double placement_y
-:local int index
-:local int syncronize
+#actives.index(sync, timer, positions) index(\
+  {actives},\
+  {text_end_character},\
+  {actives.displace({sync}, {timer}, {positions})}\
+) - ({actives.displace({sync}, {timer}, {positions})})
+
+:const string sync_needed '{lua(return string.rep("0", 50))}'
+:const double threshold 50.0
+
+:local int position
+:local int syncronize_copies
 :local bool copy_activator
+:local double timer
 
 copy_activator = contains(impulse(), "{package(sync)}")
+
 check:
-index = {pointer_get}
-gotoif(if(\
-    copy_activator, \
-    skip, \
-    syncronization_needed\
-  ), false == contains("00", {substring(0, sync_precision)})\
+position = {pointer.get}
+gotoif(\
+  if(copy_activator, skip, syncronize),\
+  not(contains(\
+    sync_needed, \
+    {actives.substring(0, 0, 0, {sync_precision.get})}\
+  ))\
 )
+
 skip:
-{pointer_set(spell_size)}
 timer = s2d(\
-  {substring(sync_precision, time_precision)}, \
+  {actives.substring(1, 0, 0, {time_precision.get})},\
   0.0\
 )
-placement_x = s2d(\
-  {substring(\
-    sync_precision + time_precision, \
-    placement_precision\
-  )}, \
-  0.0\
-)
-placement_y = s2d(\
-  {substring(\
-    sync_precision + time_precision + placement_precision, \
-    placement_precision\
-  )}, \
-  0.0\
-)
-spell_name = {substring(\
-  sync_precision + time_precision + placement_precision + placement_precision, \
-  {substring_index(\
-    ";",\
-    sync_precision + time_precision + placement_precision + placement_precision\
+waitwhile({timer.get} % timer > threshold && {timer.get} < timer)
+useinstant(active.index(\
+  {actives.substring(\
+    1, 1, 2, \
+    {actives.index(1, 1, 2)}\
   )}\
-)}
+))
+useposition(\
+  active.index(\
+    {actives.substring(\
+      1, 1, 2, \
+      {actives.index(1, 1, 2)}\
+    )}\
+  ), vec(\
+    s2d({actives.substring(1, 1, 0, {placement_precision.get})}, 0.0),\
+    s2d({actives.substring(1, 1, 1, {placement_precision.get})}, 0.0)\
+  )\
+)
+gotoif(check, not(copy_activator))
 
-waitwhile(time.scale() == 0.0 || {timer_get} % timer > threshold || {timer_get} < timer)
-useinstant(active.index(spell_name))
-useposition(active.index(spell_name), vec(placement_x, placement_y))
-goto(if(copy_activator, 99, check))
-
-syncronization_needed:
-syncronize = s2i({substring(0, sync_precision)}, 0)
+syncronize:
+syncronize_copies = s2i(\
+  {actives.substring(0, 0, 0, {sync_precision.get})},\
+  0\
+)
 
 copy:
-syncronize = syncronize - 1
 execute("{package(sync)}")
-goto(if(syncronize <= 0, check, copy))
-
+goto(if(syncronize_copies < 0, check, copy))

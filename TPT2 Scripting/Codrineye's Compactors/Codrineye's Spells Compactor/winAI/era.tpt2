@@ -1,18 +1,19 @@
 :import winAI_lib
 :name {package(era)}
 
-game.newround()
+wakeup()
+
 :const int element_length 12
 
-:const string element1 'light;      '
-:const string element2 'darkness;   '
-:const string element3 'nature;     '
+:const string element1 'light;......'
+:const string element2 'darkness;...'
+:const string element3 'nature;.....'
 :const string element4 'electricity;'
-:const string element5 'universal;  '
-:const string element6 'fire;       '
-:const string element7 'neutral;    '
-:const string element8 'water;      '
-:const string element9 'earth;      '
+:const string element5 'universal;..'
+:const string element6 'fire;.......'
+:const string element7 'neutral;....'
+:const string element8 'water;......'
+:const string element9 'earth;......'
 
 :local string element_name
 :local int index
@@ -24,8 +25,7 @@ element_name = sub({elements_list}, index, index({elements_list}, ";", index) - 
 
 loop:
 disable.era(element_name)
-global.string.set("no more hiding", "</size>")
 
-gotoif(loop, disable.cost(element_name) >= 0.0)
+gotoif(loop, disable.cost(element_name) > 0.0)
 index = index + element_length
 gotoif(era, contains(sub({elements_list}, index, element_length), ";"))

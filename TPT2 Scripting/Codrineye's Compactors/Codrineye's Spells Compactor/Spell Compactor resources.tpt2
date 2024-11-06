@@ -1,0 +1,148 @@
+; 
+; This is a library that declairs
+; the naming scheme needed to use
+; the stand-alone spell compactor
+; 
+; Name of the stand-alone compactor
+; use this to call it
+; 
+
+#spell_compactor_package(name) Spell Compactor:{name}
+
+; 
+; the hider macros
+; these are simple strings
+; that control how
+; the variable hider works
+; 
+
+#hider.start "<size=0><line-height=0%>"
+#hider.close "</line-height></size>"
+
+; 
+; starting with a pointer
+; the pointer needs an identifier, this is defined within
+; your blueprint AI's library file
+; 
+; the pointer lets you read from
+; your spells constant by cycling through them
+; 
+; the pointer is also a block hider
+; this is so that it doesn't messy up the users screen
+; 
+
+#pointer {hider.start} . "pointer" . {identifier}
+#pointer.get global.int.get({pointer})
+#pointer.set(value) global.int.set({pointer}, {value})
+
+; 
+; this helper macro encases our
+; global variable inbetween 2
+; macros
+; * compactor_type is a multipurpose macro
+;   that can be used for data transfer
+;   without disturbing the overlay
+; 
+; * identifier is a macro for script identification
+;   this should be equivalent to the name of our package
+;   for the compactor to easily read it
+; 
+
+#compactor_encasement(caller) {compactor_type} . ' ' . ({caller}) . ' ' . {identifier}
+
+; 
+; moving on to spell_size
+; this is contained within the pointers
+; hiding block, and it contains the
+; constant int spell_size
+; this is for comunication with the
+; standalone spell compactor, to
+; trim down the scripts needed for
+; blueprint AI's
+; 
+
+#spells_size {compactor_encasement("spells_size")}
+#spells_size.get global.int.get({spells_size})
+#spells_size.set(value) global.int.set({spells_size}, {value})
+
+; 
+; Precision field
+; This is another helper macro
+; that lets me easily assign
+; const int precision variables
+; in a global manner, for using
+; the stand-alone spell compactor
+; 
+
+#precision(type) {compactor_encasement("precision" . {type})}
+#precision.get(type) global.int.get({precision({type})})
+#precision.set(type, value) global.int.set({precision({type})}, {value})
+
+; 
+; I will now create the macros
+; * count to define the number of spells in the
+;   provided active_spells string
+; * sync to define sync_precision
+; * timer to define timer_precision
+; * placement to define placement_precision
+; 
+; built by using the previously
+; defined precision macros
+; 
+
+#precision_count {precision("count")} 
+#precision_count.get {precision.get("count")}
+#precision_count.set(value) {precision.set("count", {value})}
+
+
+#precision_sync (precision("sync"))
+#precision_sync.get {precision.get("sync")}
+#precision_sync.set(value) {precision.set("sync", {value})}
+
+#precision_timer {precision("timer")}
+#precision_timer.get {precision.get("timer")}
+#precision_timer.set(value) {precision.set("timer", {value})}
+
+#precision_placement {precision("placement")}
+#precision_placement.get {precision.get("placement")}
+#precision_placement.set(value) {precision.set("placement", {value})}
+
+; 
+; we have a dedicated string that
+; gives us the `text_ending_character` character
+; 
+; this is done for the explicit definition
+; 
+
+#text_ending_character {compactor_encasement("text_ending_character")}
+#text_ending_character.get global.string.get({text_ending_character})
+#text_ending_character.set(value) global.string.set(\
+  {text_ending_character},\
+  ({value})\
+)
+
+; 
+; we end the block hider by storing
+; our active_spells string
+; this way, we can use the stand-alone compactor
+; without needing a complete design overhaul
+; 
+
+#active_spells {compactor_encasement("active_spells")}
+#active_spells.get global.string.get({active_spells})
+#active_spells.set(value) global.string.set(\
+  {active_spells},\
+  {value} . {hider.close}\
+)
+
+; 
+; ending with the timer
+; the timer is just t, to keep
+; backwards compatibility with other
+; scripts using winemast
+; 
+
+#timer "t"
+#timer.get global.double.get({timer})
+#timer.set(value) global.double.set({timer}, {value})
+#timer.add(value) {timer.set({timer.get} + ({value}))}
