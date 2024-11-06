@@ -2,13 +2,15 @@
 
 {lua(\
   factory = {};\
-  factory.item = {};\
+  factory.items = {};\
+  factory.item_names = {};\
+  factory.categories = {};\
 )}
 
 {lua(\
-  function factory.add_item(name, tiers, game_name)\
+  function factory.add_item(name, tiers, game_name, game_type)\
     local new_item = {};\
-    new_item.id = 1 + #factory.item;\
+    new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
     if new_item.tiers == nil then\
@@ -20,11 +22,14 @@
     if 10 < new_item.tiers or new_item.tiers < 1 then\
       local printer = {};\
       printer[1 + #printer] = "Invalid tiers input" .. '\n';\
-      printer[1 + #printer] = "Tiers cannot be smaller than" .. ' ';\
-      printer[1 + #printer] = "0 or bigger than 10";\
+      printer[1 + #printer] = "Tiers cannot be smaller" .. ' ';\
+      printer[1 + #printer] = "than 0 or bigger than 10";\
       return table.concat(printer);\
     end\
-    factory.item[new_item.id] = new_item;\
+    new_item.game_name = game_name:gsub(" ", "");\
+    new_item.game_type = game_type:gsub(" ", "");\
+    factory.items[new_item.id] = new_item;\
+    factory.item_names[new_item.name] = new_item.id;\
     local printer = {};\
     printer[1 + #printer] = ":const int" .. ' ';\
     printer[1 + #printer] = new_item.name;\
@@ -32,11 +37,55 @@
     printer[1 + #printer] = new_item.id;\
     return table.concat(printer)\
   end\
+  \
+  function factory.add_category(name, ...)\
+    local category = {};\
+    category.id = 1 + #factory.categories;\
+    local names = table.pack("default", "first", "last");\
+    local args = table.pack(...);\
+    category.name = name:gsub(" ", "");\
+    for i, name in ipairs(names) do\
+      local trimmed = args[i]:gsub(" ", "");\
+      local item = factory.item_names[trimmed];\
+      if item == nil then\
+        printer = {};\
+        printer[1 + #printer] = "Invalid item" .. ' ';\
+        printer[1 + #printer] = "in field" .. ' ';\
+        printer[1 + #printer] = "'";\
+        printer[1 + #printer] = trimmed;\
+        printer[1 + #printer] = "'";\
+        return table.concat(printer);\
+      end\
+      category[name] = item;\
+    end\
+    factory.categories[category.id] = category;\
+  end\
 )}
 
-#make(name, tiers, game_name) {lua(return factory.add_item(\
+#item(name, tiers, game_name, type) {lua(return factory.add_item(\
   "{name}",\
   {tiers},\
-  {game_name}\
+  {game_name},\
+  {type}\
 ))}
 
+#produce(name, tiers, game_name) {item(\
+  {name},\
+  {tiers},\
+  {game_name},\
+  "produce"\
+)}
+
+#craft(name, tiers, game_name) {item(\
+  {name},\
+  {tiers},\
+  {game_name},\
+  "craft"\
+)}
+
+#category(name, default, first, last) {lua(return factory.add_category(\
+  "{name}",\
+  "{default}",\
+  "{first}",\
+  "{last}"\
+))}

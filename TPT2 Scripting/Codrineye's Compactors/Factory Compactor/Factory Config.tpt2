@@ -1,1 +1,57 @@
 :import Factory Compactor
+
+
+; Producers, named by building, tiers 1-5
+{craft(arcade_producer, 5, "producer.arcade")}
+{craft(construction_firm_producer, 5, "producer.constructionFirm")}
+{craft(exotic_producer, 1, "producer.exoticgems")}
+{craft(factory_producer, 5, "producer.factory")}
+{craft(gem_producer, 1, "producer.gems")}
+{craft(headquarters_producer, 5, "producer.headquarters")}
+{craft(laboratory_producer, 5, "producer.laboratory")}
+{craft(mine_producer, 5, "producer.mine")}
+{craft(museum_producer, 5, "producer.museum")}
+{craft(powerplant_producer, 5, "producer.powerplant")}
+{craft(pumpkin_producer, 1, "pumpkin.producer")}
+{craft(shipyard_producer, 5, "producer.shipyard")}
+{craft(statue_of_cubos_producer, 5, "producer.statueofcubos")}
+{craft(town_producer, 5, "producer.town")}
+{craft(tradingpost_producer, 5, "producer.tradingpost")}
+{craft(workshop_producer, 5, "producer.workshop")}
+
+; Boosters, tiers 1-3
+{craft(acceleration_booster, 3, "booster.acceleration")}
+{craft(machine_booster, 3, "booster.machines")}
+{craft(production_booster, 3, "booster.production.regular")}
+{craft(resource_booster, 3, "booster.resource.drops")}
+
+{category(prod, town_producer, arcade_producer, resource_booster)}
+
+; Machines, tiers 1-10
+{craft(assembly, 10, "machine.assembler")}
+{craft(belt, 10, "machine.transportbelt")}
+{craft(boiler, 10, "machine.boiler")}
+{craft(crusher, 10, "machine.crusher")}
+{craft(cutter, 10, "machine.cutter")}
+{craft(mixer, 10, "machine.mixer")}
+{craft(oven, 10, "machine.oven")}
+{craft(presser, 10, "machine.presser")}
+{craft(refiner, 10, "machine.refinery")}
+{craft(shaper, 10, "machine.shaper")}
+
+{category(mach, belt, assembly, shaper)}
+
+; Various crafted parts
+{craft(block, 10, "block")}
+{craft(chip, 5, "chip")}
+{craft(hammer, 1, "hammer")}
+{craft(insul_cable, 10, "cable.insulated")}
+{craft(motor, 10, "motor")}
+{craft(pump, 10, "pump")}
+{craft(rainbow_dust, 1, "dust.rainbow")}
+{craft(rubber_sapling, 1, "sapling.rubber")}
+{craft(stacked_plate, 10, "plate.stack")}
+{craft(stacked_pumpkin, 1, "pumpkin.stack")}
+{craft(void_sapling, 1, "sapling.void")}
+
+

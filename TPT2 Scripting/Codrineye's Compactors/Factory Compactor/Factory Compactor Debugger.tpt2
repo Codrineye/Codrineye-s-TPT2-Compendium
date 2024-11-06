@@ -1,0 +1,15 @@
+
+{lua(\
+  debug = {};\
+  debug.error = 0;\
+  debug.error_comp = 0;\
+  \
+)}
+
+{lua(\
+  function debug.print_error()\
+    local printer = {};\
+    \
+  end\
+)}
+
