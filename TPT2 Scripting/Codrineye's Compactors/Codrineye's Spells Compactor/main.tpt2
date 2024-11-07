@@ -11,16 +11,80 @@
 ; actives             = active_spells
 ; 
 
-{spells_count.set({precision_count.get})}
-{spell_size.set({spells_size.get})}
+; 
+; Method to retrieve our values
+; to prevent over-crouding, only
+; one call can be processed at once
+; 
+; thus, we will have a queue if more calls are made
+; the script does not terminate itself as long as
+; the tower is alive
+; 
+; the script will loop forever, meaning that
+; if you want to end the script while the tower
+; is alive, you'll have to stop it yourself
+; 
 
-{sync_precision.set({precision_sync.get})}
-{time_precision.set({precision_timer.get})}
-{placement_precision.set({precision_placement.get})}
+{internal_pointer.set({internal_pointer.get})}
 
-{text_end_character.set({text_ending_character.get})}
-{actives.set({active_spells.get})}
-{active_spells.set({hider.start})}
+#call_manager "internal" . "call_manager" . {identifier}
+global.int.set({call_manager}, 1 + global.int.get({call_manager}))
+waitwhile(global.int.get({call_manager}) > 1)
 
-execute("{package(sync)}")
+; 
+; we use a substring to determine the script identifier
+; and define a macro to support the format of our
+; naming scheme declaired in Spell Compactor resources
+; 
+{internal_pointer.set(0)}
+:local string derived_identifier
+#identified_variables(name) "external {name} " . derived_identifier
+
+derived_identifier = sub(impulse(), 0, index(impulse(), ":", 0))
+
+; 
+; and then, we assign to our 
+; internal variables the names of their
+; respective external values
+; 
+{spells_count.set(global.int.get(\
+  {identified_variables(precision_count)}\
+))}
+{spell_size.set(global.int.get({identified_variables(spell_size)}))}
+
+{sync_precision.set(global.int.get(\
+  {identified_variables(precision_sync)}\
+))}
+{time_precision.set(global.int.get(\
+  {identified_variables(precision_timer)}\
+))}
+{placement_precision.set(global.int.get(\
+  {identified_variables(precision_placement)}\
+))}
+
+{text_end_character.set(global.string.get(\
+  {identified_variables(text_ending_character)}\
+))}
+
+{actives.set(global.string.get(\
+  {identified_variables(active_spells)}\
+))}
+
+; 
+; We then execute the tick and debugger
+; the debugger exits towertesting if we're debugging
+; so that sync immedeately quits
+; 
+; executesync our "sync" for flow control
+; and once we exit our sync
+; kill our tick not to overlap with
+; another execution
+; 
+; signal that we can let the next execution through
+; by decrementing our call_manager
 execute("{package(tick)}")
+execute("{package(debugger)}")
+executesync("{package(sync)}")
+
+stop("{package(tick)}")
+global.int.set({call_manager}, -1 + global.int.get({call_manager}))

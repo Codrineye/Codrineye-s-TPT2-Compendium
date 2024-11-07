@@ -1,46 +1,83 @@
 :import Spell Compactor lib
 :name {package(sync)}
+:budget_cap 50
 
+; 
+; We set a budget of 50 just
+; so we're going through this fast
+; 
+; 
+; order it's memorised internally for 
+; easier updates and convenience
+; 
 ; sync + timer + coord_x + coord_y + name
 
-#actives.displace(sync, timer, positions) position + (\
-  {sync} * {sync_precision.get} + \
-  {timer} * {time_precision.get} + \
-  {positions} * {placement_precision.get}\
-)
-
-#actives.substring(sync, timer, positions, length) sub(\
-  {actives},\
-  {actives.displace({sync}, {timer}, {positions})},\
-  {length}\
-)
-
-#actives.index(sync, timer, positions) index(\
-  {actives},\
-  {text_end_character},\
-  {actives.displace({sync}, {timer}, {positions})}\
-) - ({actives.displace({sync}, {timer}, {positions})})
-
+; 
+; helper consts for control
+; const string for sync check
+; sync_precision is unlikely to reach 50
+; in execution
+; 
+; const double threshold for time keeping
+; 
 :const string sync_needed '{lua(return string.rep("0", 50))}'
 :const double threshold 50.0
 
+; 
+; local helper values to 
+; relieve the system of stress
+; 
 :local int position
 :local int syncronize_copies
 :local bool copy_activator
 :local double timer
 
+; check if we're a copy
+; 
 copy_activator = contains(impulse(), "{package(sync)}")
 
+; main loop
+; we assign position our curent position
+; and increment our pointer
+; 
 check:
 position = {pointer.get}
-gotoif(\
-  if(copy_activator, skip, syncronize),\
-  not(contains(\
-    sync_needed, \
-    {actives.substring(0, 0, 0, {sync_precision.get})}\
-  ))\
-)
+{pointer.increment}
 
+; 
+; Then, check if we're being used
+; if not, we exit, otherwise
+; check if our helper const string
+; contains our sync
+; if it doesn't, we don't have any copies
+; so se can skip syncronization
+; otherwise, if we're not a copy, we enter
+; syncronization
+; 
+goto(if(\
+  health(false) > 0.0,\
+  if(\
+    copy_activator || not(contains(\
+      sync_needed, \
+      {actives.substring(0, 0, 0, {sync_precision.get})}\
+    )),\
+    skip,\
+    syncronize\
+  ),\
+  99\
+))
+
+; we set our timer, and wait to activate it
+; we don't let false passes through if
+; our {timer.get} is smaller than our
+; spell timer
+; and finally, we use both instand and grounded
+; spells of that
+; 
+; you cannot activate an instant
+; spell with useposition, and you cannot
+; activate a position spell with useinstant
+; 
 skip:
 timer = s2d(\
   {actives.substring(1, 0, 0, {time_precision.get})},\
@@ -64,8 +101,19 @@ useposition(\
     s2d({actives.substring(1, 1, 1, {placement_precision.get})}, 0.0)\
   )\
 )
-gotoif(check, not(copy_activator))
 
+; we then return to check only if
+; we're the root pointer
+goto(if(copy_activator, 99, check))
+
+; if there's copies to be made
+; we keep them in syncronize_copies
+; and create copies of sync as long as
+; there's copies to be made
+; 
+; we end this by having our root position
+; at the final spell
+; 
 syncronize:
 syncronize_copies = s2i(\
   {actives.substring(0, 0, 0, {sync_precision.get})},\
@@ -73,5 +121,6 @@ syncronize_copies = s2i(\
 )
 
 copy:
+syncronize_copies = syncronize_copies - 1
 execute("{package(sync)}")
 goto(if(syncronize_copies < 0, check, copy))
