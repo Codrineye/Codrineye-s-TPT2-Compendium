@@ -1,5 +1,42 @@
-:import Spell Compactor lib
-:name {package(sync)}
+:import integrated compactor lib
+:name {package(Compactor sync)}
+
+; 
+; This is the sync script
+; if you are sure you want
+; to integrate the compactor sync
+; to your AI, please make sure
+; you understand how the sync works
+; 
+
+#actives.displace(sync, timer, positions) position + (\
+  {sync} * sync_precision + \
+  {timer} * time_precision + \
+  {positions} * placement_precision\
+)
+
+#actives.substring(sync, timer, positions, length) sub(\
+  actives,\
+  {actives.displace({sync}, {timer}, {positions})},\
+  {length}\
+)
+
+#actives.index(sync, timer, positions) index(\
+  actives,\
+  text_end_character,\
+  {actives.displace({sync}, {timer}, {positions})}\
+) - ({actives.displace({sync}, {timer}, {positions})})
+
+; 
+; These are the same functions
+; you will find inside of Spell Compactor lib
+; but they've been modified to use
+; the const values at the bottom of
+; your Spell Config
+; instead of internal macros
+; 
+
+
 :budget_cap 50
 
 ; 
@@ -53,12 +90,13 @@ position = {pointer.get}
 ; otherwise, if we're not a copy, we enter
 ; syncronization
 ; 
+
 goto(if(\
   health(false) > 0.0,\
   if(\
     copy_activator || not(contains(\
       sync_needed, \
-      {actives.substring(0, 0, 0, {sync_precision.get})}\
+      {actives.substring(0, 0, 0, sync_precision)}\
     )),\
     skip,\
     syncronize\
@@ -81,7 +119,7 @@ skip:
 {pointer.increment}
 
 timer = s2d(\
-  {actives.substring(1, 0, 0, {time_precision.get})},\
+  {actives.substring(1, 0, 0, time_precision)},\
   0.0\
 )
 waitwhile({timer.get} % timer > threshold || {timer.get} < timer)
@@ -98,8 +136,8 @@ useposition(\
       {actives.index(1, 1, 2)}\
     )}\
   ), vec(\
-    s2d({actives.substring(1, 1, 0, {placement_precision.get})}, 0.0),\
-    s2d({actives.substring(1, 1, 1, {placement_precision.get})}, 0.0)\
+    s2d({actives.substring(1, 1, 0, placement_precision)}, 0.0),\
+    s2d({actives.substring(1, 1, 1, placement_precision)}, 0.0)\
   )\
 )
 
@@ -115,13 +153,14 @@ goto(if(copy_activator, 99, check))
 ; we end this by having our root position
 ; at the final spell
 ; 
+
 syncronize:
 syncronize_copies = s2i(\
-  {actives.substring(0, 0, 0, {sync_precision.get})},\
+  {actives.substring(0, 0, 0, sync_precision)},\
   0\
 )
 
 copy:
 syncronize_copies = syncronize_copies - 1
-execute("{package(sync)}")
+execute("{package(Compactor sync)}")
 goto(if(syncronize_copies < 0, check, copy))

@@ -1,4 +1,69 @@
 :import Spell Config_blueprint AI using the compactor
+:import Spell Compactor resources
 
-#package example_text
+; 
+; A blueprint AI most of the time
+; has a library just for convenience
+; 
+; Here, we import the Spell Config you just made
+; and Spell Compactor resources
+; 
+; if you get an error saying
+; 'Import failed: Script "Spell Compactor resources" does not exist!'
+; Please make sure you have Codrineye's Spell Compactor imported
+; 
+
+#package(name) example_text:{name}
+
+; 
+; this package macro is kept for use in the
+; :name function for consistent naming and
+; to easily detect if you were called by a
+; scrit of your own
+; 
+; As of game update 0.49.0, you no longer
+; need to include the package name when executing
+; as it will automaticall execute the script of the
+; same name inside of your package
+; if none are found, it will try to execute a script
+; of that name, that is not included in a package
+; 
+; My recommendation is that you keep the execute format
+; execute("package:name")
+; so that it's easier to understand what you're looking at
+; when making a source project
+; 
+
+; 
+; The following two macros are dependencies
+; added by importing Spell Compactor resources
+; 
+
+#identifier "example_text"
+
+; 
+; identifier is a string used when creating
+; global variables that ensures your variable
+; is unique to your AI
+; 
+; This identifier should preferably
+; be the package name, as the stand-alone compactor
+; will retrieve the data you sent by breaking
+; off the package name from the caller scripts name
+; 
+
+#compactor_type "external"
+
+; 
+; this dependency makes it possible for you
+; follow the naming scheme required when communicating
+; with the stand-alone compactor
+; 
+; by this being a macro, you can also
+; use the naming format to communicate with
+; another script, if you know the compactor_type
+; 
+; For this library, "external" is used
+; as that's the type it's reading from
+; 
 

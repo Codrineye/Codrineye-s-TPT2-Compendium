@@ -1,0 +1,45 @@
+:import integrated compactor lib
+:name Compactor tick
+
+; 
+; This is a script designed for
+; keeping time in towertesting
+; 
+; this is a valuable script
+; as all module activations depend on
+; this timer
+; 
+
+{timer.set(time.delta() * 2.0)}
+
+; 
+; to have an accurate timer
+; we need to multiply the time.delta() by 2
+; 
+; if this happens and time.delta() = 0, we
+; don't really care, but if it's a non 0 value
+; this multiplication ensures our timer is
+; syncronized to the ingame timer
+; 
+
+:budget_cap -1
+
+; 
+; we set the budget cap to
+; max so that the timer runs as
+; fast as possible
+; 
+
+loop:
+waitframe()
+{timer.add(time.delta())}
+goto(loop)
+
+; 
+; and we make the loop
+; this is an infinite loop
+; that will update the timer
+; until the script is stopped
+; by the main handler
+; 
+

@@ -1,4 +1,6 @@
-:import Spell Compactor resources
+:import Devbuild Spell Compactor resources
+:name devbuild Spell Cmp Util
+
 #package(name) {spell_compactor_package({name})}
 
 ; 

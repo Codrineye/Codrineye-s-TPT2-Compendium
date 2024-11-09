@@ -6,7 +6,7 @@ useinstant(active.index("barrier.temporal"))
 stop("{package(inf)}")
 execute("{package(inf)}")
 
-executesync("{spell_compactor_package(main)}")
+execute("{spell_compactor_package(main)}")
 
 useinstant(active.index("crate.rex"))
 

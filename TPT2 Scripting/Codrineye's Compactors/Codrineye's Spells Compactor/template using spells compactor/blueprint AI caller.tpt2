@@ -1,0 +1,70 @@
+:import example_text library
+:name {package(blueprint AI caller)}
+
+; 
+; this is a caller script, it
+; can be integrated into any
+; part of your script, but
+; so that you don't have to read
+; a novel, and so I don't have to write a novel
+; this is what you have to do
+; for your blueprint to be executed
+; by the stand-alone spell compactor
+; 
+; 
+; the macro names you see here
+; have been declaired inside of
+; Spell Compactor Resources
+; 
+
+{pointer.set({pointer.get})}
+
+; 
+; Set a hiding block for your
+; script, this prevents
+; the following from showing on
+; the user interface
+; 
+
+{spells_size.set(spell_size)}
+{precision_count.set(spells_count)}
+{precision_sync.set(sync_precision)}
+{precision_timer.set(time_precision)}
+{precision_placement.set(placement_precision)}
+
+{text_ending_character.set(text_end_character)}
+{active_spells.set(actives)}
+
+; 
+; These 8 lines send the const values
+; found at the bottom of your respective
+; Spell Config
+; and setting active_spells closes your hiding block
+; meaning that any new global variable
+; you set now will be visible on the overlay
+; 
+
+
+; 
+; If your AI already has a block hider, you
+; can remove creating the hide blocker
+; If you do not want to close the hide blocker
+; you can use
+; active_spells.set(actives . {hider.start})
+; as that will prevent the hiding block
+; from ending
+; 
+; or you can manipulate the value yourself
+; by using
+; global.string.set({active_spells}, actives)
+; 
+; I do not recommend manipulating internal
+; compactor values yourself as that can
+; have unexpected outcomes
+; 
+; you can, however, read from the
+; values you've set, as all macros
+; have .set and .get functionality
+; 
+
+

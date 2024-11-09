@@ -48,18 +48,18 @@ derived_identifier = sub(impulse(), 0, index(impulse(), ":", 0))
 ; respective external values
 ; 
 {spells_count.set(global.int.get(\
-  {identified_variables(precision_count)}\
+  {identified_variables(precisioncount)}\
 ))}
-{spell_size.set(global.int.get({identified_variables(spell_size)}))}
+{spell_size.set(global.int.get({identified_variables(spells_size)}))}
 
 {sync_precision.set(global.int.get(\
-  {identified_variables(precision_sync)}\
+  {identified_variables(precisionsync)}\
 ))}
 {time_precision.set(global.int.get(\
-  {identified_variables(precision_timer)}\
+  {identified_variables(precisiontimer)}\
 ))}
 {placement_precision.set(global.int.get(\
-  {identified_variables(precision_placement)}\
+  {identified_variables(precisionplacement)}\
 ))}
 
 {text_end_character.set(global.string.get(\

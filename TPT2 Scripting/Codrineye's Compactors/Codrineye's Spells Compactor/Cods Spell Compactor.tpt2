@@ -297,6 +297,10 @@
     sync.copies = -1 + math.tointeger(tonumber(copies));\
     sync.delay = 0.0 + tonumber(delay);\
     spell.active.sync[sync_index] = sync;\
+    spell.active.sync.index = math.max(\
+      1,\
+      spell.active.sync.index\
+    );\
     spell.precision.sync = math.max(\
       spell.precision.sync,\
       #tostring(sync.copies)\
@@ -334,6 +338,9 @@
           * by increasing the delay and\
           * decreasing our internal copies\
          */]]\
+      if sync.index == 0 then\
+        return 0.0;\
+      end\
       if sync.copies_internal == 0 then\
         if #sync > sync.index then\
           sync.index = sync.index + 1;\
@@ -365,10 +372,13 @@
       #tostring(new_spell.timer) - 1\
     );\
   \
-    local active_length = spell.precision.timer;\
-    active_length = active_length + spell.precision.sync;\
+    local active_length = spell.precision.sync;\
+    active_length = active_length + spell.precision.timer;\
+    active_length = active_length + 2;\
     active_length = active_length + spell.precision.placement;\
+    active_length = active_length + 2;\
     active_length = active_length + spell.precision.placement;\
+    active_length = active_length + 2;\
     active_length = active_length + spell.text.name_max_length;\
   \
     spell.active_max_length = math.max(\

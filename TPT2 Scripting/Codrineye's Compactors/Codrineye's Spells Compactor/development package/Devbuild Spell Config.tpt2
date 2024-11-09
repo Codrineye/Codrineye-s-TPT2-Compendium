@@ -1,4 +1,5 @@
-:import Cods Spell Compactor
+:import Devbuild Spell Compactor
+:name devbuild Spell Config
 
 ; 
 ; Welcome to the configuration

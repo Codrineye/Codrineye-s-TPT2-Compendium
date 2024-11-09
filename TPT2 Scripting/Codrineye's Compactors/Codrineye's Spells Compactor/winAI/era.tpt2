@@ -1,7 +1,7 @@
 :import winAI_lib
 :name {package(era)}
 
-wakeup()
+game.newround()
 
 :const int element_length 12
 

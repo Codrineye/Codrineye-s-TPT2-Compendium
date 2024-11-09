@@ -3,7 +3,6 @@
 
 game.newround()
 
-global.int.set({pointer}, 0)
 useinstant(active.index("barrier.temporal"))
 
 {precision_count.set(spells_count)}
@@ -19,3 +18,7 @@ useinstant(active.index("barrier.temporal"))
 
 stop("{package(3spam)}")
 execute("{package(3spam)}")
+
+waituntil(health(false) <= 0.0)
+stop("{package(3spam)}")
+stop("{package(inf)}")

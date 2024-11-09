@@ -21,6 +21,7 @@ key.x()
 :global string coord_x
 :global string coord_y
 :global string spell_name
+:global string spell_sequence
 
 ; 
 ; if debug_values is set to true
@@ -48,8 +49,9 @@ debug:
 ; 
 exit()
 
-debugging = "{lua(\
+global.string.set("<size=0>debugger", "{lua(\
   local printer = {};\
+  printer[1 + #printer] = "</size>debugging=";\
   printer[1 + #printer] = "Spell Compactor has entered debugging";\
   printer[1 + #printer] = '\n';\
   printer[1 + #printer] = "To change this, go into" .. ' ';\
@@ -58,10 +60,11 @@ debugging = "{lua(\
   printer[1 + #printer] = "Press x to cycle through" .. ' ';\
   printer[1 + #printer] = "your spells";\
   return table.concat(printer);\
-)}"
+)}")
 
-index = {pointer.get}
-position = index
+index = {internal_pointer.get}
+position = index * {spell_size.get}
+spell_sequence = {actives.substring(0, 0, 0, {spell_size.get})}
 sync = {actives.substring(0, 0, 0, {sync_precision.get})}
 time = {actives.substring(1, 0, 0, {time_precision.get})}
 coord_x = {actives.substring(1, 1, 0, {placement_precision.get})}
@@ -73,8 +76,9 @@ goto(99)
 
 no_debug:
 
-debugging = "<size=0>"
+global.string.set("<size=0>debugger", "hide contents")
 index = index
+spell_sequence = spell_sequence
 sync = sync
 time = time
 coord_x = coord_x
