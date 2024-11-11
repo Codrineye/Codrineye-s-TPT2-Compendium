@@ -19,7 +19,7 @@
 ; if this happens and time.delta() = 0, we
 ; don't really care, but if it's a non 0 value
 ; this multiplication ensures our timer is
-; syncronized to the ingame timer
+; synchronized to the ingame timer
 ; 
 
 :budget_cap -1

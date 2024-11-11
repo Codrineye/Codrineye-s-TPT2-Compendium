@@ -13,7 +13,7 @@
 ; you have 4 functions at your disposal:
 ; All of these macros generate :const <type> <token> 'contents'
 ; 
-; syncronize_module_activation()
+; synchronize_module_activation()
 ; This macro will create a token sync<sync count> containing the value 'module_count - 1'
 ; You will need to specify the amount of modules you want to activate at this time and
 ; a delay to the activation

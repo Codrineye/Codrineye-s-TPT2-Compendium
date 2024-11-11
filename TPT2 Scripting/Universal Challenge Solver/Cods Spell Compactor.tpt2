@@ -48,7 +48,7 @@
   spell.active_module = {};\
   spell.active_module.module_instance = {};\
   spell.active_module.placement_positions = {};\
-  spell.active_module.syncronization = {};\
+  spell.active_module.synchronization = {};\
   spell.sync_delay = 0.0;\
   spell.sync_precision = 2;\
   spell.timer_precision = 6;\
@@ -79,14 +79,14 @@
   \
     local new_spell = {};\
     new_spell.name = string.gsub(name, " ", "");\
-    local syncronization_timer_delay = 0.0;\
-    if #spell.active_module.syncronization ~= 0 then\
-      local syncronization_index = #spell.active_module.syncronization;\
-      local syncronization_parent = spell.active_module.syncronization[syncronization_index].name;\
-      syncronization_timer_delay = spell.sync_delay * (spell_index - syncronization_parent);\
+    local synchronization_timer_delay = 0.0;\
+    if #spell.active_module.synchronization ~= 0 then\
+      local synchronization_index = #spell.active_module.synchronization;\
+      local synchronization_parent = spell.active_module.synchronization[synchronization_index].name;\
+      synchronization_timer_delay = spell.sync_delay * (spell_index - synchronization_parent);\
     end\
     \
-    new_spell.timer = x_digit_precision(spell.timer_precision, syncronization_timer_delay + timer);\
+    new_spell.timer = x_digit_precision(spell.timer_precision, synchronization_timer_delay + timer);\
     new_spell.attribute = string.gsub(attribute, " ", "");\
     local attribute_fit = string.rep([[.]], spell.attribute_size);\
     new_spell.attribute = string.sub(new_spell.attribute .. attribute_fit, 1, spell.attribute_size);\
@@ -122,11 +122,11 @@
     local inc = 1;\
     local spells_concat = {};\
     local sync = 1;\
-    if spell.active_module.syncronization[sync] == nil then\
-      spell.active_module.syncronization[sync] = {};\
-      spell.active_module.syncronization[sync].name = {};\
-      spell.active_module.syncronization[sync].name = 0;\
-      print(spell.active_module.syncronization[sync].name);\
+    if spell.active_module.synchronization[sync] == nil then\
+      spell.active_module.synchronization[sync] = {};\
+      spell.active_module.synchronization[sync].name = {};\
+      spell.active_module.synchronization[sync].name = 0;\
+      print(spell.active_module.synchronization[sync].name);\
     end\
     \
     local function batch_loop()\
@@ -134,11 +134,11 @@
         if debugging == true then\
           print("spell(" .. i .. ") in batch(" .. batch .. ") limit to " .. spell.batch[batch]);\
           print("inc = " .. inc);\
-          print("sync(" .. sync .. ")" .. spell.active_module.syncronization[sync].name);\
+          print("sync(" .. sync .. ")" .. spell.active_module.synchronization[sync].name);\
         end\
-        if inc == spell.active_module.syncronization[sync].name then\
+        if inc == spell.active_module.synchronization[sync].name then\
           spells_concat[1 + #spells_concat] = [[" . sync]] .. sync .. [[ . "]];\
-          sync = math.min(sync + 1, #spell.active_module.syncronization);\
+          sync = math.min(sync + 1, #spell.active_module.synchronization);\
         else\
           spells_concat[1 + #spells_concat] = string.sub(math.floor(10 ^ spell.sync_precision), 2);\
         end\
@@ -181,13 +181,13 @@
     return table.concat(spells_concat);\
   end\
 \
-  function spell.syncronize(copies, delay)\
+  function spell.synchronize(copies, delay)\
     local sync_amount = copies - 1;\
     local sync = {};\
     sync.count = math.floor(10 ^ spell.sync_precision + sync_amount);\
     sync.name = 1 + #spell.active_module.module_instance;\
-    local sync_index = 1 + #spell.active_module.syncronization;\
-    spell.active_module.syncronization[sync_index] = sync;\
+    local sync_index = 1 + #spell.active_module.synchronization;\
+    spell.active_module.synchronization[sync_index] = sync;\
     spell.sync_delay = delay;\
     return [[:const string sync]] .. sync_index .. [[ ']] .. string.sub(\
       sync.count, \
@@ -207,8 +207,8 @@
   end\
 )}
 
-#syncronize_module_activation(modules_count, added_dellay) {lua(\
-  return spell.syncronize(\
+#synchronize_module_activation(modules_count, added_dellay) {lua(\
+  return spell.synchronize(\
     [[{modules_count}]], \
     [[{added_dellay}]]\
   );\

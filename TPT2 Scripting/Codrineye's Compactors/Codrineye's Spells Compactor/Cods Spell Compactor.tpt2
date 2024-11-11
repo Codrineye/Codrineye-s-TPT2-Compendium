@@ -28,7 +28,7 @@
 ; .max_batch is a helper value attatched to .batch
 ; to store the maximum length of the batch size
 ; 
-; .sync is the process of syncronization, a part of .active
+; .sync is the process of synchronization, a part of .active
 ; sync tells the script "sync" how many copies of itself to make
 ; this is done when you want to activate multiple spells
 ; at once
@@ -125,7 +125,7 @@
 ; building a :const int batch_name #spell.active
 ; 
 ; 
-; spell.syncronization()
+; spell.synchronization()
 ; this function requires 2 parameters
 ; * copies represent how many activations we want
 ; * delay represents how much time to add to the
@@ -291,7 +291,7 @@
     return table.concat(printer);\
   end\
   \
-  function spell.syncronization(copies, delay)\
+  function spell.synchronization(copies, delay)\
     local sync_index = 1 + #spell.active.sync;\
     local sync = {};\
     sync.copies = -1 + math.tointeger(tonumber(copies));\
@@ -615,7 +615,7 @@
 #add_batch(name) {lua(return spell.add_batch("{name}"))}
 
 
-#syncronize(copies, delay) {lua(return spell.syncronization(\
+#synchronize(copies, delay) {lua(return spell.synchronization(\
   [[{copies}]],\
   [[{delay}]]\
 ))}

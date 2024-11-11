@@ -65,7 +65,7 @@
 ; relieve the system of stress
 ; 
 :local int position
-:local int syncronize_copies
+:local int synchronize_copies
 :local bool copy_activator
 :local double timer
 
@@ -86,9 +86,9 @@ position = {pointer.get}
 ; check if our helper const string
 ; contains our sync
 ; if it doesn't, we don't have any copies
-; so se can skip syncronization
+; so se can skip synchronization
 ; otherwise, if we're not a copy, we enter
-; syncronization
+; synchronization
 ; 
 
 goto(if(\
@@ -99,7 +99,7 @@ goto(if(\
       {actives.substring(0, 0, 0, sync_precision)}\
     )),\
     skip,\
-    syncronize\
+    synchronize\
   ),\
   99\
 ))
@@ -146,7 +146,7 @@ useposition(\
 goto(if(copy_activator, 99, check))
 
 ; if there's copies to be made
-; we keep them in syncronize_copies
+; we keep them in synchronize_copies
 ; and create copies of sync as long as
 ; there's copies to be made
 ; 
@@ -154,13 +154,13 @@ goto(if(copy_activator, 99, check))
 ; at the final spell
 ; 
 
-syncronize:
-syncronize_copies = s2i(\
+synchronize:
+synchronize_copies = s2i(\
   {actives.substring(0, 0, 0, sync_precision)},\
   0\
 )
 
 copy:
-syncronize_copies = syncronize_copies - 1
+synchronize_copies = synchronize_copies - 1
 execute("{package(Compactor sync)}")
-goto(if(syncronize_copies < 0, check, copy))
+goto(if(synchronize_copies < 0, check, copy))

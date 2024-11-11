@@ -7,27 +7,44 @@
 ; 
 ; The following macros let you communicate
 ; with the debugger
-; spell_debug.log permits logging to the console
+; You can freely change the values you
+; give the macros, if you're curious as
+; to what each debug macro effects
+; 
+; spell_debug.log permits logging to
+; the browser developer console
+; 
+; 
+; What does it mean for the compactor to halt?
+; When the compactor halts, it means that 
+; adding a spell will no longer be stored
+; 
+; Halting is useful when debugging, as you can see
+; what the program "sees" at that time
 ; 
 ; spell_debug.halt_compilation signals to the
 ; compactor that compilation should halt eventually
 ; 
 ; spell_debug.recordings_before_halt is the amount
 ; of spells you can add before compilation halts
-; this value has no effect if you haven't signaled
-; to the compactor that compilation should halt eventually
+; this value has no effect if spell_debug.halt_compilation
+; is set to 0
 ; 
-; spell_debug.display_spells tells the debugger to
-; display the spells you added
+; spell_debug.display_spells tells the debugger
+; to display the spells you added
 ; 
-; spell_debug.display_spacers_as_numbers is a
-; field that converts all spacers into the amount of
-; space they would have added, this improves visibility
-; when debugging the output
+; spell_debug.display_spacers_as_numbers tells
+; the debugger to convert all spacing sequences
+; as the number of spaces, instead of the
+; spacing sequence itself
+; 
+; essentially, it converts [...] to [3]
+; This improves readability when
+; displaying spells
 ; 
 ; spell_debug.display_spells_in_batch signals the
 ; compactor to display your spells, but to only add
-; a separator at the start of a new batch 
+; a `display_format` at the start of a new batch 
 ; 
 ; spell_debug.display_format is a string that
 ; acts as a separtor for inputs
@@ -62,47 +79,61 @@
 ; * the x position of where you want to cast the spell
 ; * the y position of where you want to cast the spell
 ; 
-; blueprint AI's usually use winemast for the timer t
+; blueprint AI's usually use winemast for the timer `t`
 ; the timer is the value of `t` at the time of activation
 ; 
-; syncronize()
+; synchronize()
 ; this takes in 2 parameters
 ; * the number of modules you want to activate at once
 ; * a potential delay you may want to add to the spell timers
 ; 
 ; add_batch()
-; this takes in 0 parameters
-; it defines a batch chunk, meaning a separation
-; between one spell sequence and another
+; this takes in 1 parameter
+; * the name you want to give this batch
 ; 
-; I do not recommend defining a grounded module as an instant module
-; nor vice versa the system will accept your input
-; but you will cast the grounded module at position 0.0
+; a batch reprezents a separation in the recording
+; this is done when you have multiple activation sequences
+; that you want to have in the same actives string
+; 
+; The batch name is used to determine
+; when a batch starts
+; 
+; 
+; If you have a grounded module with coordinates 0,0
+; I do not recommend defining it as an instant module
+; 
+; Even tho your input will be correctly processed
+; you will likely have to change things at some point
+; and this definition can lead to confusion
+; 
+; You should not define an instant module as grounded
+; for the same reason, make the sequence easier for you
+; to follow
 ; 
 
-{syncronize(2, 0.0)}
+{synchronize(2, 0.0)}
 {add_spell.instant(barrier.temporal, 0.0)}
 {add_spell.instant(spell.floof, 0.0)}
 
-{syncronize(2, 0.0)}
+{synchronize(2, 0.0)}
 {add_spell.instant(spell.response.neutral, 0.0)}
 {add_spell.grounded(spell.void, 0.0, 0.0, 0.0)}
 
 {add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
 
-{syncronize(4, 0.0)}
+{synchronize(4, 0.0)}
 {add_spell.instant(spell.snapOfDestiny, 1.0)}
 {add_spell.instant(spell.recharge, 1.0)}
 {add_spell.instant(spell.cooling, 1.0)}
 {add_spell.grounded(spell.something, 1.0, 5.0, 15.0)}
 
-{syncronize(2, 0.0)}
+{synchronize(2, 0.0)}
 {add_spell.instant(spell.response.neutral, 2.0)}
 {add_spell.grounded(spell.void, 2.0, 0.0, 0.0)}
 
 {add_spell.instant(spell.snapOfDestiny, 3.0)}
 
-{syncronize(6, 0.0)}
+{synchronize(6, 0.0)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 {add_spell.instant(spell.refresh, 28.0)}
 {add_spell.instant(spell.recharge, 28.0)}
@@ -110,7 +141,7 @@
 {add_spell.instant(spell.floof, 28.0)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 
-{syncronize(2, 0.0)}
+{synchronize(2, 0.0)}
 {add_spell.instant(spell.cooling, 29.0)}
 {add_spell.instant(spell.recharge, 29.0)}
 
@@ -118,7 +149,7 @@
 
 {add_spell.grounded(spell.something, 30.5, 12.0, 10.0)}
 
-{syncronize(5, 0.0)}
+{synchronize(5, 0.0)}
 {add_spell.instant(spell.snapOfDestiny, 31.0)}
 {add_spell.instant(spell.recharge, 31.0)}
 {add_spell.instant(spell.refresh, 31.0)}
@@ -157,4 +188,5 @@
 :const int sync_precision {lua(return spell.precision.sync)}
 :const int time_precision {lua(return 2 + spell.precision.timer)}
 :const int placement_precision {lua(return 2 + spell.precision.placement)}
+
 

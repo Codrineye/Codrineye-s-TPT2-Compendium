@@ -1,15 +1,51 @@
 
 {lua(\
   debug = {};\
-  debug.error = 0;\
-  debug.error_comp = 0;\
-  \
+  debug.error = {};\
+  debug.error.name = '';\
+  debug.error.comp = 0;\
+  debug.error.comp_min = 0;\
+  debug.error.comp_max = 0;\
 )}
 
 {lua(\
   function debug.print_error()\
-    local printer = {};\
+    local debugger = {};\
+    debugger[1 + #debugger] = "Invalid" .. ' ';\
+    debugger[1 + #debugger] = debug.error.name;\
+    debugger[1 + #debugger] = ' ';\
+    debugger[1 + #debugger] = "input" .. '\n';\
+    debugger[1 + #debugger] = "Inputed" .. " '";\
+    debugger[1 + #debugger] = debug.error.name;\
+    debugger[1 + #debugger] = "' ";\
+  \
+    --[[/*\
+         * Printer functionality\
+         * broken up in multiple\
+         * functions for easier\
+         * modification\
+        */]]\
+  \
+    local function print_error_comp()\
+      debugger[1 + #debugger] = "cannot be" .. ' ';\
+      debugger[1 + #debugger] = "smaller than" .. ' ';\
+      debugger[1 + #debugger] = debug.error.comp_min;\
+      debugger[1 + #debugger] = ' ';\
+      debugger[1 + #debugger] = "or bigger than" .. ' ';\
+      debugger[1 + #debugger] = debug.error.comp_max;\
+    end\
+  \
+    if debug.error.comp == 1 then\
+      print_error_comp();\
+    else\
+      debugger[1 + #debugger] = "returned nil";\
+    end\
     \
+    debug.error.name = '';\
+    debug.error.comp = 0;\
+    debug.error.comp_min = 0;\
+    debug.error.comp_max = 0;\
+    return table.concat(debugger);\
   end\
 )}
 

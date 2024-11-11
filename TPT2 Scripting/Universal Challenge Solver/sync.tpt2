@@ -19,7 +19,7 @@
 :local double placement_x
 :local double placement_y
 :local int index
-:local int syncronize
+:local int synchronize
 :local bool copy_activator
 
 copy_activator = contains(impulse(), "{package(sync)}")
@@ -28,7 +28,7 @@ index = {pointer_get}
 gotoif(if(\
     copy_activator, \
     skip, \
-    syncronization_needed\
+    synchronization_needed\
   ), false == contains("00", {substring(0, sync_precision)})\
 )
 skip:
@@ -64,11 +64,11 @@ useinstant(active.index(spell_name))
 useposition(active.index(spell_name), vec(placement_x, placement_y))
 goto(if(copy_activator, 99, check))
 
-syncronization_needed:
-syncronize = s2i({substring(0, sync_precision)}, 0)
+synchronization_needed:
+synchronize = s2i({substring(0, sync_precision)}, 0)
 
 copy:
-syncronize = syncronize - 1
+synchronize = synchronize - 1
 execute("{package(sync)}")
-goto(if(syncronize <= 0, check, copy))
+goto(if(synchronize <= 0, check, copy))
 

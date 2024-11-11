@@ -4,6 +4,7 @@
   factory = {};\
   factory.items = {};\
   factory.item_names = {};\
+  factory.item_types = {};\
   factory.categories = {};\
 )}
 
@@ -13,23 +14,21 @@
     new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
+    debug.error.name = "tiers";\
     if new_item.tiers == nil then\
-      local printer = {};\
-      printer[1 + #printer] = "Invalid tiers input" .. '\n';\
-      printer[1 + #printer] = "Inputed tiers returned nil";\
-      return table.concat(printer);\
+      return debug.print_error();\
     end\
     if 10 < new_item.tiers or new_item.tiers < 1 then\
-      local printer = {};\
-      printer[1 + #printer] = "Invalid tiers input" .. '\n';\
-      printer[1 + #printer] = "Tiers cannot be smaller" .. ' ';\
-      printer[1 + #printer] = "than 0 or bigger than 10";\
-      return table.concat(printer);\
+      debug.error.comp = 1;\
+      debug.error.comp_min = 0;\
+      debug.error.comp_max = 10;\
+      return debug.print_error();\
     end\
     new_item.game_name = game_name:gsub(" ", "");\
     new_item.game_type = game_type:gsub(" ", "");\
     factory.items[new_item.id] = new_item;\
     factory.item_names[new_item.name] = new_item.id;\
+    factory.item_types[new_item.name] = new_item.game_type;\
     local printer = {};\
     printer[1 + #printer] = ":const int" .. ' ';\
     printer[1 + #printer] = new_item.name;\
@@ -81,6 +80,20 @@
   {tiers},\
   {game_name},\
   "craft"\
+)}
+
+#group(name, tiers) {item(\
+  {name},\
+  {tiers},\
+  "{name}group",\
+  "group"\
+)}
+
+#special(name, tiers, game_name) {item(\
+  {name},\
+  {tiers},\
+  {game_name},\
+  "special"\
 )}
 
 #category(name, default, first, last) {lua(return factory.add_category(\
