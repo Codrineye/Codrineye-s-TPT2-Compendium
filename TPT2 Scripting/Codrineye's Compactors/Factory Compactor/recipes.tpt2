@@ -1,0 +1,652 @@
+:import factory constants
+
+{lua(\
+  factory.recipes = {};\
+)}
+
+; Infrastructure for defining the recipe list.
+{lua(\
+  function factory.recipe(item)\
+    local recipe_item = factory.item_names[item];\
+    if not recipe_item then\
+      return "Unknown item '" .. item .. "'";\
+    end\
+    if recipe_item.recipes then\
+      return "Duplicate recipe for '" .. item .. "'";\
+    end\
+    factory.recipe_item = recipe_item;\
+    local offset = 10 * recipe_item.id;\
+    --[[There are two types of recipe list that we store: A "forward" list stored\
+        on the item itself, which records what items are needed to *make* that\
+        item, and a "reverse" list stored on the main factory object and indexed\
+        by queue id, which records what items can be *made from* the item.\
+        The forward list is used by the item group system, while the reverse list\
+        is used by the recipe system proper.]]\
+    for i = offset, offset + recipe_item.tier - 1 do\
+      if not factory.recipes[i] then\
+        factory.recipes[i] = {};\
+      end\
+    end\
+    recipe_item.recipes = {};\
+    for i = 1, recipe_item.tier do\
+      recipe_item.recipes[i] = {};\
+    end\
+  end\
+\
+  function factory.component(tiers, item_name, counts)\
+    local recipe_item = factory.recipe_item;\
+    if not recipe_item then\
+      return "Tried to define a component before calling recipe!"\
+    end\
+    local item_name = item_name:gsub(" ", "");\
+    local item = factory.item_names[item_name];\
+    if not item then\
+      return "Unknown item '" .. item_name .. "'";\
+    end\
+    if item.craft_type == "group" then\
+      return string.format(\
+        [[Cannot add item "%s" because it is a group]],\
+        item.name,\
+        recipe_item.name,\
+        recipe_item.craft_type\
+      );\
+    end\
+    local tier_tmp = {};\
+    for word in tiers:gmatch("%S+") do\
+      local tier = tonumber(word);\
+      if not tier then\
+        return "Bad tier " .. word\
+      end\
+      tier_tmp[#tier_tmp + 1] = tier;\
+    end\
+    if #tier_tmp ~= 1 and #tier_tmp ~= recipe_item.tier then\
+      return "Tiers list has wrong size, item " ..\
+        recipe_item.name .. " has " .. recipe_item.tier .. " tiers";\
+    end\
+    \
+    local base_tier;\
+    for i = 1, recipe_item.tier do\
+      base_tier = tier_tmp[i] or base_tier;\
+      local tier = base_tier;\
+      if tier < 1 then\
+        tier = tier + i;\
+      end\
+      tier_tmp[i] = tier;\
+    end\
+    \
+    local counts_tmp = {};\
+    for word in counts:gmatch("%S+") do\
+      local count = tonumber(word);\
+      if not count then\
+        return "Bad count " .. word\
+      end\
+      counts_tmp[#counts_tmp + 1] = count;\
+    end\
+    if #counts_tmp ~= 1 and #counts_tmp ~= recipe_item.tier then\
+      return "Counts list has wrong size, item " ..\
+        recipe_item.name .. " has " .. recipe_item.tier .. " tiers";\
+    end\
+    for i = #counts_tmp + 1, recipe_item.tier do\
+      counts_tmp[i] = counts_tmp[i-1];\
+    end\
+    --[[Finally, merge the two expanded lists and distribute the results\
+        across the recipes for each tier. These recipes are "reversed,"\
+        in the sense that they don't describe how to make each item, but\
+        rather all the items that this one can be used to help make.\
+        It's this reversed list that is needed for computing the material\
+        needs when crafting.]]\
+    local recipes = factory.recipes;\
+    local offset = recipe_item.id * 10 - 1;\
+    for i = 1, recipe_item.tier do\
+      local tier = tier_tmp[i];\
+      local count = counts_tmp[i];\
+      if count > 0 and tier > 0 then\
+        --[[Tiers less than 1 can happen naturally, due to the negative tier\
+            convention, so they are silently dropped. Tiers greater than the\
+            the maximum number of tiers are an error.]]\
+        if tier > item.tier then\
+          return "Tier " .. tier .. " > item max tier " .. item.tier;\
+        end\
+        local idx = item.id * 10 + tier - 1;\
+        local comp = recipes[idx];\
+        if comp == nil then\
+          comp = {};\
+          recipes[idx] = comp;\
+        end\
+        comp[#comp + 1] = offset + i;\
+        comp[#comp + 1] = count;\
+        local item_recipe = recipe_item.recipes[i];\
+        item_recipe[#item_recipe + 1] = idx;\
+        item_recipe[#item_recipe + 1] = count;\
+      end\
+    end\
+  end\
+\
+  function factory.produce(item, source, mult, machine)\
+    local recipe_item = factory.item_names[item];\
+    if not recipe_item then\
+      return "Unknown item '" .. item .. "'";\
+    end\
+    if recipe_item.recipes then\
+      return "Duplicate recipe for '" .. item .. "'";\
+    end\
+    local source_item = factory.item_names[source];\
+    if not source_item then\
+      return "Unknown item '" .. source .. "'";\
+    end\
+    if source_item.tier ~= recipe_item.tier then\
+      return "Tier mismatch: " .. source .. "(" .. source_item.tier ..\
+        ") vs " .. item .. "(" .. recipe_item.tier .. ")"\
+    end\
+    if #factory.prods == 0 or factory.prods[#factory.prods].machine ~= machine then\
+      if factory.prod_machines[machine] then\
+        return "Found 2nd group for machine '" .. machine .. "'";\
+      end\
+      factory.prod_machines[machine] = #factory.prods + 1;\
+      factory.prod_machines[#factory.prod_machines + 1] = machine;\
+    end\
+    local prod = {};\
+    prod.item = recipe_item;\
+    prod.source = source_item;\
+    prod.mult = mult;\
+    prod.machine = machine;\
+    factory.prods[#factory.prods + 1] = prod;\
+\
+    local offset = 10 * source_item.id;\
+    local count = 1 / mult;\
+    for i = offset, offset + recipe_item.tier - 1 do\
+      if not factory.recipes[i] then\
+        factory.recipes[i] = {};\
+      end\
+      local recipe = factory.recipes[i];\
+      recipe[#recipe + 1] = 10 * recipe_item.id - offset + i;\
+      recipe[#recipe + 1] = count;\
+    end\
+    recipe_item.recipes = {};\
+    for i = 1, recipe_item.tier do\
+      local recipe = {};\
+      recipe[1] = offset + i - 1;\
+      recipe[2] = count;\
+      recipe_item.recipes[i] = recipe;\
+    end\
+  end\
+\
+  function factory.check_recipes()\
+    for i = 1, #factory.items do\
+      local item = factory.items[i];\
+      if not item.recipes then\
+        return item.name .. "(" .. item.id .. ") has no assigned recipe!";\
+      end\
+    end\
+  end\
+)}
+
+; Every recipe begins with this line. There must be one (and only one)
+; recipe declaration for each item, even if there is no way to make it
+; (like for rubber).
+#recipe(item) {lua(return factory.recipe([[{item}]]))}
+
+; After starting a recipe, list its components with this. A component
+; declares a single item that is used, and the the tiers and counts of that
+; item for each tier of the recipe_item that's being made.
+; The list on the left side is the tiers, the list on the right is the counts.
+;
+; For instance:
+;  recipe(white_producer)
+;  component(2 3 5 7 9, screw, 2 4 4 4 4)
+; Means that
+; a T1 white_producer needs 2 T2 screws,
+; a T2 white_producer needs 4 T3 screws,
+; a T3 white_producer needs 4 T5 screws,
+; etc.
+; 
+; There are additional space-saving wrinkles. Instead of repeating a number
+; for every tier or every count when it's always the same, you can list it
+; once. This is all-or-nothing: It must be exactly once, or listed once for
+; every tier in the recipe.
+; Also, in the tier list you can use numbers less than 1. This means that
+; the position in the list will be added to the number. I.e. a value of
+; 0 becomes equal to "current_tier", -1 becomes "current_tier - 1", etc.
+#component(tiers, item, counts) {lua(\
+  return factory.component([[{tiers}]],[[{item}]],[[{counts}]]);\
+)}
+
+; For items that are made in machines, use this macro instead. This defines
+; the needed recipe automatically. The third argument is the "multiplier",
+; which says how many multiples of the item are made from a single source
+; input.
+; It is assumed that the production happens for all tiers of the item,
+; from the same source tier; things like mixing or boiling dust aren't handled
+; through this system. (Boiling isn't handled at all.)
+#produce(item, source, mult, machine) {lua(\
+  return factory.produce(\
+    [[{item}]],\
+    string.gsub([[{source}]], " ", ""),\
+    {mult},\
+    string.gsub([[{machine}]], " ", "")\
+  );\
+)}
+
+; ===== BEGIN RECIPES =====
+
+{recipe(town_producer)}
+{component(2 3 5 7 9, screw, 2 4 4 4 4)}
+{component(2 0 0 0 0, plate, 2 0 0 0 0)}
+{component(0 3 5 7 9, board, 0 2 2 2 6)}
+{component(-1, chip, 0 2 2 2 4)}
+{component(-1, town_producer, 1)}
+
+{recipe(factory_producer)}
+{component(1 3 5 7 9, wire, 1 4 4 4 4)}
+{component(2 0 0 0 0, screw, 1 0 0 0 0)}
+{component(0 3 5 7 9, board, 0 1 1 1 3)}
+{component(2 3 5 0 0, plate, 2 2 2 0 0)}
+{component(0 0 0 7 9, dense_plate, 0 0 0 2 4)}
+{component(1 1 2 3 4, chip, 2 1 1 1 3)}
+{component(-1, factory_producer, 1)}
+
+{recipe(mine_producer)}
+{component(2 3 5 7 9, screw, 2 2 2 4 4)}
+{component(1 2 4 6 8, wire, 2 3 2 5 5)}
+{component(2 0 5 7 9, plate, 1 0 1 2 2)}
+{component(0 3 5 7 9, dense_plate, 0 2 2 2 2)}
+{component(1 1 2 3 4, chip, 1)}
+{component(-1, mine_producer, 1)}
+
+{recipe(workshop_producer)}
+{component(0 2 4 6 8, wire, 0 4 2 8 8)}
+{component(1 3 5 7 9, wire, 4 2 2 2 2)}
+{component(2 3 5 7 9, plate, 1 2 2 2 2)}
+{component(1 0 2 3 4, chip, 1 0 2 2 2)}
+{component(-1, workshop_producer, 1)}
+
+{recipe(construction_firm_producer)}
+{component(2 4 6 8 10, rod, 3 4 10 10 10)}
+{component(2 4 6 8 10, plate, 2)}
+{component(1 1 2 3 4, chip, 1 2 2 2 2)}
+{component(-1, construction_firm_producer, 1)}
+
+{recipe(laboratory_producer)}
+{component(0 3 5 7 9, pipe, 0 3 5 10 14)}
+{component(2 4 6 8 10, motor, 1)}
+{component(1 3 5 7 9, dense_plate, 2 2 4 4 6)}
+{component(0, chip, 3 2 4 4 6)}
+{component(-1, laboratory_producer, 1)}
+
+{recipe(headquarters_producer)}
+{component(1 3 5 7 9, wire, 2 4 8 8 12)}
+{component(2 4 6 8 10, motor, 1 2 2 2 2)}
+{component(0, chip, 3 2 4 4 6)}
+{component(-1, headquarters_producer, 1)}
+
+{recipe(powerplant_producer)}
+{component(1 3 5 7 9, insul_cable, 2 2 4 4 6)}
+{component(2 4 6 8 10, motor, 1)}
+{component(0 3 5 7 9, block, 0 3 5 5 14)}
+{component(0, chip, 3 2 4 4 6)}
+{component(-1, powerplant_producer, 1)}
+
+{recipe(arcade_producer)}
+{component(2 4 6 8 9, insul_cable, 4 6 6 6 6)}
+{component(2 4 6 8 10, pipe, 4 4 4 4 8)}
+{component(0, chip, 4 4 4 4 6)}
+{component(-1, arcade_producer, 1)}
+
+{recipe(tradingpost_producer)}
+{component(2 4 6 8 10, ring, 6 8 8 8 12)}
+{component(2 4 6 8 10, plate, 4)}
+{component(0, chip, 2 2 2 2 4)}
+{component(-1, tradingpost_producer, 1)}
+
+{recipe(shipyard_producer)}
+{component(2 4 6 8 10, insul_cable, 6 8 8 8 12)}
+{component(1 3 5 7 9, block, 4)}
+{component(0, chip, 2 2 2 2 4)}
+{component(-1, shipyard_producer, 1)}
+
+{recipe(museum_producer)}
+{component(3 5 7 9 10, insul_cable, 6 7 7 7 9)}
+{component(2 4 6 8 10, block, 4 5 5 5 7)}
+{component(0, chip, 2 2 2 2 4)}
+{component(-1, museum_producer, 1)}
+
+{recipe(statue_of_cubos_producer)}
+{component(1 3 5 7 9, dense_block, 4 5 5 5 7)}
+{component(2 4 6 8 10, motor, 2)}
+{component(2 4 6 8 10, pipe, 2)}
+{component(2 4 6 8 10, pump, 2 3 3 3 5)}
+{component(0, chip, 2 2 2 2 4)}
+{component(-1, statue_of_cubos_producer, 1)}
+
+{recipe(gem_producer)}
+{component(5, chip, 10)}
+{component(4, chip, 10)}
+{component(10, insul_cable, 2)}
+{component(1, dense_block, 1)}
+{component(2, dense_block, 1)}
+{component(3, dense_block, 1)}
+{component(4, dense_block, 1)}
+{component(5, dense_block, 1)}
+{component(6, dense_block, 1)}
+{component(7, dense_block, 1)}
+{component(8, dense_block, 1)}
+{component(9, dense_block, 1)}
+{component(10, dense_block, 1)}
+
+{recipe(exotic_producer)}
+{component(5, chip, 10)}
+{component(10, insul_cable, 2)}
+{component(10, dense_block, 10)}
+{component(10, assembly, 1)}
+{component(10, boiler, 1)}
+{component(10, crusher, 1)}
+{component(10, cutter, 1)}
+{component(10, mixer, 1)}
+{component(10, oven, 1)}
+{component(10, presser, 1)}
+{component(10, refiner, 1)}
+{component(10, shaper, 1)}
+{component(10, belt, 1)}
+
+{recipe(acceleration_booster)}
+{component(2 3 5, chip, 1 4 6)}
+{component(4, plate, 4 0 0)}
+{component(1, rainbow_plate, 0 2 4)}
+{component(4 8 0, circuit, 4 8 0)}
+{component(10, dense_block, 0 0 12)}
+{component(1, void_essence, 0 0 4)}
+{component(-1, acceleration_booster, 2)}
+
+{recipe(machine_booster)}
+{component(2 3 5, chip, 2)}
+{component(4 7 10, pipe, 4)}
+{component(4, wire, 2 0 0)}
+{component(0 7 10, dense_block, 0 2 2)}
+{component(8, dense_plate, 0 6 0)}
+{component(1, rainbow_plate, 0 0 4)}
+{component(1, void_essence, 0 0 2)}
+{component(4, circuit, 1 0 0)}
+{component(-1, machine_booster, 1)}
+
+{recipe(production_booster)}
+{component(1 3 0, chip, 4 4 0)}
+{component(2 7 0, plate, 4 6 0)}
+{component(2 7 10, circuit, 1 4 4)}
+{component(10, dense_block, 0 0 12)}
+{component(1, void_essence, 0 0 4)}
+{component(-1, production_booster, 0 1 4)}
+
+{recipe(resource_booster)}
+{component(3, plate, 6 0 0)}
+{component(1, rainbow_plate, 0 0 2)}
+{component(1 3 4, chip, 2 2 6)}
+{component(4 8 0, circuit, 1 2 0)}
+{component(0 7 10, block, 0 4 4)}
+{component(1, void_essence, 0 0 1)}
+{component(-1, resource_booster, 0 1 2)}
+
+{recipe(pumpkin_producer)}
+{component(0, carved_pumpkin, 6)}
+{component(0, anti_pumpkin, 6)}
+{component(0, pumpkin_plate, 20)}
+
+{recipe(oven)}
+{component(0, plate, 4 6 8 8 8 8 8 8 8 8)}
+{component(0, insul_cable, 2 2 3 3 3 4 4 4 4 4)}
+{component(0, block, 0 0 0 0 0 2 2 2 2 2)}
+{component(-1, oven, 1)}
+
+{recipe(presser)}
+{component(1, hammer, 2 0 0 0 0 0 0 0 0 0)}
+{component(0, plate, 4 5 7 7 7 9 9 9 9 9)}
+{component(0, wire, 1 1 2 2 2 3 3 3 3 3)}
+{component(0, block, 0 0 0 0 4 5 5 5 5 5)}
+{component(1 1 1 2 2 2 3 3 4 4, chip, 2)}
+{component(-1, presser, 1)}
+
+{recipe(assembly)}
+{component(0, pipe, 1 1 1 1 1 2 2 2 2 2)}
+{component(0, dense_plate, 6 5 8 8 8 10 10 10 12 12)}
+{component(0, motor, 1 1 1 1 1 1 1 1 2 2)}
+{component(1 1 1 2 2 2 3 3 4 4, chip, 1 1 1 1 1 1 1 1 1 2)}
+{component(-1, assembly, 1)}
+
+{recipe(refiner)}
+{component(0, block, 0 0 0 0 0 0 5 5 5 7)}
+{component(0, dense_plate, 4)}
+{component(0, motor, 1 1 1 1 2 2 2 2 2 4)}
+{component(0, ring, 1 2 2 2 3 3 3 3 3 5)}
+{component(0, pump, 1 2 2 2 3 3 3 3 3 5)}
+{component(1 1 2 2 2 2 3 4 4 5, chip, 2)}
+{component(-1, refiner, 1)}
+
+{recipe(mixer)}
+{component(0, dense_plate, 5 4 4 5 5 6 6 6 6 6)}
+{component(0, motor, 2)}
+{component(0, pump, 1 1 1 2 2 3 3 3 3 3)}
+{component(1 1 1 2 2 2 2 3 4 4, chip, 1 1 1 2 2 3 3 3 3 3)}
+{component(-1, mixer, 1)}
+
+{recipe(crusher)}
+{component(0, dense_plate, 7 8 8 8 8 8 8 9 9 9)}
+{component(0, motor, 1 1 1 1 1 1 1 2 2 2)}
+{component(1 1 1 2 2 2 2 2 4 4, chip, 1 2 2 2 2 2 2 3 3 3)}
+{component(-1, crusher, 1)}
+
+{recipe(belt)}
+{component(1, rubber, 3 4 4 4 4 0 0 0 0 0)}
+{component(1, rubber_plate, 0 0 0 0 0 4 5 5 5 5)}
+{component(0, motor, 3 3 3 3 3 3 4 4 4 4)}
+{component(0, insul_cable, 3 4 4 4 4 4 5 5 5 5)}
+{component(0 0 0 1 2 2 3 3 4 4, chip, 0 0 0 4 4 4 5 5 5 5)}
+{component(-1, belt, 1)}
+
+{recipe(cutter)}
+{component(0, plate, 2 2 2 2 2 2 2 0 0 0)}
+{component(0, dense_plate, 3 3 3 3 3 4 4 2 2 2)}
+{component(0, block, 0 0 0 0 0 0 0 4 4 6)}
+{component(0, motor, 3 4 4 4 4 5 5 5 5 7)}
+{component(-1, cutter, 1)}
+
+{recipe(shaper)}
+{component(0, plate, 4 4 4 4 4 4 4 4 4 0)}
+{component(0, dense_plate, 0 0 0 0 0 0 0 0 0 4)}
+{component(0, screw, 1 2 2 2 2 3 3 3 3 3)}
+{component(0, block, 1 2 2 2 2 3 3 3 3 0)}
+{component(0, dense_block, 0 0 0 0 0 0 0 0 0 5)}
+{component(0, motor, 2)}
+{component(0, insul_cable, 1 1 1 1 1 2 2 2 2 4)}
+{component(-1, shaper, 1)}
+
+{recipe(boiler)}
+{component(0, wire, 2 2 2 3 3 3 3 3 4 5)}
+{component(0, dense_plate, 2 2 2 3 3 3 3 3 4 5)}
+{component(0, block, 4 7 7 8 8 8 8 8 9 10)}
+{component(0, motor, 1 1 1 2 2 2 2 2 3 4)}
+{component(0, screw, 2)}
+{component(0, pump, 1)}
+{component(-1, boiler, 1)}
+
+{recipe(rainbow_dust)}
+{component(1, dust, 1)}
+{component(2, dust, 1)}
+{component(3, dust, 1)}
+{component(4, dust, 1)}
+{component(5, dust, 1)}
+{component(6, dust, 1)}
+{component(7, dust, 1)}
+{component(8, dust, 1)}
+{component(9, dust, 1)}
+{component(10, dust, 1)}
+
+{recipe(chip)}
+{component(1 3 5 7 9, circuit, 2)}
+{component(2 4 6 8 10, circuit, 2 4 4 2 2)}
+{component(1 3 5 7 9, board, 1 4 4 6 8)}
+{component(2 4 6 8 10, board, 1 2 2 6 8)}
+{component(-1, chip, 0 4 8 12 12)}
+
+{recipe(insul_cable)}
+{component(0, cable, 1 1 1 2 3 4 5 10 12 16)}
+{component(1, rubber, 1 2 0 0 0 0 0 0 0 0)}
+{component(1, rubber_plate, 0 0 2 4 6 8 10 10 12 16)}
+
+{recipe(stacked_plate)}
+{component(0, plate, 9)}
+
+{recipe(stacked_pumpkin)}
+{component(0, pumpkin, 9)}
+
+{recipe(motor)}
+{component(0, plate, 4)}
+{component(0, screw, 1)}
+{component(0, rod, 2)}
+{component(0, wire, 1)}
+{component(1, rubber, 1)}
+
+{recipe(pump)}
+{component(0, plate, 2)}
+{component(0, motor, 1)}
+{component(0, ring, 2)}
+{component(1, rubber_plate, 4)}
+
+{recipe(hammer)}
+{component(2, ingot, 6)}
+{component(2, rod, 1)}
+
+{recipe(block)}
+{component(0, dense_plate, 8 8 8 8 8 8 12 12 12 12)}
+
+{recipe(rubber_sapling)}
+{component(0, rubber, 8)}
+{component(9, ore, 1)}
+
+{recipe(void_sapling)}
+{component(1, rainbow_dust, 8)}
+{component(1, rubber_sapling, 1)}
+
+{recipe(producers)}
+#recipe_producers(x) \
+{component(0, town_producer, {x})}\
+{component(0, factory_producer, {x})}\
+{component(0, mine_producer, {x})}\
+{component(0, workshop_producer, {x})}\
+{component(0, construction_firm_producer, {x})}\
+{component(0, laboratory_producer, {x})}\
+{component(0, headquarters_producer, {x})}\
+{component(0, powerplant_producer, {x})}\
+{component(0, arcade_producer, {x})}\
+{component(0, tradingpost_producer, {x})}\
+{component(0, shipyard_producer, {x})}\
+{component(0, museum_producer, {x})}\
+{component(0, statue_of_cubos_producer, {x})}
+{recipe_producers(1)}
+
+{recipe(machines)}
+{component(0, oven, 1)}
+{component(0, presser, 1)}
+{component(0, assembly, 1)}
+{component(0, refiner, 1)}
+{component(0, mixer, 1)}
+{component(0, crusher, 1)}
+{component(0, belt, 1)}
+{component(0, cutter, 1)}
+{component(0, shaper, 1)}
+{component(0, boiler, 1)}
+
+{recipe(parts)}
+#recipe_parts \
+{component(0, insul_cable, 1)}\
+{component(0, stacked_plate, 1)}\
+{component(0, motor, 1)}\
+{component(0, pump, 1)}\
+{component(1, hammer, 0 1 0 0 0 0 0 0 0 0)}\
+{component(0, block, 1)}\
+{component(0, ingot, 1)}\
+{component(0, plate, 1)}\
+{component(0, dense_plate, 1)}\
+{component(0, dense_block, 1)}\
+{component(0, pipe, 1)}\
+{component(0, cable, 1)}\
+{component(0, wire, 1)}\
+{component(0, rod, 1)}\
+{component(0, ring, 1)}\
+{component(0, screw, 1)}\
+{component(0, board, 1)}\
+{component(0, circuit, 1)}\
+{component(0, rubber_plate, 1 0 0 0 0 0 0 0 0 0)}\
+{component(1, rubber_sapling, 0 0 0 0 0 0 0 0 1 0)}
+{recipe_parts}
+
+{recipe(chips)}
+{component(1, chip, 1)}
+{component(2, chip, 1)}
+{component(3, chip, 1)}
+{component(4, chip, 1)}
+{component(5, chip, 1)}
+
+{recipe(chip_and_prods)}
+{component(0, chip, 1)}
+{recipe_producers(1)}
+
+#recipe_machines_and_parts \
+{component(0, oven, 1)}\
+{component(1, presser, 0 1 0 0 0 0 0 0 0 0)}\
+{component(0, presser, 0 1 1 1 1 1 1 1 1 1)}\
+{component(0, assembly, 1)}\
+{component(0, refiner, 1)}\
+{component(0, mixer, 1)}\
+{component(0, crusher, 1)}\
+{component(0, belt, 1)}\
+{component(0, cutter, 1)}\
+{component(0, shaper, 1)}\
+{component(0, boiler, 1)}\
+{recipe_parts}
+
+{recipe(all)}
+{component(0, chip, 1 1 1 1 1 0 0 0 0 0)}
+{recipe_producers(1 1 1 1 1 0 0 0 0 0)}
+{recipe_machines_and_parts}
+
+; Machine-produced items
+{recipe(ingot)} ; Has special-case producing code
+{component(0, dust, 1)}
+
+{produce(rainbow_ingot, rainbow_dust, 1, oven)}
+
+{produce(plate, ingot, 1, presser)}
+{produce(rainbow_plate, rainbow_ingot, 1, presser)}
+{produce(dense_plate, stacked_plate, 1, presser)}
+{produce(rubber_plate, rubber, 1, presser)}
+{produce(pumpkin_plate, stacked_pumpkin, 1, presser)}
+
+{produce(dense_block, block, 1, boiler)}
+{produce(anti_pumpkin, pumpkin, 1, boiler)}
+
+{produce(rod, ingot, 2, shaper)}
+{produce(pipe, plate, 1, shaper)}
+{produce(ring, rod, 1, shaper)}
+
+{produce(cable, ingot, 2, refinery)}
+{produce(board, plate, 1, refinery)}
+{produce(wire, cable, 1, refinery)}
+
+{produce(screw, rod, 4, cutter)}
+{produce(carved_pumpkin, pumpkin, 1, cutter)}
+
+{produce(circuit, cable, 1, assembler)}
+
+; These recipes have special-case code to handle them, because of the
+; complexities involved with choosing between ore and lumps for making dust.
+{recipe(lump)}
+{recipe(dust)}
+
+; Terminal items, unable to be crafted.
+{recipe(ore)}
+{recipe(rubber)}
+{recipe(void_essence)}
+{recipe(pumpkin)}
+
+; ===== END RECIPES =====
+
+{lua(return factory.check_recipes())}

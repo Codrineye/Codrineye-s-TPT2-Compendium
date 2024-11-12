@@ -2,22 +2,33 @@
 
 #version v3.2.3
 
-; Everything in the list below is a valid target for automation, and can be
-; assigned to the "target_type" variable in "lanuch factory craft".
-; For example, "make(oven, 10, "machine.oven")" indicates that "oven" is a valid
-; item, usable from tiers 1-10, with the internal game name of "machine.oven"
+; 
+; Everything in the list below is a valid target for automation,
+; and can be assigned to the "target_type" variable in
+; "lanuch factory craft".
+; For example, "craft(oven, 10, "machine.oven")" indicates that
+; "oven" is a valid item, usable from tiers 1-10, with the
+; internal game name of "machine.oven"
 ; (which you don't need to worry about.)
-; Thus you can enter "oven" in the box in the in-game editor (without the quotes).
+; Thus you can enter "oven" in the box in the in-game editor
+; (without the quotes).
+; 
 
+; 
 ; If you add or change this list, mind this constraint:
 ; * All the crafted items have to come before the rest of the items.
 ; * All the item-groups must be in a single block.
-; * Prefer keeping things in alphabetical order within categories, because
-;   they are ordered the same way when presented in-game.
+; * Prefer keeping things in alphabetical order within categories,
+;   because they are ordered the same way when presented in-game.
+; 
 
 ; ===== VALID IDS =====
 
-; *** To reiterate, just use the name part (i.e. "white_producer"), not the whole thing! ***
+; ***
+; To reiterate,
+; just use the name part (i.e. "white_producer"),
+; not the whole thing!
+; ***
 
 ; ----- CRAFTED ITEMS -----
 
@@ -76,55 +87,74 @@
 
 {category(crft, chip, block, void_sapling)}
 
+; 
 ; Transforms ore into dust, tiers 1-10
 ; Because of an implementation detail, this must come before any
 ; scannable items.
 ; This doesn't show up in any category in the UI.
 {special(ore, 10, "ore")}
 
+; 
 ; ----- SCANNABLE ITEM GROUPS -----
-; These are not real items, but rather groups of items that will be made together
-; if you select one of these names. They are meant for use with the Crafter, to
-; crank out sets of items to scan quickly. You will want to set the quantity to 1000.
+; These are not real items, but rather groups of items that will
+; be made together if you select one of these names.
+; They are meant for use with the Crafter, to crank out sets of items
+; to scan quickly. You will want to set the quantity to 1000.
+; 
 
+; 
 ; Notes on using item groups:
-; * SCAN YOUR ORES FIRST! The factory can and will consume your ore to make stuff,
-;     and it takes a long time to get 1000 T10 ore.
-; * The quantity works a little differently than normal items. Instead of making
-;     1000 items each time, running it again will top off everything to be
-;     *at* the quantity of 1000 items.
-; * If you craft a higher tier after a lower tier, it will consume the results
-;     of the first craft to make the higher tier. Scan all the items first, before
-;     moving on to the next tier!
-; * None of these groups include Gem Producers or Exotic Producers. They are too
-;     expensive in comparison to other things, craft them on your own when you
-;     judge the time is right.
+; * SCAN YOUR ORES FIRST! The factory can and will
+;   consume your ore to make stuff, and
+;   it takes a long time to get 1000 T10 ore.
+; * The quantity works a little differently than normal items.
+;   Instead of making 1000 items each time, running it again
+;   will top off everything to be *at* the quantity of 1000 items.
+; * If you craft a higher tier after a lower tier, it will
+;   consume the results of the first craft to make the higher tier.
+;   Scan all the items first, before moving on to the next tier!
+; * None of these groups include Gem Producers or Exotic Producers.
+;   They are too expensive in comparison to other things,
+;   craft them on your own when you judge the time is right.
+; 
 
-; Makes *everything* (expect special producers and lumps) of the given tier.
+; 
+; Makes *everything* (expect special producers and lumps) of
+; the given tier.
 ; This is the combination of "chips_and_prods", "machines", and "parts".
-; Requires x10 and high processing speed to have a hope of completing in a
-; reasonable amount of time for T5 and T10.
-; You need Quantum Warehouse to have enough space for this at higher tiers!
+; Requires x10 and high processing speed to have a hope of completing
+; in a reasonable amount of time for T5 and T10.
+; You need Quantum Warehouse to have enough space for
+; this at higher tiers!
 {group(all, 10)}
 
-; All the tiers of chips. Warning: Expensive. Input this as tier 1.
+; 
+; All the tiers of chips.
+; Warning: Expensive. Input this as tier 1.
 {group(chips, 1)}
 
-; Producers + the chip of the corresponding tier. This is everything that
-; exists in tier range 1-5, for convenience.
+; 
+; Producers + the chip of the corresponding tier.
+; This is everything that exists in tier range 1-5, for convenience.
 {group(chip_and_prods, 5)}
 
-; All machines. Tiers 1-10
+; 
+; All machines.
+; Tiers 1-10
 {group(machines, 10)}
 
-; All ingredients and parts. Tiers 1-10. Doesn't include ore (scan that before
-; starting) or lumps (due to technical limitations). Lumps aren't required
-; for anything currently though.
+; 
+; All ingredients and parts.
+; Tiers 1-10. Doesn't include ore
+; (scan that before starting) or lumps (due to technical limitations).
+; Lumps aren't required for anything currently though.
 ; Includes rubber plates at tier 1 and hammers at tier *2*.
 ; Rubber trees are at tier 9 because of their ore.
 {group(parts, 10)}
 
-; All producers, except for special producers. Tiers 1-5
+; 
+; All producers, except for special producers.
+; Tiers 1-5
 {group(producers, 5)}
 
 {category(grup, all, all, producers)}
@@ -153,24 +183,30 @@
 
 {category(part, circuit, anti_pumpkin, wire)}
 
-; Tries to make dust from ores and lower-tier dusts, tiers 1-10
+; 
+; Tries to make dust from ores and lower-tier dusts,
+; tiers 1-10
 ; Doesn't appear in the UI
 {produce(dust, 10, "dust")}
 
+; 
 ; Tiers up dust, tiers 1-9
 ; These are ore lumps, plus putting them into the mixer.
 ; There is no "only make ore lumps, without mixing them" option right now.
 ; Doesn't appear in the UI
 {special(lump, 9, "lump")}
 
+; 
 ; Can only be made from saplings
 ; Doesn't appear in the UI
 {produce(void_essence, 1, "essence.void")}
 
+; 
 ; Can only be gotten through the Halloween event
 ; Doesn't appear in the UI
 {produce(pumpkin, 1, "pumpkin")}
 
+; 
 ; Rubber, tier 1 only
 ; Doesn't appear in the UI
 {produce(rubber, 1, "rubber")}

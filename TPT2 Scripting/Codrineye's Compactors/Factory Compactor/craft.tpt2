@@ -1,0 +1,96 @@
+:import factory constants
+:import recipes
+
+:name {script_name(craft)}
+
+:local double previous_amount
+:local int i
+:local string itemdata
+:local string group_data
+
+:global int factory_target
+
+key.{up}()
+key.{down}()
+
+isopen("factory")
+
+; If we were launched via key impulse, invoke the UI immediately to start turbo,
+; and set action to signal which key was pressed. Otherwise, we're being called
+; as a produce script.
+execute(if(contains(impulse(), "key."), "{script_name(ui)}", "###badname###"))
+gotoif(group_abort, contains(impulse(), "key."))
+
+; Craft all the items.
+craftitems_loop:
+itemdata = {lua(return factory.composite_string("i/10", "craft"))}
+
+do_craft:
+; Because items and tiers start at 1, but i is zero-based, we have to add 1
+; or (pre-multiplying, 10) in these expressions.
+; However, tier is zero-based inside our indexing representation, so we don't
+; add it there.
+previous_amount = count({get_name}, i%10 + 1)
+craft({get_name}, i%10 + 1, {get_raw(10 + i)})
+{set_raw(10 + i, {get_raw(10 + i)} - (count({get_name}, i%10 + 1) - previous_amount))}
+inc:
+; This skips over tiers that don't exist for the given item, by using the
+; tier data embedded in "itemdata".
+i = i + if(i2s(i%10) == {tiers_char}, 10 - i%10, 1)
+goto(if(i%10 != 0,\
+     if({get_raw(10 + i)} > 0., do_craft, inc),\
+     if(i < {items_count} * 10, craftitems_loop, crafting_done)))
+crafting_done:
+
+; Uncomment these lines for runtime item quantity debugging.
+; You will also need to uncomment the line in run_recipes that unhides debug.
+;i = 10
+;debug_loop:
+;gss("debug", if(i == 10, "", gsg("debug") . if({get_raw(i)} > 0., "<br>" . i . " " . {get_raw(i)}, "")))
+;i += 1
+;gotoif(debug_loop, i < {lua(return #factory.items)} * 10 + 10)
+
+group_data = "{lua(\
+  acc = {}\
+  for i = 1, #factory.items do\
+    local item = factory.items[i];\
+    if item.craft_type ~= "group" then goto continue end\
+    for j = 1, item.tier do\
+      acc[#acc+1] = "|" .. (i * 10 + j + 99);\
+      local recipe = item.recipes[j];\
+      for k = 1, #recipe, 2 do\
+        acc[#acc+1] = recipe[k] + 100;\
+      end\
+    end\
+    ::continue::\
+  end\
+  acc[#acc+1] = "|";\
+  return table.concat(acc);\
+)}"
+
+i = index(group_data, "|" . (factory_target + 100), 0) + 1
+check_group_loop:
+i += 3
+goto(if(\
+  i < 4, group_abort,\
+  if(\
+    sub(group_data, i, 1) == "|", group_complete,\
+    if(\
+      gdg({queue_str} . sub(group_data, i, 3)) > 0., group_abort,\
+      check_group_loop\
+    )\
+  )\
+))
+
+group_complete:
+{set_raw(factory_target, 0.)}
+group_abort:
+gss({action}, if(\
+ contains(impulse(), "key."),\
+ if(\
+   contains(impulse(), "key.{up}"),\
+   "1",\
+   "-1"\
+ ),\
+ gsg({action})\
+))

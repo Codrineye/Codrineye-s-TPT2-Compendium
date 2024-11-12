@@ -1,5 +1,9 @@
 :import Factory Compactor Debugger
 
+; 
+; Factory variable definitions
+; 
+
 {lua(\
   factory = {};\
   factory.items = {};\
@@ -8,17 +12,24 @@
   factory.categories = {};\
 )}
 
+; 
+; Core Program
+; 
+
 {lua(\
   function factory.add_item(name, tiers, game_name, game_type)\
     local new_item = {};\
+  \
     new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
-    debug.error.name = "tiers";\
+  \
     if new_item.tiers == nil then\
+      debug.error.name = "tiers";\
       return debug.print_error();\
     end\
     if 10 < new_item.tiers or new_item.tiers < 1 then\
+      debug.error.name = "tiers";\
       debug.error.comp = 1;\
       debug.error.comp_min = 0;\
       debug.error.comp_max = 10;\
@@ -61,6 +72,13 @@
   end\
 )}
 
+; 
+; Helper Macros
+; 
+
+; 
+; Core item macro
+; Mathod to communicate with the compactor to add an item
 #item(name, tiers, game_name, type) {lua(return factory.add_item(\
   "{name}",\
   {tiers},\
@@ -68,13 +86,8 @@
   {type}\
 ))}
 
-#produce(name, tiers, game_name) {item(\
-  {name},\
-  {tiers},\
-  {game_name},\
-  "produce"\
-)}
-
+; 
+; Mathod to add an item that's inside of the craft function
 #craft(name, tiers, game_name) {item(\
   {name},\
   {tiers},\
@@ -82,13 +95,26 @@
   "craft"\
 )}
 
+; 
+; Mathod to add an item that's inside of the produce function
+#produce(name, tiers, game_name) {item(\
+  {name},\
+  {tiers},\
+  {game_name},\
+  "produce"\
+)}
+
+; 
+; Method to group items together
 #group(name, tiers) {item(\
   {name},\
   {tiers},\
-  "{name}group",\
+  "{name}.group",\
   "group"\
 )}
 
+; 
+; Mathod to add a *special* item
 #special(name, tiers, game_name) {item(\
   {name},\
   {tiers},\
@@ -96,6 +122,8 @@
   "special"\
 )}
 
+; 
+; Method to add a category
 #category(name, default, first, last) {lua(return factory.add_category(\
   "{name}",\
   "{default}",\

@@ -1,0 +1,178 @@
+:import factory macros
+
+#version v3.2.3
+
+; Everything in the list below is a valid target for automation, and can be
+; assigned to the "target_type" variable in "lanuch factory craft".
+; For example, "make(oven, 10, "machine.oven")" indicates that "oven" is a valid
+; item, usable from tiers 1-10, with the internal game name of "machine.oven"
+; (which you don't need to worry about.)
+; Thus you can enter "oven" in the box in the in-game editor (without the quotes).
+
+; If you add or change this list, mind this constraint:
+; * All the crafted items have to come before the rest of the items.
+; * All the item-groups must be in a single block.
+; * Prefer keeping things in alphabetical order within categories, because
+;   they are ordered the same way when presented in-game.
+
+; ===== VALID IDS =====
+
+; *** To reiterate, just use the name part (i.e. "white_producer"), not the whole thing! ***
+
+; ----- CRAFTED ITEMS -----
+
+; Producers, named by building, tiers 1-5
+{make(arcade_producer, 5, "producer.arcade")}
+{make(construction_firm_producer, 5, "producer.constructionFirm")}
+{make(exotic_producer, 1, "producer.exoticgems")}
+{make(factory_producer, 5, "producer.factory")}
+{make(gem_producer, 1, "producer.gems")}
+{make(headquarters_producer, 5, "producer.headquarters")}
+{make(laboratory_producer, 5, "producer.laboratory")}
+{make(mine_producer, 5, "producer.mine")}
+{make(museum_producer, 5, "producer.museum")}
+{make(powerplant_producer, 5, "producer.powerplant")}
+{make(pumpkin_producer, 1, "pumpkin.producer")}
+{make(shipyard_producer, 5, "producer.shipyard")}
+{make(statue_of_cubos_producer, 5, "producer.statueofcubos")}
+{make(town_producer, 5, "producer.town")}
+{make(tradingpost_producer, 5, "producer.tradingpost")}
+{make(workshop_producer, 5, "producer.workshop")}
+
+; Boosters, tiers 1-3
+{make(acceleration_booster, 3, "booster.acceleration")}
+{make(machine_booster, 3, "booster.machines")}
+{make(production_booster, 3, "booster.production.regular")}
+{make(resource_booster, 3, "booster.resource.drops")}
+
+{category(prod, town_producer, arcade_producer, resource_booster)}
+
+; Machines, tiers 1-10
+{make(assembly, 10, "machine.assembler")}
+{make(belt, 10, "machine.transportbelt")}
+{make(boiler, 10, "machine.boiler")}
+{make(crusher, 10, "machine.crusher")}
+{make(cutter, 10, "machine.cutter")}
+{make(mixer, 10, "machine.mixer")}
+{make(oven, 10, "machine.oven")}
+{make(presser, 10, "machine.presser")}
+{make(refiner, 10, "machine.refinery")}
+{make(shaper, 10, "machine.shaper")}
+
+{category(mach, belt, assembly, shaper)}
+
+; Various crafted parts
+{make(block, 10, "block")}
+{make(chip, 5, "chip")}
+{make(hammer, 1, "hammer")}
+{make(insul_cable, 10, "cable.insulated")}
+{make(motor, 10, "motor")}
+{make(pump, 10, "pump")}
+{make(rainbow_dust, 1, "dust.rainbow")}
+{make(rubber_sapling, 1, "sapling.rubber")}
+{make(stacked_plate, 10, "plate.stack")}
+{make(stacked_pumpkin, 1, "pumpkin.stack")}
+{make(void_sapling, 1, "sapling.void")}
+
+{category(crft, chip, block, void_sapling)}
+
+; Transforms ore into dust, tiers 1-10
+; Because of an implementation detail, this must come before any
+; scannable items.
+; This doesn't show up in any category in the UI.
+{special(ore, 10, "ore")}
+
+; ----- SCANNABLE ITEM GROUPS -----
+; These are not real items, but rather groups of items that will be made together
+; if you select one of these names. They are meant for use with the Crafter, to
+; crank out sets of items to scan quickly. You will want to set the quantity to 1000.
+
+; Notes on using item groups:
+; * SCAN YOUR ORES FIRST! The factory can and will consume your ore to make stuff,
+;     and it takes a long time to get 1000 T10 ore.
+; * The quantity works a little differently than normal items. Instead of making
+;     1000 items each time, running it again will top off everything to be
+;     *at* the quantity of 1000 items.
+; * If you craft a higher tier after a lower tier, it will consume the results
+;     of the first craft to make the higher tier. Scan all the items first, before
+;     moving on to the next tier!
+; * None of these groups include Gem Producers or Exotic Producers. They are too
+;     expensive in comparison to other things, craft them on your own when you
+;     judge the time is right.
+
+; Makes *everything* (expect special producers and lumps) of the given tier.
+; This is the combination of "chips_and_prods", "machines", and "parts".
+; Requires x10 and high processing speed to have a hope of completing in a
+; reasonable amount of time for T5 and T10.
+; You need Quantum Warehouse to have enough space for this at higher tiers!
+{group(all, 10)}
+
+; All the tiers of chips. Warning: Expensive. Input this as tier 1.
+{group(chips, 1)}
+
+; Producers + the chip of the corresponding tier. This is everything that
+; exists in tier range 1-5, for convenience.
+{group(chip_and_prods, 5)}
+
+; All machines. Tiers 1-10
+{group(machines, 10)}
+
+; All ingredients and parts. Tiers 1-10. Doesn't include ore (scan that before
+; starting) or lumps (due to technical limitations). Lumps aren't required
+; for anything currently though.
+; Includes rubber plates at tier 1 and hammers at tier *2*.
+; Rubber trees are at tier 9 because of their ore.
+{group(parts, 10)}
+
+; All producers, except for special producers. Tiers 1-5
+{group(producers, 5)}
+
+{category(grup, all, all, producers)}
+
+; ----- INGREDIENTS AND PRODUCED PARTS -----
+
+; Parts, tiers 1-10
+{item(anti_pumpkin, 1, "pumpkin.anti")}
+{item(board, 10, "plate.circuit")}
+{item(cable, 10, "cable")}
+{item(carved_pumpkin, 1, "pumpkin.carved")}
+{item(circuit, 10, "circuit")}
+{item(dense_block, 10, "block.dense")}
+{item(dense_plate, 10, "plate.dense")}
+{item(ingot, 10, "ingot")}
+{item(pipe, 10, "pipe")}
+{item(plate, 10, "plate")}
+{item(pumpkin_plate, 1, "pumpkin.plate")}
+{item(rainbow_ingot, 1, "ingot.rainbow")}
+{item(rainbow_plate, 1, "plate.rainbow")}
+{item(ring, 10, "ring")}
+{item(rod, 10, "rod")}
+{item(rubber_plate, 1, "plate.rubber")}
+{item(screw, 10, "screw")}
+{item(wire, 10, "wire")}
+
+{category(part, circuit, anti_pumpkin, wire)}
+
+;Tries to make dust from ores and lower-tier dusts, tiers 1-10
+; Doesn't appear in the UI
+{item(dust, 10, "dust")}
+
+; Tiers up dust, tiers 1-9
+; These are ore lumps, plus putting them into the mixer.
+; There is no "only make ore lumps, without mixing them" option right now.
+; Doesn't appear in the UI
+{special(lump, 9, "lump")}
+
+; Can only be made from saplings
+; Doesn't appear in the UI
+{item(void_essence, 1, "essence.void")}
+
+; Can only be gotten through the Halloween event
+; Doesn't appear in the UI
+{item(pumpkin, 1, "pumpkin")}
+
+; Rubber, tier 1 only
+; Doesn't appear in the UI
+{item(rubber, 1, "rubber")}
+
+; ===== END OF VALID IDS =====

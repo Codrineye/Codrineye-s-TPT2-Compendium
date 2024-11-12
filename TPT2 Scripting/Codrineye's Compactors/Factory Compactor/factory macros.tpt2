@@ -1,0 +1,174 @@
+; Infrastructure for producing all the constants in the factory package.
+; Since this is :imported, it can't produce any instructions.
+
+#script_name(name) D0S.factory {version}:{name}
+
+; Key assignments. You can edit these here, or you can edit them later in the
+; generated script (but you will have more places to modify).
+#up w
+#down s
+#left a
+#right d
+#start f
+
+; Shared hidden variables for the UI
+#action "<size=0>fa#"
+#status "fs#"
+
+; Produces the name of the queue variable for the given tier and item.
+#queue_str "cq"
+#queue(tier, item) -1 + 10 * ({item}) + {tier}
+
+; Raw access to the queue. Not preferred, but better than using "queue"
+; directly. Use for low-level optimization.
+#get_raw(raw_item) global.double.get({queue_str} . (100 + {raw_item}))
+#set_raw(raw_item, value) global.double.set({queue_str} . (100 + {raw_item}), {value})
+
+; Helper macros for operating on the craft_queue. These should be
+; used instead of direct access whenever possible.
+#get_queue(tier, item) {get_raw({queue({tier},{item})})}
+#set_queue(tier, item, value) {set_raw({queue({tier},{item})},{value})}
+
+; Add/subtract a value from the queue. Although it expands to the same thing,
+; it saves a lot of boilerplate in the source and makes it easier to understand
+; what's going on.
+#add_queue(tier, item, value) {set_queue({tier},{item},{get_queue({tier},{item})} + {value})}
+#subtract_queue(tier, item, value) {set_queue({tier},{item},{get_queue({tier},{item})} - ({value}))}
+
+; Used with factory.composite_string to extract the name from the
+; returned data.
+#get_name sub(itemdata, 0, index(itemdata, " ", 0))
+
+; These macros can only be called *after* factory.composite_string,
+; i.e. later on in the script.
+#items_count {lua(return factory.items_count)}
+#tiers_char sub(itemdata, {lua(return factory.entry_size - 1)}, 1)
+
+{lua(\
+  factory = {};\
+  factory.items = {};\
+  factory.item_names = {};\
+  factory.categories = {};\
+  factory.prods = {};\
+  factory.prod_machines = {};\
+  factory.name_max_size = 0;\
+  factory.game_name_sizes = {};\
+  factory.game_name_sizes.item = 0;\
+  factory.game_name_sizes.craft = 0;\
+  factory.game_name_sizes.group = 0;\
+  factory.game_name_sizes.special = 0;\
+  factory.group_map = {};\
+  factory.group_map.item = 0;\
+  factory.group_map.craft = 1;\
+  factory.group_map.group = 2;\
+  factory.group_map.special = 2; --[[Intentionally the same]]\
+\
+  function factory.add_item(name, tiers, game_name, craft_type)\
+    local item = {};\
+    item.id = #factory.items + 1;\
+    if item.id > 89 then\
+      return "Too many items: Over the limit while adding " .. name;\
+    end\
+    item.name = name;\
+    item.game_name = game_name;\
+    item.tier = tiers;\
+    item.craft_type = craft_type;\
+    factory.items[item.id] = item;\
+    factory.item_names[name] = item;\
+    if #name > factory.name_max_size then\
+      factory.name_max_size = #name;\
+    end\
+    if #game_name > factory.game_name_sizes[craft_type] then\
+      factory.game_name_sizes[craft_type] = #game_name;\
+    end\
+    return ":const int " .. name .. " " .. #factory.items;\
+  end\
+\
+  function factory.composite_string(var, filter, use_group_info)\
+    local acc = {};\
+    local size = 0;\
+    local first = #factory.items;\
+    local last = 0;\
+    local group_map = factory.group_map;\
+    \
+    if filter == nil then\
+      size = math.max(factory.game_name_sizes["item"], factory.game_name_sizes["craft"]);\
+    else\
+      size = factory.game_name_sizes[filter];\
+    end\
+    size = size + 1;\
+    local fmt = "%-" .. size .. "s%d";\
+    size = size + 1;\
+    acc[1] = 'sub("';\
+    for i = 1, #factory.items do\
+      local item = factory.items[i];\
+      if filter == nil or item.craft_type == filter then\
+        if use_group_info then\
+          acc[#acc + 1] = string.format(fmt, item.game_name, group_map[item.craft_type]);\
+        else\
+          acc[#acc + 1] = string.format(fmt, item.game_name, item.tier - 1);\
+        end\
+        if i < first then first = i end\
+        if i > last then last = i end\
+      end\
+    end\
+    acc[#acc + 1] = '", ' .. size .. " * (" .. var .. "), " .. size .. ')';\
+    factory.items_count = last - first + 1;\
+    factory.entry_size = size;\
+    return table.concat(acc);\
+  end\
+\
+  function factory.add_category(name, ...)\
+    local category = {}\
+    factory.categories[#factory.categories + 1] = category\
+    category.name = name\
+    local name1, name2, name3 = "default", "first", "last"\
+    local arg1, arg2, arg3 = ...\
+    for i = 1, 3 do\
+      local trimmed = arg1:gsub("^ +", "")\
+      local item = factory.item_names[trimmed]\
+      if not item then\
+        return "Can't find " .. trimmed\
+      end\
+      category[name1] = item.id\
+      name1, name2, name3 = name2, name3\
+      arg1, arg2, arg3 = arg2, arg3\
+    end\
+  end\
+)}
+
+; Define a new production item with name "name", craftable from tiers 1-"tiers".
+; The string passed to produce() is "game_name".
+; It will take the next available id, starting from 1.
+#item(name, tiers, game_name) {lua(\
+  return factory.add_item("{name}", {tiers}, {game_name}, "item")\
+)}
+
+; Define a new production item with name "name", craftable from tiers 1-"tiers".
+; The string passed to craft() is "game_name".
+; It will take the next available id, starting from 1.
+#make(name, tiers, game_name) {lua(\
+  return factory.add_item("{name}", {tiers}, {game_name}, "craft")\
+)}
+
+; Define a new item group, i.e. a set of items designed to be scanned in the
+; crafter. Because items need a valid game_name to be passed to count() in
+; various places (or else there will be spurious logging), we use "ore".
+; (The value returned from count() will always be ignored.)
+#group(name, tiers) {lua(\
+  return factory.add_item("{name}", {tiers}, "ore", "group")\
+)}
+
+; Defines a "special" item. This has a real name, like an item, but acts
+; like an item-group in other ways. This is used for lumps and ore, which
+; require special-case handling.
+#special(name, tiers, game_name) {lua(\
+  return factory.add_item("{name}", {tiers}, {game_name}, "special")\
+)}
+
+; Defines a category grouping for the UI. "First" and "last" are the span of
+; the group (inclusive), in item names. Must be called *after* the relevant items
+; are defined.
+#category(name, default, first, last) {lua(\
+  return factory.add_category("{name}", "{default}", "{first}", "{last}")\
+)}
