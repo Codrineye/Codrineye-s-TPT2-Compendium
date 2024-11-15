@@ -7,10 +7,10 @@
 ; to happen. It's not hard coded since it can
 ; change due to the users machine
 :local double transition_delay
- 
+
 ; store the coord_y value
 :local double difficulty
- 
+
 ; detect at which difficulty we're at
 :local int difficulty_index
 
@@ -59,7 +59,10 @@ gotoif(\
 )
 
 global.string.set({hider}, if(\
-  {state.get} == {contains.key({state_switch})}, \
+  {state.get} == contains(\
+    "key.{state_switch}key.{cycling}key.{mode_switch}", \
+    impulse()\
+  ), \
   "Cods TowerTesting is Hiding", \
   concat("Stop Hiding", "</size>")\
 ))
