@@ -1,0 +1,21 @@
+:import CodrineyeTT Vars
+:name {package}:{region}
+
+:global bool RegionCycle
+
+key.w() ; toggle cycle
+
+gotoif(toggleCycle, impulse() == "key.w")
+
+moveRegion:
+waitwhile(isTowerTesting() && RegionCycle)
+gotoif(99, RegionCycle == false)
+show("towertesting", true)
+wait(0.2)
+click(vec((min(width.d(), 1.7777777777778 * height.d()) * ui.size()) * 0.365, ((min(height.d(), 0.5625 * width.d()) * ui.size()) * -0.54444444444444) + height.d()))
+wait(0.2)
+show("towertesting", false)
+goto(99)
+
+toggleCycle:
+RegionCycle = (RegionCycle == false)

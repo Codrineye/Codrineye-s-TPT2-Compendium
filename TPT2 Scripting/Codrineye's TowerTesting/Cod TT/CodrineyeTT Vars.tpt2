@@ -1,0 +1,9 @@
+#package Codrineye's TowerTesting
+:global bool CdTTRunning
+
+#logic Movement Logic
+#miner Mine Switch
+#difficulty Difficulty Move
+#region Region Move
+#init Initializer
+#toggles misc

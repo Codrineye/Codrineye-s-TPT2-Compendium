@@ -1,0 +1,22 @@
+:import CodrineyeTT Vars
+#name {package}:{init}
+:name {name}
+
+key.x()
+
+start:
+CdTTRunning = (CdTTRunning == false) ;starts true, if called again goes false and ends script
+gotoif(kill, CdTTRunning == false)
+execute("{package}:{logic}")
+
+loop:
+waituntil((tower.health(false) == 0.0) && isTowerTesting())
+exit()
+goto(loop)
+
+kill:
+stop("{package}:{logic}")
+gu("ClickPos")
+gu("RegionCycle")
+gu("CdTTRunning")
+stop("{name}")

@@ -1,0 +1,21 @@
+:import CodrineyeTT Vars
+:name {package}:{difficulty}
+
+:global double ClickPos
+
+game.newround()
+key.e()
+
+gotoif(exit, contains(impulse(), "{package}") == false)
+
+changeDiff:
+show("towertesting", true)
+wait(0.2)
+{click.relative(395.0/800.0, ClickPos/450.0, 0.0, 1.0)}
+wait(0.2)
+{click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
+goto(99)
+
+exit:
+wait(if(impulse() == "game.newround", 10.0, 0.0))
+exit()

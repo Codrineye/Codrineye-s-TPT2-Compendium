@@ -1,0 +1,9 @@
+:import CodrineyeTT Vars
+:name {package}:{miner}
+
+start:
+show("mine", true)
+gotoif(start, isopen("mine") == false)
+execute("D0S.Autominer")
+wait(10.0)
+show("mine", false)

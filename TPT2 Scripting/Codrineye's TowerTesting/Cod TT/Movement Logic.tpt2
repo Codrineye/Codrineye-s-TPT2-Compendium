@@ -1,0 +1,41 @@
+:import CodrineyeTT Vars
+:name {package}:{logic}
+
+#subList sub(difficultyClickPositions, index, index(difficultyClickPositions, ";", index) - index)
+
+:global double ClickPos
+:local int index
+:local string difficultyClickPositions
+
+
+start:
+difficultyClickPositions = "112.0;145.0;182.0;217.0;256.0;290.0;"
+
+loop:
+waitwhile(isTowerTesting()) 
+	; waits until the restart triggers from auto restart
+    
+executesync("{package}:{miner}") 
+	; runs the miner script once tt has stopped
+
+ClickPos = s2d({subList}, 290.0) 
+	; sets the new position to go to diff
+    
+executesync("{package}:{difficulty}") 
+	; runs position
+    
+index = (index(difficultyClickPositions, ";", index) + 1) 
+	; updates index to set up next click
+    
+waituntil(isTowerTesting()) 
+	; run waituntil to make sure we get in TT before updating region if needed
+
+repeat:
+gotoif(loop, {subList} != "") ; if next click is blank, list is over so lets restart
+executesync("{package}:{region}") ; when there's no diffs start the region move
+lu("index") ; remove this once I fix index
+goto(loop)
+
+
+
+

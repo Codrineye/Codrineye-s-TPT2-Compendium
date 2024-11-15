@@ -1,0 +1,16 @@
+:import CodrineyeTT Vars
+:name {package}:{toggles}
+
+key.r() ;restart
+key.t() ;stats
+
+isTowerTesting()
+
+gotoif(stats, impulse() == "key.t")
+
+restart:
+restart()
+goto(99)
+
+stats:
+{click.relative(260.0/800.0, 275.0/450.0, 0.5, 0.5)}

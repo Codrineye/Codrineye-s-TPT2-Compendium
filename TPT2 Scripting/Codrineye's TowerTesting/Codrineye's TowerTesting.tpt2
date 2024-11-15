@@ -1,0 +1,230 @@
+:import Codrineye's TowerTesting_lib
+:name {script_name}
+:budget_cap max
+
+; transition delay is the amount of time
+; it takes for the screen transition animation
+; to happen. It's not hard coded since it can
+; change due to the users machine
+:local double transition_delay
+ 
+; store the coord_y value
+:local double difficulty
+ 
+; detect at which difficulty we're at
+:local int difficulty_index
+
+; keep count until we complete a cycle
+:local int counting
+
+; signal to know if we can switch our difficulty or not
+:local bool switch_difficulty
+
+; variable that lets you add aditional conditions
+:local bool additional_cond
+
+key.{state_switch}()
+key.{mode_switch}()
+key.{cycling}()
+key.{stats}()
+key.{exit}()
+key.{restart}()
+
+; condition that's for user convenience
+; 
+; you get to chose the direction the difficulties are cycled in
+; start with easy and move on to impossible, or
+; start with impossible and move on to easy
+
+concat("Easy -> Impossible", {difficulty_list}) != \
+concat("Impossible -> Easy", {inversed_difficulty_list})
+
+; helper macros to shorten contains operation
+; 
+; c.key makes it easier to see what I'm checking for
+; c.mode1 is easier to understand the mode I'm looking for
+; c.mode2 is the same reason as for mode1
+
+#contains.key(impulse) contains(impulse(), "key.{impulse}")
+#contains.mode1 contains({curent_mode.get}, {mode1})
+#contains.mode2 contains({curent_mode.get}, {mode2})
+
+; Start of code
+
+transition_delay = 0.5
+
+gotoif(\
+  if({state.get}, movement_manager, 99), \
+  contains(impulse(), "{script_name}")\
+)
+
+global.string.set({hider}, if(\
+  {state.get} == {contains.key({state_switch})}, \
+  "Cods TowerTesting is Hiding", \
+  concat("Stop Hiding", "</size>")\
+))
+
+goto(if(\
+  contains(\
+    "key.{mode_switch}|key.{cycling}|key.{state_switch}", \
+    impulse()\
+  ), \
+  update.state, \
+  if(\
+    {contains.key({restart})}, \
+    restart, \
+    if({contains.key({exit})}, exit, stats)\
+  )\
+))
+
+update.state:
+
+; state is toggled only if you want it to change
+global.bool.set({state}, {state.get} != {contains.key({state_switch})})
+
+; region_cycling is toggled only if you want it to change
+global.bool.set(\
+  {region_cycling}, \
+  {region_cycling.get} != {contains.key({cycling})}\
+)
+
+; curent_mode cycles through its values only if you want it to change
+global.string.set({curent_mode}, if(\
+  {contains.mode2}, \
+  if({contains.key({mode_switch})}, {mode1}, {mode2}), \
+  {mode1}\
+))
+
+; exit the script if we're called for cycling or mode
+; or if we're shut down
+gotoif(\
+  99, \
+  contains(\
+    "key.{cycling}|key.{mode_switch}", \
+    impulse()\
+  ) || not({state.get})\
+)
+
+; make a copy of yourself for movement_manager
+execute("{script_name}")
+
+loop.init:
+
+; a gate that makes sure we only proceed when out of towertesting
+waitwhile(isTowerTesting() && {state.get})
+waituntil(isTowerTesting() || not({state.get}))
+
+; waitframe() is here to make the loop have
+; a reasonable amount of repetitions and not crash the game
+loop.additional_cond:
+waitframe()
+
+; additional cond must always be false until it's met
+; if you want to exit when you reach x amount of eras
+; you'd do `era() >= x`,
+; !! not !! `era() < x`
+
+additional_cond = false
+gotoif(\
+  loop.additional_cond, \
+  health(false) > 0.0 && {state.get} &&\
+  not(additional_cond)\
+)
+
+exit:
+exit()
+
+; wait for the transition because the exit function
+; happens instantly due to our budget
+; loop exits while we're in towertesting
+; exit script if we're called by the user or if our state is false
+wait(transition_delay)
+goto(if(\
+  contains(impulse(), "key.{exit}") || not({state.get}), \
+  99, \
+  if(isTowerTesting(), exit, loop.init)\
+))
+
+; movement manager manages our movement
+movement_manager:
+
+; mode1 means we cycle through our difficulties
+; and change region only after 6 
+; {contains.mode1} && counting < 6
+
+; mode2 means we always advance through the region
+; and change difficulty only after 15 repetitions
+; {contains.mode2} && counting == 15
+; 
+; we're looking at mode2 and
+; if we've gone through all regions
+
+switch_difficulty = {contains.mode2} && counting < 15
+counting = 0
+
+enter_region:
+
+; waitwhile we can't open towertesting and
+; for our transition_delay to expire to open towertesting
+
+waitwhile({state.get} && (isTowerTesting() || anyopen()))
+wait(transition_delay)
+
+show("towertesting", true)
+
+; skip changing region if we shouldn't
+gotoif(\
+  diff_change, \
+  {contains.mode1} && counting < 6 ||\
+  not({region_cycling.get})\
+)
+
+wait(transition_delay)
+{click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
+
+diff_change:
+difficulty = s2d(\
+  sub({difficulty_list}, difficulty_index * coord_size, coord_size), \
+  290.0\
+)
+
+difficulty_index = if(\
+  switch_difficulty, \
+  (difficulty_index + 1) % difficulty_count, \
+  difficulty_index\
+)
+
+wait(transition_delay)
+{click.relative(395.0/800.0, difficulty/450.0, 0.0, 1.0)}
+
+; launch towertesting
+wait(transition_delay)
+{click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
+
+counting = counting + 1
+switch_difficulty = {contains.mode1}
+
+waituntil(isTowerTesting() || anyopen())
+
+; remember that `&&` operations happen before `||`
+; goto logic is reversed from the enter_region gotoif
+
+goto(if(\
+  {state.get}, \
+  if(\
+    {contains.mode2} && counting < 14 ||\
+    {contains.mode1} && counting == 6, \
+    enter_region, \
+    movement_manager\
+  ), \
+  99\
+))
+
+; restart now clicks close to the middle of the screen
+; should not cause any issues, hopefully
+restart:
+restart()
+
+stats:
+wait(transition_delay)
+{click.relative(260.0/800.0, 275.0/450.0, 0.5, 0.5)}
