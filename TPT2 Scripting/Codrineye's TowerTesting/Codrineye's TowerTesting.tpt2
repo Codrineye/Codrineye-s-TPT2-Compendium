@@ -175,13 +175,13 @@ goto(if(\
 ; and change region only after 6 counts
 ; {contains.mode1} && counting < 6
 :const int base.mode1 6
-#switch.mode1 {contains.mode1} && counting == 0 && can_switch
+#switch.mode1 {contains.mode1} && counting == 0
 
 ; mode2 means we always advance through the region
 ; and change difficulty only after 15 repetitions
 ; {contains.mode2} && counting < 14
 :const int base.mode2 15
-#switch.mode2 {contains.mode2} && counting == 14
+#switch.mode2 {contains.mode2} && counting < 14
 
 change_region:
 
@@ -253,7 +253,8 @@ goto(if(\
   not({state.get}), \
   99, \
   if(\
-    ({contains.mode2} || {switch.mode1}) && {region_cycling.get}, \
+    ({contains.mode2} || {switch.mode1}) && \
+    {region_cycling.get} && can_switch, \
     change_region, \
     change_difficulty\
   )\
