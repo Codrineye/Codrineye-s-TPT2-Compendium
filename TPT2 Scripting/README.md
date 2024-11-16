@@ -4,54 +4,65 @@
 
 # Codrineye's TowerTesting
 
-### UNDER RECONSTRUCTION
-
 [Version 2.0.0](/TPT2%20Scripting/Codrineye's%20TowerTesting/README.md)
 
 This package handles all movement needed to enter dificulties and regions for TowerTesting.<br>
-For customized impulses, import the scripts source code
+For customized impulses, import the scripts source code.
 
 ```
-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
+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
 ```
 
 ## Requirements
 - 6 impulses
 - 1 condition
-- 36 actions
+- 35 actions
 - 1 script
 
 Avoid using Dynamic UI Scaling as it will mess with click positions
 
 ## Details
 
-During activation, you'll 
+These details go over the actions triggered by the default impulses.
 
-The boolean Region_Cycling representing if the AI will cycle through regions or not, and CurentMode, which has the modes `Difficulty>Region` meaning that the AI will first cycle through difficulties before changing regions, and `Region>Difficulty` meaning that the AI will first cycle through regions before changing difficulties.<br>
-If you'd like to change the order the AI enters difficulties, I've put a condition which gives you the list for Easy->Impossible (the default configuration) and Impossible->Easy, you can find this list in the script called [Stats Exit Diff_Change](Cods%20TowerTesting/Stats%20Exit%20Diff_Change.tpt2) and you need to paste it in
+The script has 3 variables:
+- `status(X)` represents the scripts state, if it's active this value will be true, if the script is inactive its value will be false
+- `Region Cycling(W)` represents if the script is able to change regions or not
+- `Curent Mode(Q)` shows the mode the script is in
+
+The key inbetween (patenthesies) is the key you press to change its state. This value is given from the source, so changing the impulse keys will automatically change what's displayed
+
+`Curent Mode` can have 2 modes, mode 1 is `Difficulty>Region` which means that the script will first cycle through all the difficulties and then change your region, and mode 2 is `Region>Difficulty` which means that the script will first cycle through all the regions and then change your difficulty.
+
+The script can cycle as long as its active, by default you'll be cycling from `Easy to Impossible`, once it reaches Impossible it will cycle back to Easy. It comes with an always true condition containing the strings you need to change the order. The condition should be easy to understand, if you think there's something that needs clarification feel free to ping me on the scripts post. The direction string is inputed on line 21, it is what the script is taking a substring of.
 
 ## The impulses
 <details>
   <summary>
     Table View
   </summary>
-    r will restart<br>
-    e will exit<br>
-    t will open stats and move to the Wave tab<br>
     x will start/stop the AI<br>
     w will toggle Region_Cycling<br>
-    q will toggle through your modes
+    q will toggle through your modes<br>
+    r will restart<br>
+    e will exit<br>
+    t will open stats and move to the Wave tab
 </details>
 <details>
   <summary>
     Complete descreption
   </summary>
-  To start the AI, you may use `x`, `q` or `w`, and press `x` to stop it.<br>
-  To cycle through the modes mentioned previously, you press `q`, and to toggle Region_Cycling use `w`.<br>
-  You can restart instantly by pressing `r`, or if you're running the game in a difficulty with a wavegoal that's less than era 1, you will reset after a set timer, its default set to 30 seconds.<br>
-  To exit the round of tower testing, you can press `e`<br>
-  While in tower testing, pressing `t` will toggle the stats to the Waves tab
+    The AI's variables start hidden, you can press `x`, `q` or `w` to show them<br>
+    You start and stop the AI by pressing `x`.<br>
+    You can restart instantly by pressing `r`, exit by pressing `e` or showing stats by pressing `t`, crucially this qol feature only works if it's impulse is set as the same key that the game uses to open stats.<br>
+    Once the AI is shut down, the variables will be hidden again, pressing `q` or `w` will still stop them from hiding, as it assumes you're attemting to communicate with it. You can hide it again by pressing x twice or you can disable the script while you don't use it.<br>
+    If you are in a towertesting run and want to stop the AI, it will exit this round of towertesting.
 </details>
+
+## The Budget
+
+The scripts budget is set to -1 by default, this is because the AI uses that extra speed to ensure you do not enter another building while it's trying to perform the actions needed to cycle. You can savely remove its budget, if you're setting it to idle for you, as it can run perfectly fine without it.
+
 
 # Universal Challenge Solver
 
