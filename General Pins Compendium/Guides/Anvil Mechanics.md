@@ -21,8 +21,6 @@ $$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_dist
 $$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag}_ {2}^{0.75}$$
 $$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag}_{3}^{0.75}$$
 
-
-
 <details>
   <summary>
     MT15 info
