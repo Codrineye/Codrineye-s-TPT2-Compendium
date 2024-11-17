@@ -17,9 +17,9 @@ The formula is:
 $$\text{new\\_fragments\\_distance} = (1 - \text{distance} \ \cdot \frac{\text{distance}}{0.2})^6$$
 $$\text{new\\_fragments} = \text{old\\_fragments}$$
 $$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{primary\\_frag}$$
-$$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag}_ {1}^{0.75}$$
-$$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag}_ {2}^{0.75}$$
-$$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag}_{3}^{0.75}$$
+$$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag} _{1}^{0.75}$$
+$$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag} _{2}^{0.75}$$
+$$\text{new\\_fragments} = \text{new\\_fragments} + \text{new\\_fragments\\_distance} \ \cdot \ \text{other\\_frag} _{3}^{0.75}$$
 
 <details>
   <summary>
