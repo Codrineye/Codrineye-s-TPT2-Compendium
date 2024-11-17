@@ -14,7 +14,7 @@ When you click the hammer or lock icon, the fragment values on the left will be 
 The amount gained drops off farther from the claim circle's center, and also the primary fragment type (the one that aligns with the boost type) counts for more than the others.<br>
 The formula is:
 
-$$
+```math
 \text{new\_fragments\_distance} = (1 - \text{distance} \ \cdot \frac{\text{distance}}{0.2})^6
 \newline
 \text{new\_fragments} = \text{old\_fragments}
@@ -32,7 +32,7 @@ $$
 \text{}
 \newline
 \text{new\_fragments} = \text{new\_fragments} + \text{new\_fragments\_distance} \ \cdot \ \text{other\_frag}_{3}^{0.75}
-$$
+```
 
 <details>
   <summary>
@@ -46,19 +46,22 @@ The amount of fragments invested is not directly observable.<br>
 However, it translates directly into the boost amount, both before and after.<br>
 The formulas are
 
-$$
+```math
 \text{actual\_invested\_frags} = \text{invested\_frags} ^ \text{infinity stone power}
-$$
+```
 
 For a majority of boosts:
-$$
+
+```math
 \text{boost} = 1 + 0.001 \ \cdot\ \text{actual\_invested\_frags}
-$$
+```
+
 Where resistances are a division boost (boost = 2 => damage taken is now divided by 2)<br>
 For cooldown boost:
-$$
+
+```math
 \text{boost} = \text{clamp}(0.99 ^ {log_{10}(0.01 \ \cdot \ \text{actual\_invested\_frags})})
-$$
+```
  
 The inf stone power is `1.0` if not bought, once bought it changes to `1.1`, for both normal and temporary boosts.
 
