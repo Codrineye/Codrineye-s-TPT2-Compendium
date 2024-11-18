@@ -77,7 +77,7 @@
 {craft(stacked_pumpkin, 1, "pumpkin.stack")}
 {craft(void_sapling, 1, "sapling.void")}
 
-{category(crft, chip, block, void_sapling)}
+{category(craft, chip, block, void_sapling)}
 
 ; 
 ; Transforms ore into dust, tiers 1-10

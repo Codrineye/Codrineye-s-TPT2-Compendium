@@ -8,11 +8,14 @@
   factory = {};\
   factory.items = {};\
   factory.item_names = {};\
-  factory.max_name_length = 0;\
+  factory.item_types = {};\
   \
   factory.recipes = {};\
-  factory.item_types = {};\
+  factory.recipe_target = {};\
+  \
   factory.categories = {};\
+  \
+  factory.max_length = {};\
 )}
 
 ; 
@@ -22,7 +25,6 @@
 {lua(\
   function factory.add_item(name, tiers, game_name, game_type)\
     local new_item = {};\
-  \
     new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
@@ -31,7 +33,7 @@
           * We call our debugging function\
           * if the items tier is invalid\
           * this meaning if it's nil or if\
-          * it goes over our alowed limit\
+          * it goes over/under our alowed limit\
          */]]\
     \
     if new_item.tiers == nil then\
@@ -54,10 +56,30 @@
     factory.item_types[new_item.name] = new_item.game_type;\
     \
       --[[/*\
+          * Helper function that makes adding\
+          * max_length recordings easier and\
+          * pretties up the variable declarations\
+         */]]\
+    \
+    local function factory_max_length(name)\
+      local max_length = factory.max_length;\
+      if max_length[name] == nil then\
+        max_length[name] = 0;\
+      end\
+      max_length[name] = math.max(\
+        max_length[name],\
+        #new_item.name\
+      );\
+    end\
+    \
+    factory_max_length("item_name");\
+    factory_max_length(new_item.game_type);\
+    \
+      --[[/*\
           * Now that we've recorded\
           * a new item, we can create its\
           * instance inside of our recipes list\
-          * this is done here as to not repeat code\
+          * this is done here as we're adding a new item\
          */]]\
     \
     factory.recipes[new_item.name] = {};\
@@ -159,6 +181,7 @@
 
 ; 
 ; Mathod to add a *special* item
+; special items are for internal use, and do not show on UI
 #special(name, tiers, game_name) {item(\
   {name},\
   {tiers},\
