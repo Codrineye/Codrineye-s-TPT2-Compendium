@@ -1,6 +1,7 @@
 # Codrineye's Compactors
 
 Codrineye's Compactors are scripts formed out of 3 components
+
 1. [The Compactor](#the-compactor)
 1. [The Configuration Workspace](#the-configuration-script)
 1. [The Reading Script](#the-reading-script)
@@ -13,6 +14,7 @@ The compactor is a system mostly composing of lua macros that works to `compact`
 Its design is self sufficient, meaning that no modifications should be needed on the user end to be able to use it.
 
 A compactor made by me will generaly consist of 2 systems:
+
 1. The compression system, that takes in a user input, stores it and outputs it coresponding to what the task requires. Its output is usually a string.
 1. The debugger system, that handles edge-cases such as sending error messages and data validation to ensure none of the inputed values can cause a malformed output string.
 
@@ -36,10 +38,3 @@ Why would you use a compactor?
 The compactor is a category of scripts designed to work with large sets of data.<br>
 They act as tools that improve your quality of life if a task you're performing has a compactor.<br>
 Additionally, they're made to be easy to follow and understand, providing comments that explain the system
-
-<br><br><br><br>
-***old contents kept so I know what I wanted to write here***
-
-The compactors are formed to condense tasks that could span several scripts and actions into one single contained script<br>
-Using a compactor takes away a lot of the headache that comes with programming lengthy operations to go smoothly, and diverts it my way<br>
-The compactor is first and foremost a quality of life improvement for those who want to perform lengthy tasks

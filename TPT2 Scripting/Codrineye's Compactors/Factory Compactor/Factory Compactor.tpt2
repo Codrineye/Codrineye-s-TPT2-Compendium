@@ -8,6 +8,9 @@
   factory = {};\
   factory.items = {};\
   factory.item_names = {};\
+  factory.max_name_length = 0;\
+  \
+  factory.recipes = {};\
   factory.item_types = {};\
   factory.categories = {};\
 )}
@@ -23,7 +26,14 @@
     new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
-  \
+    \
+      --[[/*\
+          * We call our debugging function\
+          * if the items tier is invalid\
+          * this meaning if it's nil or if\
+          * it goes over our alowed limit\
+         */]]\
+    \
     if new_item.tiers == nil then\
       debug.error.name = "tiers";\
       return debug.print_error();\
@@ -35,11 +45,28 @@
       debug.error.comp_max = 10;\
       return debug.print_error();\
     end\
+    \
     new_item.game_name = game_name:gsub(" ", "");\
     new_item.game_type = game_type:gsub(" ", "");\
+  \
     factory.items[new_item.id] = new_item;\
     factory.item_names[new_item.name] = new_item.id;\
     factory.item_types[new_item.name] = new_item.game_type;\
+    \
+      --[[/*\
+          * Now that we've recorded\
+          * a new item, we can create its\
+          * instance inside of our recipes list\
+          * this is done here as to not repeat code\
+         */]]\
+    \
+    factory.recipes[new_item.name] = {};\
+    local item_recipe = factory.recipes[new_item.name];\
+    item_recipe.recipe = {};\
+    for i = 1, new_item.tiers do\
+      item_recipe.recipe[i] = {};\
+    end\
+    \
     local printer = {};\
     printer[1 + #printer] = ":const int" .. ' ';\
     printer[1 + #printer] = new_item.name;\
@@ -48,12 +75,23 @@
     return table.concat(printer)\
   end\
   \
+\
+  function factory.define_recipe(name)\
+    \
+  end\
+  function factory.add_component(tiers, name, counts)\
+    \
+  end\
+\
+  \
   function factory.add_category(name, ...)\
     local category = {};\
+    \
     category.id = 1 + #factory.categories;\
     local names = table.pack("default", "first", "last");\
     local args = table.pack(...);\
     category.name = name:gsub(" ", "");\
+    \
     for i, name in ipairs(names) do\
       local trimmed = args[i]:gsub(" ", "");\
       local item = factory.item_names[trimmed];\
@@ -106,6 +144,12 @@
 
 ; 
 ; Method to group items together
+; this items game_name doesn't exist so
+; for ease of understanding, it's marked as
+; the items name .group
+; 
+; in d0s's factory AI, this was ore because of
+; a game bug that has since been fixed
 #group(name, tiers) {item(\
   {name},\
   {tiers},\

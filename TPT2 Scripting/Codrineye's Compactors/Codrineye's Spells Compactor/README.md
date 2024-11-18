@@ -6,7 +6,7 @@ The spell compactor is system for recordings spells that creates a string of spe
 
 The compactor has 2 imports, a source import and a game import
 
-***please note that, even tho this is a completed readme, the compactor is still being developed***
+**_please note that, even tho this is a completed readme, the compactor is still being developed_**
 
 The game import will likely be moved to the [root TPT2 Scripting README](/TPT2%20Scripting/README.md), but for the time being, there's still work to be done
 
@@ -27,6 +27,7 @@ The game import is a code you import inside TPT2, this contains the stand-alone 
 It comes packaged with a debugger that is only activated if the compactor has gotten an activation string and if you've set debugging to true. If debugging is true but the compactor hasn't gotten an activation string, a hiding blocker is set to messy up your user interface. If both have been set up, you can cycle through your activation string by pressing `x`.
 
 Requirements:
+
 - impulse: 1
 - conditions: 0
 - lines: 20
@@ -50,10 +51,10 @@ Formatted the README to be a concise description of the compactor.
 
 The stand-alone debugger can now read the naming scheme.<br>
 Fixed 2 major bugs in the compactor:
+
 1. it would crash if there wasn't a sync before the first recording
 1. spell.active_max_size would be 6 units shorter because they wouldn't be taken into account
 
 ## verson 1.0.0
 
 Released the stand alone spell compactor and made it functional
-

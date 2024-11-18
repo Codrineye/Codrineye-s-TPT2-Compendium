@@ -1,7 +1,5 @@
 :import Factory Compactor
 
-#version v3.2.3
-
 ; 
 ; Everything in the list below is a valid target for automation,
 ; and can be assigned to the "target_type" variable in
@@ -23,12 +21,6 @@
 ; 
 
 ; ===== VALID IDS =====
-
-; ***
-; To reiterate,
-; just use the name part (i.e. "white_producer"),
-; not the whole thing!
-; ***
 
 ; ----- CRAFTED ITEMS -----
 
@@ -104,7 +96,7 @@
 
 ; 
 ; Notes on using item groups:
-; * SCAN YOUR ORES FIRST! The factory can and will
+; * SCAN YOUR ORES FIRST! The factory can and **will**
 ;   consume your ore to make stuff, and
 ;   it takes a long time to get 1000 T10 ore.
 ; * The quantity works a little differently than normal items.

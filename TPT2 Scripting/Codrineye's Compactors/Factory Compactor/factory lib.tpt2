@@ -1,8 +1,9 @@
-:import Factory Config
+:import Factory Recipes
 
 ; Infrastructure for producing all the constants in the factory package.
 ; Since this is :imported, it can't produce any instructions.
 
+#version 3.2.3
 #script_name(name) D0S.factory {version}:{name}
 #identifier "D0S.factory {version} identifier"
 
