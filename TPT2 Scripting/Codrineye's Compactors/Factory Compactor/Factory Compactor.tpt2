@@ -9,17 +9,22 @@
   factory.items = {};\
   factory.item_names = {};\
   factory.item_types = {};\
+  factory.categories = {};\
   \
   factory.recipes = {};\
+  factory.recipe_list = {};\
   factory.recipe_target = {};\
-  \
-  factory.categories = {};\
   \
   factory.max_length = {};\
 )}
 
 ; 
 ; Core Program
+; 
+; Important thing to note
+; factory.items is the same as factory["items"]
+; I was confused about this for a while so
+; it's for the best to mention it here
 ; 
 
 {lua(\
@@ -33,16 +38,16 @@
           * We call our debugging function\
           * if the items tier is invalid\
           * this meaning if it's nil or if\
-          * it goes over/under our alowed limit\
+          * it goes under/over our alowed limit\
          */]]\
     \
-    if new_item.tiers == nil then\
+    if not new_item.tiers then\
       debug.error.name = "tiers";\
       return debug.print_error();\
     end\
     if 10 < new_item.tiers or new_item.tiers < 1 then\
       debug.error.name = "tiers";\
-      debug.error.comp = 1;\
+      debug.error.comp = true;\
       debug.error.comp_min = 0;\
       debug.error.comp_max = 10;\
       return debug.print_error();\
@@ -66,55 +71,81 @@
       if max_length[name] == nil then\
         max_length[name] = 0;\
       end\
-      max_length[name] = math.max(\
-        max_length[name],\
-        #new_item.name\
-      );\
+      max_length[name] = math.max(max_length[name], #new_item.name);\
     end\
     \
     factory_max_length("item_name");\
     factory_max_length(new_item.game_type);\
     \
-      --[[/*\
-          * Now that we've recorded\
-          * a new item, we can create its\
-          * instance inside of our recipes list\
-          * this is done here as we're adding a new item\
-         */]]\
+     --[[/*\
+         * Now that we've recorded a new item,\
+         * we can create its instance inside of our recipes list\
+         * this is done here so that there's only one function\
+         * that handles item recording\
+        */]]\
     \
-    factory.recipes[new_item.name] = {};\
-    local item_recipe = factory.recipes[new_item.name];\
-    item_recipe.recipe = {};\
-    for i = 1, new_item.tiers do\
-      item_recipe.recipe[i] = {};\
+    local new_item_copy = {};\
+    table.insert(new_item_copy, "id");\
+    table.insert(new_item_copy, "name");\
+    table.insert(new_item_copy, "tiers");\
+    table.insert(new_item_copy, "game_name");\
+    table.insert(new_item_copy, "game_type");\
+    \
+    local recipe_item = {};\
+    for i, var in new_item_copy do\
+      recipe_item[var] = new_item[var];\
     end\
     \
-    local printer = {};\
-    printer[1 + #printer] = ":const int" .. ' ';\
-    printer[1 + #printer] = new_item.name;\
-    printer[1 + #printer] = ' ';\
-    printer[1 + #printer] = new_item.id;\
-    return table.concat(printer)\
+    local offset = 10 * recipe_item.id;\
+    local internal_tiers = recipe_item.tiers - 1;\
+    for i = offset, offset + internal_tiers do\
+      factory.recipes[i] = {};\
+    end\
+    \
+    recipe_item.accessed = false;\
+    recipe_item.recipe = {};\
+    for i = 1, recipe_item.tiers do\
+      recipe_item.recipe[i] = {};\
+    end\
+    \
+    factory.recipe_list[recipe_item.name] = recipe_item;\
+    \
+    debug.text.const = true;\
+    debug.text.type = "int";\
+    debug.text.name = new_item.name;\
+    debug.text.const_data = tostring(new_item.id);\
+    return debug.print_text();\
   end\
   \
-\
+ \
   function factory.define_recipe(name)\
-    \
+    local recipe_item = factory.recipe_list[name];\
+    if not recipe_item then\
+      debug.error.name = "recipe";\
+      return debug.print_error();\
+    end\
+    if recipe_item.accessed then\
+      debug.error.name = "recipe";\
+      debug.error.recipe = true;\
+      return debug.print_error();\
+    end\
+    recipe_item.accessed = true;\
+    factory.recipe_target = recipe_item;\
   end\
   function factory.add_component(tiers, name, counts)\
     \
   end\
-\
+ \
   \
-  function factory.add_category(name, ...)\
+  function factory.add_category(name, default, first, last)\
     local category = {};\
     \
     category.id = 1 + #factory.categories;\
     local names = table.pack("default", "first", "last");\
-    local args = table.pack(...);\
+    local args = table.pack(default, first, last);\
     category.name = name:gsub(" ", "");\
     \
-    for i, name in ipairs(names) do\
+    for i = 1, #names do\
       local trimmed = args[i]:gsub(" ", "");\
       local item = factory.item_names[trimmed];\
       if item == nil then\
@@ -126,6 +157,7 @@
         printer[1 + #printer] = "'";\
         return table.concat(printer);\
       end\
+      local name = names[i];\
       category[name] = item;\
     end\
     factory.categories[category.id] = category;\
@@ -188,6 +220,18 @@
   {game_name},\
   "special"\
 )}
+
+; 
+; Method to declair a recipe
+#recipe(name) {lua(return factory.define_recipe([[{name}]]))}
+
+; 
+; Method to declair a recipe component
+#component(tiers, name, count) {lua(return add_component(\
+  [[{tiers}]],\
+  [[{name}]],\
+  [[{count}]]\
+))}
 
 ; 
 ; Method to add a category

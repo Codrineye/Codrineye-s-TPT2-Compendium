@@ -5,19 +5,45 @@
 
 {lua(\
   debug = {};\
+  debug.text = {};\
+  debug.text.name = "";\
+  debug.text.type = "";\
+  debug.text.const = false;\
+  debug.text.const_data = "";\
   debug.error = {};\
   debug.error.name = '';\
-  debug.error.comp = 0;\
+  debug.error.recipe = false;\
+  debug.error.comp = false;\
   debug.error.comp_min = 0;\
   debug.error.comp_max = 0;\
 )}
 
 ; 
 ; Code program
+; It's kind of bland right now, but it's because
+; There aren't many error casses yet
 ; 
 
 {lua(\
+  function debug.print_text()\
+    local printer = {};\
+    if debug.text.const then\
+      printer[1 + #printer] = ":const" .. ' ';\
+      printer[1 + #printer] = debug.text.type;\
+      printer[1 + #printer] = ' ';\
+      printer[1 + #printer] = debug.text.name;\
+      printer[1 + #printer] = ' ';\
+      printer[1 + #printer] = debug.text.const_data\
+    end\
+    debug.text.name = "";\
+    debug.text.type = "";\
+    debug.text.const = false;\
+    debug.text.const_data = "";\
+    return table.concat(printer);\
+  end\
+  \
   function debug.print_error()\
+    local special_debugger = false;\
     local debugger = {};\
     debugger[1 + #debugger] = "Invalid" .. ' ';\
     debugger[1 + #debugger] = debug.error.name;\
@@ -26,33 +52,49 @@
     debugger[1 + #debugger] = "Inputed" .. " '";\
     debugger[1 + #debugger] = debug.error.name;\
     debugger[1 + #debugger] = "' ";\
-  \
-    --[[/*\
-         * Printer functionality\
-         * broken up in multiple\
-         * functions for easier\
-         * modification\
-        */]]\
-  \
-    local function print_error_comp()\
-      debugger[1 + #debugger] = "cannot be" .. ' ';\
-      debugger[1 + #debugger] = "smaller than" .. ' ';\
+    \
+     --[[/*\
+          * Printer functionality\
+          * broken up in multiple\
+          * functions for easier\
+          * modification\
+         */]]\
+    \
+    local function comp_error()\
+      if not debug.error.comp then\
+        return;\
+      end\
+      special_debugger = true;\
+      debugger[1 + #debugger] = "cannot be smaller than" .. ' ';\
       debugger[1 + #debugger] = debug.error.comp_min;\
       debugger[1 + #debugger] = ' ';\
       debugger[1 + #debugger] = "or bigger than" .. ' ';\
       debugger[1 + #debugger] = debug.error.comp_max;\
     end\
-  \
-    if debug.error.comp == 1 then\
-      print_error_comp();\
-    else\
+    local function recipe_error()\
+      if not debug.error.recipe then\
+        return;\
+      end\
+      special_debugger = true;\
+      debugger[1 + #debugger] = "has already been created";\
+    end\
+    local function special_error()\
+      if not special_debugger then\
+        return;\
+      end\
+      debugger[1 + #debugger] = "returned nil";\
+    end\
+    comp_error();\
+    recipe_error();\
+    if special_debugger == false then\
       debugger[1 + #debugger] = "returned nil";\
     end\
     \
     debug.error.name = '';\
-    debug.error.comp = 0;\
+    debug.error.comp = false;\
     debug.error.comp_min = 0;\
     debug.error.comp_max = 0;\
+    debug.error.recipe = false;\
     return table.concat(debugger);\
   end\
 )}
