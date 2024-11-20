@@ -21,10 +21,13 @@
 ; 
 ; Core Program
 ; 
-; Important thing to note
+; Important things to note
 ; factory.items is the same as factory["items"]
-; I was confused about this for a while so
-; it's for the best to mention it here
+; items has to be string for this operation
+; 
+; If you define factory but not factory.items
+; checking (factory.items == nil) is the same as
+; checking (not factory.items)
 ; 
 
 {lua(\
@@ -32,13 +35,17 @@
     local new_item = {};\
     new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
+    new_item.game_name = game_name:gsub(" ", "");\
+    new_item.game_type = game_type:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
     \
       --[[/*\
           * We call our debugging function\
           * if the items tier is invalid\
-          * this meaning if it's nil or if\
+          * this means if it's nil or\
           * it goes under/over our alowed limit\
+          * minimum of 1, because ingame items can't be tier 0\
+          * maximum of 10, because ingame items can't surpass tier 10\
          */]]\
     \
     if not new_item.tiers then\
@@ -48,27 +55,24 @@
     if 10 < new_item.tiers or new_item.tiers < 1 then\
       debug.error.name = "tiers";\
       debug.error.comp = true;\
-      debug.error.comp_min = 0;\
+      debug.error.comp_min = 1;\
       debug.error.comp_max = 10;\
       return debug.print_error();\
     end\
-    \
-    new_item.game_name = game_name:gsub(" ", "");\
-    new_item.game_type = game_type:gsub(" ", "");\
   \
     factory.items[new_item.id] = new_item;\
     factory.item_names[new_item.name] = new_item.id;\
     factory.item_types[new_item.name] = new_item.game_type;\
     \
       --[[/*\
-          * Helper function that makes adding\
-          * max_length recordings easier and\
-          * pretties up the variable declarations\
+          * Utility function that makes adding\
+          * max_length recordings easier and pretties up\
+          * the variable declarations a little\
          */]]\
     \
     local function factory_max_length(name)\
       local max_length = factory.max_length;\
-      if max_length[name] == nil then\
+      if not max_length[name] then\
         max_length[name] = 0;\
       end\
       max_length[name] = math.max(max_length[name], #new_item.name);\
@@ -80,35 +84,50 @@
      --[[/*\
          * Now that we've recorded a new item,\
          * we can create its instance inside of our recipes list\
-         * this is done here so that there's only one function\
-         * that handles item recording\
+         * this is done here so that the item fields aren't \
+         * modified outside our recorder\
+         * \
+         * We start by determening what data to copy from our new_item\
+         * and then create 2 lists, just like in the original d0s.factory\
         */]]\
     \
     local new_item_copy = {};\
-    table.insert(new_item_copy, "id");\
-    table.insert(new_item_copy, "name");\
-    table.insert(new_item_copy, "tiers");\
-    table.insert(new_item_copy, "game_name");\
-    table.insert(new_item_copy, "game_type");\
+    new_item_copy[1 + #new_item_copy] = "id";\
+    new_item_copy[1 + #new_item_copy] = "name";\
+    new_item_copy[1 + #new_item_copy] = "tiers";\
+    new_item_copy[1 + #new_item_copy] = "game_name";\
+    new_item_copy[1 + #new_item_copy] = "game_type";\
     \
     local recipe_item = {};\
-    for i, var in new_item_copy do\
+    for i = 1, #new_item_copy do\
+      local var = new_item_copy[i];\
       recipe_item[var] = new_item[var];\
     end\
+    \
+     --[[/*\
+         * list 1 is a forward facing list\
+         * This list is stored inside of factory.recipe_list\
+         * and records what recipes require this item\
+        */]]\
+    \
+    recipe_item.recipe = {};\
+    for i = 1, recipe_item.tiers do\
+      recipe_item.recipe[i] = {};\
+    end\
+    factory.recipe_list[recipe_item.name] = recipe_item;\
+    \
+     --[[/*\
+         * list 2 is a reversed list\
+         * This list is stored in factory.recipes\
+         * and is used to determine what items\
+         * are needed to make the item\
+        */]]\
     \
     local offset = 10 * recipe_item.id;\
     local internal_tiers = recipe_item.tiers - 1;\
     for i = offset, offset + internal_tiers do\
       factory.recipes[i] = {};\
     end\
-    \
-    recipe_item.accessed = false;\
-    recipe_item.recipe = {};\
-    for i = 1, recipe_item.tiers do\
-      recipe_item.recipe[i] = {};\
-    end\
-    \
-    factory.recipe_list[recipe_item.name] = recipe_item;\
     \
     debug.text.const = true;\
     debug.text.type = "int";\
@@ -118,22 +137,33 @@
   end\
   \
  \
-  function factory.define_recipe(name)\
-    local recipe_item = factory.recipe_list[name];\
+  function factory.define_recipe(item_name)\
+    \
+     --[[/*\
+         * Function to declair that we're defining\
+         * the recipe of the item with name `item_name`\
+         * Throw an error if the item_name doesn't exist\
+         * output a const to prevent multiple definitions\
+         * of the same item\
+        */]]\
+    \
+    local recipe_item = factory.recipe_list[item_name];\
     if not recipe_item then\
       debug.error.name = "recipe";\
       return debug.print_error();\
     end\
-    if recipe_item.accessed then\
-      debug.error.name = "recipe";\
-      debug.error.recipe = true;\
-      return debug.print_error();\
-    end\
-    recipe_item.accessed = true;\
     factory.recipe_target = recipe_item;\
+    \
+    debug.text.const = true;\
+    debug.text.type = "int";\
+    debug.text.name = "recipe." .. recipe_item.name;\
+    debug.text.const_data = recipe_item.id;\
+    return debug.print_text();\
   end\
   function factory.add_component(tiers, name, counts)\
     \
+  end\
+  function factory.add_produce(name, parent, cost, machine)\
   end\
  \
   \
@@ -141,24 +171,21 @@
     local category = {};\
     \
     category.id = 1 + #factory.categories;\
-    local names = table.pack("default", "first", "last");\
+    local fields = table.pack("default", "first", "last");\
     local args = table.pack(default, first, last);\
     category.name = name:gsub(" ", "");\
     \
-    for i = 1, #names do\
+    for i = 1, #fields do\
       local trimmed = args[i]:gsub(" ", "");\
       local item = factory.item_names[trimmed];\
-      if item == nil then\
-        printer = {};\
-        printer[1 + #printer] = "Invalid item" .. ' ';\
-        printer[1 + #printer] = "in field" .. ' ';\
-        printer[1 + #printer] = "'";\
-        printer[1 + #printer] = trimmed;\
-        printer[1 + #printer] = "'";\
-        return table.concat(printer);\
+      if not item then\
+        debug.error.name = "category parameter"\
+        debug.error.category = true;\
+        debug.error.category_field = trimmed\
+        return debug.print_error();\
       end\
-      local name = names[i];\
-      category[name] = item;\
+      local field = fields[i];\
+      category[field] = item;\
     end\
     factory.categories[category.id] = category;\
   end\
@@ -171,7 +198,7 @@
 ; 
 ; Core item macro
 ; Mathod to communicate with the compactor to add an item
-#item(name, tiers, game_name, type) {lua(return factory.add_item(\
+#add_item(name, tiers, game_name, type) {lua(return factory.add_item(\
   "{name}",\
   {tiers},\
   {game_name},\
@@ -180,7 +207,7 @@
 
 ; 
 ; Mathod to add an item that's inside of the craft function
-#craft(name, tiers, game_name) {item(\
+#craft(name, tiers, game_name) {add_item(\
   {name},\
   {tiers},\
   {game_name},\
@@ -189,7 +216,7 @@
 
 ; 
 ; Mathod to add an item that's inside of the produce function
-#produce(name, tiers, game_name) {item(\
+#produce(name, tiers, game_name) {add_item(\
   {name},\
   {tiers},\
   {game_name},\
@@ -204,7 +231,7 @@
 ; 
 ; in d0s's factory AI, this was ore because of
 ; a game bug that has since been fixed
-#group(name, tiers) {item(\
+#group(name, tiers) {add_item(\
   {name},\
   {tiers},\
   "{name}.group",\
@@ -214,7 +241,7 @@
 ; 
 ; Mathod to add a *special* item
 ; special items are for internal use, and do not show on UI
-#special(name, tiers, game_name) {item(\
+#special(name, tiers, game_name) {add_item(\
   {name},\
   {tiers},\
   {game_name},\
@@ -227,11 +254,24 @@
 
 ; 
 ; Method to declair a recipe component
+; for making an item defined as craft
 #component(tiers, name, count) {lua(return add_component(\
   [[{tiers}]],\
   [[{name}]],\
   [[{count}]]\
 ))}
+
+; 
+; Method to declair the requirements of
+; making an item defined as produce
+#make_produce(name, parent, cost, machine) {lua(\
+  return factory.add_produce(\
+    "{name}",\
+    "{parent}",\
+    {cost},\
+    "{machine}"\
+  );\
+)}
 
 ; 
 ; Method to add a category
@@ -241,3 +281,4 @@
   "{first}",\
   "{last}"\
 ))}
+

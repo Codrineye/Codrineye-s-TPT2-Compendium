@@ -22,7 +22,7 @@
 
 ; ===== VALID IDS =====
 
-; ----- CRAFTED ITEMS -----
+; --- CRAFTED ITEMS ---
 
 ; Producers, named by building, tiers 1-5
 {craft(arcade_producer, 5, "producer.arcade")}
@@ -77,7 +77,7 @@
 {craft(stacked_pumpkin, 1, "pumpkin.stack")}
 {craft(void_sapling, 1, "sapling.void")}
 
-{category(craft, chip, block, void_sapling)}
+{category(crft, chip, block, void_sapling)}
 
 ; 
 ; Transforms ore into dust, tiers 1-10
@@ -87,7 +87,7 @@
 {special(ore, 10, "ore")}
 
 ; 
-; ----- SCANNABLE ITEM GROUPS -----
+; --- SCANNABLE ITEM GROUPS ---
 ; These are not real items, but rather groups of items that will
 ; be made together if you select one of these names.
 ; They are meant for use with the Crafter, to crank out sets of items
