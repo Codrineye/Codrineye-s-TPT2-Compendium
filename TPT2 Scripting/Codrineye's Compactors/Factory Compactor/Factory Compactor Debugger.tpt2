@@ -13,6 +13,9 @@
   debug.error = {};\
   debug.error.name = "";\
   debug.error.recipe = false;\
+  debug.error.component_recipe = false;\
+  debug.error.component_group = false;\
+  debug.error.component_tier = false;\
   debug.error.category = false;\
   debug.error.category_field = "";\
   debug.error.comp = false;\
@@ -21,7 +24,7 @@
 )}
 
 ; 
-; Code program
+; Code
 ; It's kind of bland right now, but it's because
 ; There aren't many error casses yet
 ; 
@@ -48,6 +51,9 @@
   function debug.print_error()\
     local special_debugger = false;\
     local error = debug.error;\
+    local component_debugger = error.component_recipe;\
+    component_debugger = component_debugger or error.component_group;\
+    component_debugger = component_debugger or error.component_tier;\
     local debugger = {};\
     debugger[1 + #debugger] = "Invalid" .. ' ';\
     debugger[1 + #debugger] = error.name;\
@@ -64,7 +70,7 @@
           * modification\
          */]]\
     \
-    local function comp_error()\
+    local function compare_error()\
       if not error.comp then\
         return;\
       end\
@@ -84,6 +90,37 @@
       debugger[1 + #debugger] = "has already" .. ' ';\
       debugger[1 + #debugger] = "been created" .. ' ';\
     end\
+    local function component_error()\
+      if not component_debugger then\
+        return;\
+      end\
+      special_debugger = true;\
+      local function no_recipe()\
+        if not error.component_recipe then\
+          return;\
+        end\
+        debugger[1 + #debugger] = "has no recipe" .. ' ';\
+        debugger[1 + #debugger] = "to be part of" .. '\n';\
+        debugger[1 + #debugger] = "Component defined" .. ' ';\
+        debugger[1 + #debugger] = "before defining" .. ' ';\
+        debugger[1 + #debugger] = "target recipe" .. ' ';\
+      end\
+      local function is_group()\
+        if not error.component_group then\
+          return;\
+        end\
+        debugger[1 + #debugger] = "is defined as group" .. '\n';\
+        debugger[1 + #debugger] = "Group items are" .. ' ';\
+        debugger[1 + #debugger] = "not components" .. ' ';\
+      end\
+      local function tier_mismatch()\
+        if not error.component_tier then\
+          return;\
+        end\
+      end\
+      no_recipe();\
+      is_group();\
+    end\
     local function category_error()\
       if not error.category then\
         return;\
@@ -94,23 +131,49 @@
       debugger[1 + #debugger] = "' ";\
     end\
     local function special_error()\
-      if not special_debugger then\
+      if special_debugger then\
         return;\
       end\
       debugger[1 + #debugger] = "returned nil";\
     end\
-    comp_error();\
+    compare_error();\
     recipe_error();\
+    component_error();\
     category_error();\
     special_error();\
     \
-    error.name = "";\
-    error.recipe = false;\
-    error.category = false;\
-    error.category_field = ""\
-    error.comp = false;\
-    error.comp_min = 0;\
-    error.comp_max = 0;\
+    local function debug_string(...)\
+      local error_string = table.pack(...);\
+      for i = 1, #error_string do\
+        local name = error_string[i];\
+        error[name] = "";\
+      end\
+    end\
+    local function debug_bool(...)\
+      local error_bool = table.pack(...);\
+      for i = 1, #error_bool do\
+        local name = error_bool[i];\
+        error[name] = false;\
+      end\
+    end\
+    local function debug_number(...)\
+      local error_number = table.pack(...);\
+      for i = 1, #error_number do\
+        local name = error_number[i];\
+        error[name] = 0;\
+      end\
+    end\
+    \
+    debug_string("name", "category_field");\
+    debug_bool(\
+      "recipe",\
+      "component_recipe",\
+      "component_group",\
+      "component_tier",\
+      "category",\
+      "comp"\
+    );\
+    debug_number("comp_min", "comp_max")\
     return table.concat(debugger);\
   end\
 )}

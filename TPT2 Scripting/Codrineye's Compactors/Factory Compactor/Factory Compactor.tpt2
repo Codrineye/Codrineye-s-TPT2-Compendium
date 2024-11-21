@@ -141,8 +141,9 @@
     \
      --[[/*\
          * Function to declair that we're defining\
-         * the recipe of the item with name `item_name`\
+         * the recipe of an item with name `item_name`\
          * Throw an error if the item_name doesn't exist\
+         * \
          * output a const to prevent multiple definitions\
          * of the same item\
         */]]\
@@ -150,6 +151,7 @@
     local recipe_item = factory.recipe_list[item_name];\
     if not recipe_item then\
       debug.error.name = "recipe";\
+      debug.error.recipe = true;\
       return debug.print_error();\
     end\
     factory.recipe_target = recipe_item;\
@@ -161,9 +163,38 @@
     return debug.print_text();\
   end\
   function factory.add_component(tiers, name, counts)\
-    \
+    local recipe_target = factory.recipe_target;\
+    if not recipe_target.id then\
+      debug.error.name = "recipe component";\
+      debug.error.component_recipe = true;\
+      return debug.print_error();\
+    end\
+    local comp_name = name:gsub(" ", "");\
+    local component = factory.recipe_list[comp_name];\
+    if not component then\
+      debug.error.name = "component";\
+      return debug.print_error();\
+    end\
+    if component.game_type == "group" then\
+      debug.error.name = "component";\
+      debug.error.component_group = true;\
+      return debug.print_error();\
+    end\
+    local temp_tier = {};\
+    for input in tiers:gmatch("%S+") do\
+      local tier = tonumber(input);\
+      if not tier then\
+        debug.error.name = "component tier";\
+        return debug.print_error();\
+      end\
+      temp_tier[1 + #temp_tier] = tier;\
+    end\
+    if #temp_tier ~= 1 or #temp_tier > component.tiers then\
+      debug.error.name = "component_tiers";\
+      \
+    end\
   end\
-  function factory.add_produce(name, parent, cost, machine)\
+  function factory.define_produce(name, parent, cost, machine)\
   end\
  \
   \
@@ -196,8 +227,8 @@
 ; 
 
 ; 
-; Core item macro
 ; Mathod to communicate with the compactor to add an item
+; Used by other macros for easier definitions
 #add_item(name, tiers, game_name, type) {lua(return factory.add_item(\
   "{name}",\
   {tiers},\
@@ -255,7 +286,7 @@
 ; 
 ; Method to declair a recipe component
 ; for making an item defined as craft
-#component(tiers, name, count) {lua(return add_component(\
+#component(tiers, name, count) {lua(return factory.add_component(\
   [[{tiers}]],\
   [[{name}]],\
   [[{count}]]\
@@ -264,10 +295,10 @@
 ; 
 ; Method to declair the requirements of
 ; making an item defined as produce
-#make_produce(name, parent, cost, machine) {lua(\
-  return factory.add_produce(\
-    "{name}",\
-    "{parent}",\
+#to_produce(item, source, cost, machine) {lua(\
+  return factory.define_produce(\
+    "{item}",\
+    "{source}",\
     {cost},\
     "{machine}"\
   );\

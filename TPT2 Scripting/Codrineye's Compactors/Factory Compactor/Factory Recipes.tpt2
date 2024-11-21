@@ -1,3 +1,5 @@
 :import Factory Compactor
 :import Factory Items
 
+{recipe(ore)}
+{component(1, all, 1)}
