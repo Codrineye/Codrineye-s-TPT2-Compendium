@@ -1,6 +1,6 @@
 
 ; 
-; Utility variables definitions
+; Utility variable definitions
 ; 
 
 {lua(\
@@ -16,9 +16,10 @@
   util.error.component = false;\
   util.error.no_recipe = false;\
   util.error.component_is_group = false;\
-  util.error.tier_mismatch = false;\
-  util.error.target_tiers = 0;\
-  util.error.obtained_tiers = 0;\
+  util.error.component_mismatch = false;\
+  util.error.mismatched_element = "";\
+  util.error.target_elements = 0;\
+  util.error.obtained_elements = 0;\
   util.error.category = false;\
   util.category_field = "";\
   util.error.compare = false;\
@@ -31,22 +32,30 @@
 ; 
 
 {lua(\
+  function util.table_assign(target, target_field, value, type)\
+    local assign_target = target;\
+    if not target[target_field] then\
+      target[target_field] = 0;\
+    end\
+    local math_type = math[type];\
+    target[target_field] = math_type(target[target_field], value);\
+  end\
   function util.pack_assign(target, value_to_assign, ...)\
     \
      --[[/*\
          * Function that permits setting multiple variables to\
          * a desired value without the need of piling them all\
-         * at multiple lines\
+         * in multiple lines\
          * \
          * set the group we're targetting, the value to assign\
          * and then the variables you want to update\
         */]]\
     \
     local variables = table.pack(...);\
-    local debug_type = target;\
+    local pack_target = target;\
     for i = 1, #variables do\
       local name = variables[i];\
-      debug_type[name] = value_to_assign;\
+      pack_target[name] = value_to_assign;\
     end\
   end\
   \
@@ -71,14 +80,14 @@
     local error = util.error;\
     error.component = error.component or error.no_recipe;\
     error.component = error.component or error.component_is_group;\
-    error.component = error.component or error.tier_mismatch;\
+    error.component = error.component or error.component_mismatch;\
     local exception = {};\
     exception[1 + #exception] = "Invalid" .. ' ';\
-    exception[1 + #exception] = util.name;\
+    exception[1 + #exception] = error.name;\
     exception[1 + #exception] = ' ';\
     exception[1 + #exception] = "input" .. '\n';\
     exception[1 + #exception] = "Inputed" .. " ";\
-    exception[1 + #exception] = util.name;\
+    exception[1 + #exception] = error.name;\
     exception[1 + #exception] = " ";\
     \
      --[[/*\
@@ -131,23 +140,27 @@
         exception[1 + #exception] = "Group items are" .. ' ';\
         exception[1 + #exception] = "not components" .. ' ';\
       end\
-      local function tier_mismatch()\
-        if not error.tier_mismatch then\
+      local function component_mismatch()\
+        if not error.component_mismatch then\
           return;\
         end\
         exception[1 + #exception] = "do not match" .. ' ';\
-        exception[1 + #exception] = "the number of tiers for" .. ' ';\
-        exception[1 + #exception] = "the targeted recipe" .. '\n';\
-        exception[1 + #exception] = "Target tiers count is" .. ' ';\
-        exception[1 + #exception] = error.target_tiers;\
+        exception[1 + #exception] = "tiers of" .. ' ';\
+        exception[1 + #exception] = "targeted recipe" .. '\n';\
+        exception[1 + #exception] = "Target number of" .. ' ';\
+        exception[1 + #exception] = error.mismatched_element;\
+        exception[1 + #exception] = " is ";\
+        exception[1 + #exception] = error.target_elements;\
         exception[1 + #exception] = ", ";\
-        exception[1 + #exception] = "obtained tiers count is" .. ' ';\
-        exception[1 + #exception] = error.obtained_tiers;\
+        exception[1 + #exception] = "obtained number of" .. ' ';\
+        exception[1 + #exception] = error.mismatched_element;\
+        exception[1 + #exception] = " is ";\
+        exception[1 + #exception] = error.obtained_elements;\
         exception[1 + #exception] = ' ';\
       end\
       no_recipe();\
       is_group();\
-      tier_mismatch();\
+      component_mismatch();\
     end\
     local function category_error()\
       if not error.category then\
@@ -170,18 +183,22 @@
     category_error();\
     special_exception();\
     \
-    util.pack_assign("", error, "name", "category_field");\
-    util.pack_assign(false, error, \
+    util.pack_assign(error, "", \
+      "name",\
+      "mismatched_element",\
+      "category_field"\
+    );\
+    util.pack_assign(error, false, \
       "recipe",\
       "no_recipe",\
       "component_is_group",\
-      "tier_mismatch",\
+      "component_mismatch",\
       "category",\
       "compare"\
     );\
-    util.pack_assign(0, error, \
-      "target_tiers",\
-      "obtained_tiers",\
+    util.pack_assign(error, 0, \
+      "target_elements",\
+      "obtained_elements",\
       "compare_min",\
       "compare_max"\
     );\

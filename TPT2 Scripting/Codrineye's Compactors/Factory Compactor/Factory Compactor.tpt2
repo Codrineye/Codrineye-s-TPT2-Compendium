@@ -15,6 +15,9 @@
   factory.recipe_list = {};\
   factory.recipe_target = {};\
   \
+  factory.prods = {};\
+  factory.prod_machines = {};\
+  \
   factory.max_length = {};\
 )}
 
@@ -35,6 +38,11 @@
     local new_item = {};\
     new_item.id = 1 + #factory.items;\
     new_item.name = name:gsub(" ", "");\
+    \
+    if factory.item_names[new_item.name] ~= nil then\
+      return "Item already added";\
+    end\
+    \
     new_item.game_name = game_name:gsub(" ", "");\
     new_item.game_type = game_type:gsub(" ", "");\
     new_item.tiers = tonumber(tiers);\
@@ -63,6 +71,7 @@
     factory.items[new_item.id] = new_item;\
     factory.item_names[new_item.name] = new_item.id;\
     factory.item_types[new_item.name] = new_item.game_type;\
+    \
     \
       --[[/*\
           * Utility function that makes adding\
@@ -135,8 +144,70 @@
     util.text.const_data = tostring(new_item.id);\
     return util.print_text();\
   end\
+  function factory.produce(item_name, source, gain, machine)\
   \
- \
+   --[[/*\
+       * Function to declair that we're difining\
+       * the requirements to produce the item "item_name"\
+       * Throw an error if the item_name doesn't exist\
+       * \
+       * output a const to prevent multiple definitions\
+       * of the same item\
+      */]]\
+  \
+    local prod = {};\
+    local input = item_name:gsub(" ", "");\
+    prod.item = factory.recipe_list[input];\
+    if not prod.item then\
+      util.error.name = "production";\
+      return util.print_error();\
+    end\
+    input = source:gsub(" ", "");\
+    prod.source = factory.recipe_list[input];\
+    if not prod.source then\
+      util.error.name = "source";\
+      return util.print_error();\
+    end\
+    if prod.item.tiers ~= prod.source.tiers then\
+      util.error.name = "source item";\
+      util.error.component_mismatch = true;\
+      util.error.mismatch_element = "tiers";\
+      util.error.target_elements = production_item.tiers;\
+      util.error.obtained_elements = source_item.tiers;\
+      return util.print_error();\
+    end\
+    prod.gain = gain;\
+    prod.machine = machine;\
+    local cond = #factory.prods == 0;\
+    cond = cond or factory.prods[#factory.prods].machine ~= machine;\
+    if cond then\
+      if factory.prod_machines[machine] ~= nil then\
+        return "error";\
+      end\
+      factory.prod_machines[machine] = 1 + #factory.prods;\
+      factory.prod_machines[1 + #factory.prod_machines] = machine;\
+    end\
+    factory.prods[1 + #factory.prods] = prod;\
+    \
+    local offset = prod.source.id * 10;\
+    local count = 1 / prod.gain;\
+    for i = offset, offset + prod.item.id - 1 do\
+      if not factory.recipes[i] then\
+        factory.recipes[i] = {};\
+      end\
+      local recipe = factory.recipes[i];\
+      recipe[1 + #recipe] = 10 * prod.item.id - offset + i;\
+      recipe[1 + #recipe] = count;\
+    end\
+    prod.item.recipes = {};\
+    for i = 1, prod.item.tiers do\
+      local recipe = {};\
+      recipe[1] = offset + i - 1;\
+      recipe[2] = count;\
+      prod.item.recipes[i] = recipe;\
+    end\
+  end\
+  \
   function factory.define_recipe(item_name)\
     \
      --[[/*\
@@ -193,11 +264,12 @@
     if #temp_tiers ~= 1 and #temp_tiers ~= recipe_target.tiers then\
       util.error.name = "component_tiers";\
       util.error.component_mismatch = true;\
-      util.error.mismatched_element = "tiers"\
+      util.error.mismatched_element = "tiers";\
       util.error.target_elements = recipe_target.tiers;\
       util.error.obtained_elements = #temp_tiers;\
       return util.print_error();\
     end\
+    \
     local base_tier;\
     for i = 1, recipe_target.tiers do\
       if temp_tiers[i] ~= nil then\
@@ -209,6 +281,7 @@
       end\
       temp_tiers[i] = tier;\
     end\
+    \
     local temp_counts = {};\
     for input in counts:gmatch("%S+") do\
       local count = tonumber(input);\
@@ -226,7 +299,7 @@
       util.error.obtained_elements = #temp_counts;\
       return util.print_error();\
     end\
-    for i = #temp_counts + 1, target_recipe.tiers do\
+    for i = #temp_counts + 1, recipe_target.tiers do\
       temp_counts[i] = temp_counts[i - 1];\
     end\
     \
@@ -238,8 +311,8 @@
          * they don't describe how to make each item, but rather\
          * all the items that this one can be used to help make.\
          * \
-         * It's this reversed list that is needed\
-         * for computing the material needs when crafting.\
+         * This is the list needed for computing\
+         * the materials needed for crafting.\
         */]]\
     \
     local recipes = factory.recipes;\
@@ -247,7 +320,6 @@
     for i = 1, recipe_target.tiers do\
       local tier = temp_tiers[i];\
       local count = temp_counts[i];\
-      \
        --[[/*\
            * Due to the negative tier convention by d0sboots\
            * tiers smaller than 1 can happen naturally\
@@ -262,14 +334,14 @@
              * than what the component can manage\
             */]]\
         \
-        if tier > component.tier then\
+        if tier > component.tiers then\
           util.error.name = "component tier";\
           util.error.compare = true;\
           util.error.compare_min = -1;\
-          util.error.compare_max = component.tier;\
+          util.error.compare_max = component.tiers;\
           return util.print_error();\
         end\
-        local index = component.id * 10 - 1;\
+        local index = component.id * 10 + tier - 1;\
         local comp = recipes[index];\
         if not comp then\
           comp = {};\
@@ -282,8 +354,6 @@
         recipe_item[1 + #recipe_item] = count;\
       end\
     end\
-  end\
-  function factory.define_produce(name, parent, cost, machine)\
   end\
  \
   \
@@ -336,7 +406,7 @@
 
 ; 
 ; Mathod to add an item that's inside of the produce function
-#produce(name, tiers, game_name) {add_item(\
+#item(name, tiers, game_name) {add_item(\
   {name},\
   {tiers},\
   {game_name},\
@@ -351,12 +421,7 @@
 ; 
 ; in d0s's factory AI, this was ore because of
 ; a game bug that has since been fixed
-#group(name, tiers) {add_item(\
-  {name},\
-  {tiers},\
-  "{name}.group",\
-  "group"\
-)}
+#group(name, tiers) {add_item({name}, {tiers}, "{name}.group", "group")}
 
 ; 
 ; Mathod to add a *special* item
@@ -369,11 +434,11 @@
 )}
 
 ; 
-; Method to declair a recipe
+; Method to declair a recipe target
 #recipe(name) {lua(return factory.define_recipe([[{name}]]))}
 
 ; 
-; Method to declair a recipe component
+; Method to declair a component for the targeted recipe
 ; for making an item defined as craft
 #component(tiers, name, count) {lua(return factory.add_component(\
   [[{tiers}]],\
@@ -384,14 +449,12 @@
 ; 
 ; Method to declair the requirements of
 ; making an item defined as produce
-#to_produce(item, source, cost, machine) {lua(\
-  return factory.define_produce(\
-    "{item}",\
-    "{source}",\
-    {cost},\
-    "{machine}"\
-  );\
-)}
+#produce(item, source, cost, machine) {lua(return factory.produce(\
+  "{item}",\
+  "{source}",\
+  {cost},\
+  "{machine}"\
+))}
 
 ; 
 ; Method to add a category
