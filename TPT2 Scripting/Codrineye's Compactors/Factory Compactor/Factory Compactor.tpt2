@@ -1,4 +1,4 @@
-:import Factory Compactor Debugger
+:import Factory Compactor Utilities
 
 ; 
 ; Factory variable definitions
@@ -40,7 +40,7 @@
     new_item.tiers = tonumber(tiers);\
     \
       --[[/*\
-          * We call our debugging function\
+          * We call our error function\
           * if the items tier is invalid\
           * this means if it's nil or\
           * it goes under/over our alowed limit\
@@ -49,15 +49,15 @@
          */]]\
     \
     if not new_item.tiers then\
-      debug.error.name = "tiers";\
-      return debug.print_error();\
+      util.error.name = "tiers";\
+      return util.print_error();\
     end\
-    if 10 < new_item.tiers or new_item.tiers < 1 then\
-      debug.error.name = "tiers";\
-      debug.error.comp = true;\
-      debug.error.comp_min = 1;\
-      debug.error.comp_max = 10;\
-      return debug.print_error();\
+    if 1 > new_item.tiers or new_item.tiers > 10 then\
+      util.error.name = "tiers";\
+      util.error.compare = true;\
+      util.error.compare_min = 1;\
+      util.error.compare_max = 10;\
+      return util.print_error();\
     end\
   \
     factory.items[new_item.id] = new_item;\
@@ -88,7 +88,7 @@
          * modified outside our recorder\
          * \
          * We start by determening what data to copy from our new_item\
-         * and then create 2 lists, just like in the original d0s.factory\
+         * and then, just like in d0s.factory, create 2 lists\
         */]]\
     \
     local new_item_copy = {};\
@@ -129,11 +129,11 @@
       factory.recipes[i] = {};\
     end\
     \
-    debug.text.const = true;\
-    debug.text.type = "int";\
-    debug.text.name = new_item.name;\
-    debug.text.const_data = tostring(new_item.id);\
-    return debug.print_text();\
+    util.text.const = true;\
+    util.text.type = "int";\
+    util.text.name = new_item.name;\
+    util.text.const_data = tostring(new_item.id);\
+    return util.print_text();\
   end\
   \
  \
@@ -141,7 +141,7 @@
     \
      --[[/*\
          * Function to declair that we're defining\
-         * the recipe of an item with name `item_name`\
+         * the recipe for the item `item_name`\
          * Throw an error if the item_name doesn't exist\
          * \
          * output a const to prevent multiple definitions\
@@ -150,48 +150,137 @@
     \
     local recipe_item = factory.recipe_list[item_name];\
     if not recipe_item then\
-      debug.error.name = "recipe";\
-      debug.error.recipe = true;\
-      return debug.print_error();\
+      util.error.name = "recipe";\
+      util.error.recipe = true;\
+      return util.print_error();\
     end\
     factory.recipe_target = recipe_item;\
     \
-    debug.text.const = true;\
-    debug.text.type = "int";\
-    debug.text.name = "recipe." .. recipe_item.name;\
-    debug.text.const_data = recipe_item.id;\
-    return debug.print_text();\
+    util.text.const = true;\
+    util.text.type = "int";\
+    util.text.name = "recipe." .. recipe_item.name;\
+    util.text.const_data = recipe_item.id;\
+    return util.print_text();\
   end\
+  \
   function factory.add_component(tiers, name, counts)\
     local recipe_target = factory.recipe_target;\
     if not recipe_target.id then\
-      debug.error.name = "recipe component";\
-      debug.error.component_recipe = true;\
-      return debug.print_error();\
+      util.error.name = "recipe component";\
+      util.error.no_recipe = true;\
+      return util.print_error();\
     end\
     local comp_name = name:gsub(" ", "");\
     local component = factory.recipe_list[comp_name];\
     if not component then\
-      debug.error.name = "component";\
-      return debug.print_error();\
+      util.error.name = "component";\
+      return util.print_error();\
     end\
     if component.game_type == "group" then\
-      debug.error.name = "component";\
-      debug.error.component_group = true;\
-      return debug.print_error();\
+      util.error.name = "component";\
+      util.error.component_is_group = true;\
+      return util.print_error();\
     end\
-    local temp_tier = {};\
+    local temp_tiers = {};\
     for input in tiers:gmatch("%S+") do\
       local tier = tonumber(input);\
       if not tier then\
-        debug.error.name = "component tier";\
-        return debug.print_error();\
+        util.error.name = "component tier";\
+        return util.print_error();\
       end\
-      temp_tier[1 + #temp_tier] = tier;\
+      temp_tiers[1 + #temp_tiers] = tier;\
     end\
-    if #temp_tier ~= 1 or #temp_tier > component.tiers then\
-      debug.error.name = "component_tiers";\
+    if #temp_tiers ~= 1 and #temp_tiers ~= recipe_target.tiers then\
+      util.error.name = "component_tiers";\
+      util.error.component_mismatch = true;\
+      util.error.mismatched_element = "tiers"\
+      util.error.target_elements = recipe_target.tiers;\
+      util.error.obtained_elements = #temp_tiers;\
+      return util.print_error();\
+    end\
+    local base_tier;\
+    for i = 1, recipe_target.tiers do\
+      if temp_tiers[i] ~= nil then\
+        base_tier = temp_tiers[i];\
+      end\
+      local tier = base_tier;\
+      if tier < 1 then\
+        tier = tier + i;\
+      end\
+      temp_tiers[i] = tier;\
+    end\
+    local temp_counts = {};\
+    for input in counts:gmatch("%S+") do\
+      local count = tonumber(input);\
+      if not count then\
+        util.error.name = "component count";\
+        return util.print_error();\
+      end\
+      temp_counts[1 + #temp_counts] = count;\
+    end\
+    if #temp_counts ~= 1 and #temp_counts ~= recipe_target.tiers then\
+      util.error.name = "component_counts";\
+      util.error.component_mismatch = true;\
+      util.error.mismatched_element = "counts"\
+      util.error.target_elements = recipe_target.tiers;\
+      util.error.obtained_elements = #temp_counts;\
+      return util.print_error();\
+    end\
+    for i = #temp_counts + 1, target_recipe.tiers do\
+      temp_counts[i] = temp_counts[i - 1];\
+    end\
+    \
+     --[[/*\
+         * Finally, merge the two expanded lists and distribute\
+         * the results across the recipes for each tier.\
+         * \
+         * These recipes are "reversed", in the sense that\
+         * they don't describe how to make each item, but rather\
+         * all the items that this one can be used to help make.\
+         * \
+         * It's this reversed list that is needed\
+         * for computing the material needs when crafting.\
+        */]]\
+    \
+    local recipes = factory.recipes;\
+    local offset = recipe_target.id * 10 - 1;\
+    for i = 1, recipe_target.tiers do\
+      local tier = temp_tiers[i];\
+      local count = temp_counts[i];\
       \
+       --[[/*\
+           * Due to the negative tier convention by d0sboots\
+           * tiers smaller than 1 can happen naturally\
+           */]]\
+      if count > 0 and tier > 0 then\
+        \
+         --[[/*\
+             * This check ensures only tiers from 1 to 10 are\
+             * computed, as negative tiers do not exist\
+             * \
+             * now, we make sure our temp_tier isn't bigger\
+             * than what the component can manage\
+            */]]\
+        \
+        if tier > component.tier then\
+          util.error.name = "component tier";\
+          util.error.compare = true;\
+          util.error.compare_min = -1;\
+          util.error.compare_max = component.tier;\
+          return util.print_error();\
+        end\
+        local index = component.id * 10 - 1;\
+        local comp = recipes[index];\
+        if not comp then\
+          comp = {};\
+          recipes[index] = comp;\
+        end\
+        comp[1 + #comp] = offset + i;\
+        comp[1 + #comp] = count;\
+        local recipe_item = recipe_target.recipe[i];\
+        recipe_item[1 + #recipe_item] = index;\
+        recipe_item[1 + #recipe_item] = count;\
+      end\
     end\
   end\
   function factory.define_produce(name, parent, cost, machine)\
@@ -210,10 +299,10 @@
       local trimmed = args[i]:gsub(" ", "");\
       local item = factory.item_names[trimmed];\
       if not item then\
-        debug.error.name = "category parameter"\
-        debug.error.category = true;\
-        debug.error.category_field = trimmed\
-        return debug.print_error();\
+        util.error.name = "category parameter"\
+        util.error.category = true;\
+        util.error.category_field = trimmed\
+        return util.print_error();\
       end\
       local field = fields[i];\
       category[field] = item;\

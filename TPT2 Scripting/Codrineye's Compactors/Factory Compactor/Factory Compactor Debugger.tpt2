@@ -1,37 +1,57 @@
 
 ; 
-; Debug variables define
+; Utility variables definitions
 ; 
 
 {lua(\
-  debug = {};\
-  debug.text = {};\
-  debug.text.name = "";\
-  debug.text.type = "";\
-  debug.text.const = false;\
-  debug.text.const_data = "";\
-  debug.error = {};\
-  debug.error.name = "";\
-  debug.error.recipe = false;\
-  debug.error.component_recipe = false;\
-  debug.error.component_group = false;\
-  debug.error.component_tier = false;\
-  debug.error.category = false;\
-  debug.error.category_field = "";\
-  debug.error.comp = false;\
-  debug.error.comp_min = 0;\
-  debug.error.comp_max = 0;\
+  util = {};\
+  util.text = {};\
+  util.text.name = "";\
+  util.text.type = "";\
+  util.text.const = false;\
+  util.text.const_data = "";\
+  util.error = {};\
+  util.error.name = "";\
+  util.error.recipe = false;\
+  util.error.component = false;\
+  util.error.no_recipe = false;\
+  util.error.component_is_group = false;\
+  util.error.tier_mismatch = false;\
+  util.error.target_tiers = 0;\
+  util.error.obtained_tiers = 0;\
+  util.error.category = false;\
+  util.category_field = "";\
+  util.error.compare = false;\
+  util.error.compare_min = 0;\
+  util.error.compare_max = 0;\
 )}
 
 ; 
 ; Code
-; It's kind of bland right now, but it's because
-; There aren't many error casses yet
 ; 
 
 {lua(\
-  function debug.print_text()\
-    local text = debug.text;\
+  function util.pack_assign(target, value_to_assign, ...)\
+    \
+     --[[/*\
+         * Function that permits setting multiple variables to\
+         * a desired value without the need of piling them all\
+         * at multiple lines\
+         * \
+         * set the group we're targetting, the value to assign\
+         * and then the variables you want to update\
+        */]]\
+    \
+    local variables = table.pack(...);\
+    local debug_type = target;\
+    for i = 1, #variables do\
+      local name = variables[i];\
+      debug_type[name] = value_to_assign;\
+    end\
+  end\
+  \
+  function util.print_text()\
+    local text = util.text;\
     local printer = {};\
     if text.const then\
       printer[1 + #printer] = ":const" .. ' ';\
@@ -41,27 +61,25 @@
       printer[1 + #printer] = ' ';\
       printer[1 + #printer] = text.const_data\
     end\
-    text.name = "";\
-    text.type = "";\
-    text.const = false;\
-    text.const_data = "";\
+    util.pack_assign(text, "", "name", "type", "const_data");\
+    util.pack_assign(text, false, "const");\
     return table.concat(printer);\
   end\
   \
-  function debug.print_error()\
-    local special_debugger = false;\
-    local error = debug.error;\
-    local component_debugger = error.component_recipe;\
-    component_debugger = component_debugger or error.component_group;\
-    component_debugger = component_debugger or error.component_tier;\
-    local debugger = {};\
-    debugger[1 + #debugger] = "Invalid" .. ' ';\
-    debugger[1 + #debugger] = error.name;\
-    debugger[1 + #debugger] = ' ';\
-    debugger[1 + #debugger] = "input" .. '\n';\
-    debugger[1 + #debugger] = "Inputed" .. " ";\
-    debugger[1 + #debugger] = error.name;\
-    debugger[1 + #debugger] = " ";\
+  function util.print_error()\
+    local special_error = false;\
+    local error = util.error;\
+    error.component = error.component or error.no_recipe;\
+    error.component = error.component or error.component_is_group;\
+    error.component = error.component or error.tier_mismatch;\
+    local exception = {};\
+    exception[1 + #exception] = "Invalid" .. ' ';\
+    exception[1 + #exception] = util.name;\
+    exception[1 + #exception] = ' ';\
+    exception[1 + #exception] = "input" .. '\n';\
+    exception[1 + #exception] = "Inputed" .. " ";\
+    exception[1 + #exception] = util.name;\
+    exception[1 + #exception] = " ";\
     \
      --[[/*\
           * Printer functionality\
@@ -71,110 +89,103 @@
          */]]\
     \
     local function compare_error()\
-      if not error.comp then\
+      if not error.compare then\
         return;\
       end\
-      special_debugger = true;\
-      debugger[1 + #debugger] = "cannot be smaller than" .. ' ';\
-      debugger[1 + #debugger] = error.comp_min;\
-      debugger[1 + #debugger] = ' ';\
-      debugger[1 + #debugger] = "or bigger than" .. ' ';\
-      debugger[1 + #debugger] = error.comp_max;\
-      debugger[1 + #debugger] = ' ';\
+      special_error = true;\
+      exception[1 + #exception] = "cannot be smaller than" .. ' ';\
+      exception[1 + #exception] = error.compare_min;\
+      exception[1 + #exception] = ' ';\
+      exception[1 + #exception] = "or bigger than" .. ' ';\
+      exception[1 + #exception] = error.compare_max;\
+      exception[1 + #exception] = ' ';\
     end\
     local function recipe_error()\
       if not error.recipe then\
         return;\
       end\
-      special_debugger = true;\
-      debugger[1 + #debugger] = "has already" .. ' ';\
-      debugger[1 + #debugger] = "been created" .. ' ';\
+      special_error = true;\
+      exception[1 + #exception] = "has already" .. ' ';\
+      exception[1 + #exception] = "been created" .. ' ';\
     end\
     local function component_error()\
-      if not component_debugger then\
+      if not error.component then\
         return;\
       end\
-      special_debugger = true;\
+      special_error = true;\
       local function no_recipe()\
-        if not error.component_recipe then\
+        if not error.no_recipe then\
           return;\
         end\
-        debugger[1 + #debugger] = "has no recipe" .. ' ';\
-        debugger[1 + #debugger] = "to be part of" .. '\n';\
-        debugger[1 + #debugger] = "Component defined" .. ' ';\
-        debugger[1 + #debugger] = "before defining" .. ' ';\
-        debugger[1 + #debugger] = "target recipe" .. ' ';\
+        exception[1 + #exception] = "has no recipe" .. ' ';\
+        exception[1 + #exception] = "to be part of" .. '\n';\
+        exception[1 + #exception] = "Component defined" .. ' ';\
+        exception[1 + #exception] = "before specifying" .. ' ';\
+        exception[1 + #exception] = "target recipe" .. ' ';\
       end\
       local function is_group()\
-        if not error.component_group then\
+        if not error.component_is_group then\
           return;\
         end\
-        debugger[1 + #debugger] = "is defined as group" .. '\n';\
-        debugger[1 + #debugger] = "Group items are" .. ' ';\
-        debugger[1 + #debugger] = "not components" .. ' ';\
+        exception[1 + #exception] = "is defined as group" .. '\n';\
+        exception[1 + #exception] = "Group items are" .. ' ';\
+        exception[1 + #exception] = "not components" .. ' ';\
       end\
       local function tier_mismatch()\
-        if not error.component_tier then\
+        if not error.tier_mismatch then\
           return;\
         end\
+        exception[1 + #exception] = "do not match" .. ' ';\
+        exception[1 + #exception] = "the number of tiers for" .. ' ';\
+        exception[1 + #exception] = "the targeted recipe" .. '\n';\
+        exception[1 + #exception] = "Target tiers count is" .. ' ';\
+        exception[1 + #exception] = error.target_tiers;\
+        exception[1 + #exception] = ", ";\
+        exception[1 + #exception] = "obtained tiers count is" .. ' ';\
+        exception[1 + #exception] = error.obtained_tiers;\
+        exception[1 + #exception] = ' ';\
       end\
       no_recipe();\
       is_group();\
+      tier_mismatch();\
     end\
     local function category_error()\
       if not error.category then\
         return;\
       end\
-      special_debugger = true;\
-      debugger[1 + #debugger] = "in field '";\
-      debugger[1 + #debugger] = error.category_field;\
-      debugger[1 + #debugger] = "' ";\
+      special_error = true;\
+      exception[1 + #exception] = "in field '";\
+      exception[1 + #exception] = error.category_field;\
+      exception[1 + #exception] = "' ";\
     end\
-    local function special_error()\
-      if special_debugger then\
+    local function special_exception()\
+      if special_error then\
         return;\
       end\
-      debugger[1 + #debugger] = "returned nil";\
+      exception[1 + #exception] = "returned nil";\
     end\
     compare_error();\
     recipe_error();\
     component_error();\
     category_error();\
-    special_error();\
+    special_exception();\
     \
-    local function debug_string(...)\
-      local error_string = table.pack(...);\
-      for i = 1, #error_string do\
-        local name = error_string[i];\
-        error[name] = "";\
-      end\
-    end\
-    local function debug_bool(...)\
-      local error_bool = table.pack(...);\
-      for i = 1, #error_bool do\
-        local name = error_bool[i];\
-        error[name] = false;\
-      end\
-    end\
-    local function debug_number(...)\
-      local error_number = table.pack(...);\
-      for i = 1, #error_number do\
-        local name = error_number[i];\
-        error[name] = 0;\
-      end\
-    end\
-    \
-    debug_string("name", "category_field");\
-    debug_bool(\
+    util.pack_assign("", error, "name", "category_field");\
+    util.pack_assign(false, error, \
       "recipe",\
-      "component_recipe",\
-      "component_group",\
-      "component_tier",\
+      "no_recipe",\
+      "component_is_group",\
+      "tier_mismatch",\
       "category",\
-      "comp"\
+      "compare"\
     );\
-    debug_number("comp_min", "comp_max")\
-    return table.concat(debugger);\
+    util.pack_assign(0, error, \
+      "target_tiers",\
+      "obtained_tiers",\
+      "compare_min",\
+      "compare_max"\
+    );\
+    return table.concat(exception);\
   end\
 )}
 
