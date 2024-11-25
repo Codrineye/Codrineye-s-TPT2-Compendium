@@ -1,0 +1,22 @@
+#version 2
+#script_name WS.Fragzilla v{version}
+; script version and name
+; version, in case there's further updates to it
+; script name, for ease of use
+
+#identifier "WS.Fragzilla"
+; script identifier, to create script-unique global variable names
+
+#status {identifier} . " is " . "running"
+#status.get global.bool.get({status})
+; global name variable for the scripts status
+; a boolean that's true if the script is active
+; and false if the script is shut off
+; 
+; it can easily be switched out for a global string, if you'd like
+; a nicer user interface, but I won't make that decision for you
+
+; 
+; guide for size
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; just in case I have to do things with this on my laptop

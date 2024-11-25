@@ -90,19 +90,30 @@ To use this AI, you will need to:
 
 # WS.Fragzilla
 
-This AI will hammer the sellected node in the anvil.<br>
-It uses a toggle boolean `running` to determine the scripts state, true means it's running and false means it's off.
+[Version 2](/TPT2%20Scripting/WS.Fragzilla/README.md)
+
+This AI will hammer all nodes within the selection circle.<br>
+It uses a toggle boolean `WS.Fragzilla is running` to determine the scripts state, true means it's running and false means it's off.
 
 ```
-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
+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
 ```
 
 ## Script Requirements
-- impulse: 1
-- conditions: 1
-- max_lines: 11
+- 1 impulse
+- 0 conditions
+- 21 max actions
+- 1 script
 
 # Script interraction
+
+This script is toggled on/off with the key "f", the script will quit execution if this action is performed outside of town.<br>
+At the top of the script you have 2 local variables:
+- cooldown is a double that informs the script for how much it should wait in the idle screen
+- hammer_count is an int that indicates how many times you will hammer the nodes before returning to the idle screen
+
+To use this script, you must turn off dynamic UI scaling, as it breaks relative vectors
+
 
 This package is activated/deactivated with the key "f", this action must be performed inside of town.<br>
 You can tweak the variables within the script called `Init`, where the number after 'cooldown=' represents how long the AI will wait on the idle screen for fragment collecting, and the number after 'hammercount=' represents how many times the sellected nodes will be hammered<br> 
