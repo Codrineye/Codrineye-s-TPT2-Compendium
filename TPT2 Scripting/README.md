@@ -93,28 +93,26 @@ To use this AI, you will need to:
 [Version 2](/TPT2%20Scripting/WS.Fragzilla/README.md)
 
 This AI will hammer all nodes within the selection circle.<br>
-It uses a toggle boolean `WS.Fragzilla is running` to determine the scripts state, true means it's running and false means it's off.
+It uses a hidden string to determine the scripts status, `WSFrag is running` means it's running and `WSFrag is offline` means it's off.
 
 ```
-5VdNi9swEP0ri45tVthJS2EPG+hCrz300EMTiizLtoitcSV5Tfbj3Et76mn3VMpeeiy9lLJQsP9YkZwEJ3YSJ81SaDEMtjSaGb2ZeZIvkaKSp1qhkzeXiFDNQZh3NMocxwnCGDwSYw8gxorpkUdBKE2EttNPjHSfvX6FX0gSXvA4JkdcHclMCC5CqzIQUOkGFJKUSK5AWHNN++Gu9luUnf7VlV000JALnHPhQ46JmELKBOrZXblODJTE2IfMi1nrtjwKEPuQi5WZQXFb3Myf8tvQWJSVNS50q6kgIknC5FsKmVid7VvpWunUpbEbhEwwySkOQYMd9jSTgsip8XVw+KpYnjZjWdWj7eFaYOugqwjyJrA5yImKIF2ZqTBw54bc+d5zwnUgScI6IK0lS85iTieqrtkGy1JOdrNsBhiRXEcJ05zaVGzxVlvdVrHu8S5VIefIUGOxCuecURxISM4ApK8qAGshVnW+47CYdUfCReVEUcmYSa6vI+yvW7bSLlaNlu/fLV7K+2E7Co+qip65iRgPI439TboMUsNWOONY8YtV3wvVTR18syaYxxvQakDRzW9LYzVk+Xn4MNlrwNo9fVtj/rIxoR3B2j+f5Y/i7mX504jb4tce6exacvvlczOj2W3XeZ4HDTLw1lhntQP1ACx02spCLZs6FNk7m6H5K8df8MDHX6AhZ1IzpZsRdDsCD03//yzPlx/LD/OnuN+VV/8jAi3uTsuvxScjvg+XOs9U3qh5YW7rtMWF+ZC9sIUhupBntuZO+8f0gcY9REH4fP7DNO4hnqRZrJj9fZqwKQ6MkjDRnqAlM+d91EMpoRMSmjnUQ17mh0yjk2O3hzLFns8+tczY9fj6Nw==
+5VdJa9wwFP4rxaWXdqJ4shXCZIY2MNcecsihCUWWZVuMredKcky2cy/tqafkVEouPZZeSgkUxn+sSLaD47FnYwJpi0G2pbfove8t0rkliWCxktbu23MLE8WA62/rKLHtbtcPwcEhkkow7iNJ1ZFDgEuFudIE9pYh2+pJdkb37P7hwVBgXyqsEmnWdwhwghu57Je9dc3WNz9UUcGxOC1UmTmvUEuAK8x4LpHm+0UsipNQ0kbJ2yN6ioLGJbtdG4EoxoJJ4MgBCI1lmwpSjlLGXUgR5qcQU94od+PionXPdTf6C7mxRvmsRyAEsffUHpaET5h8IhLOGfd762a138o1tKtc4Hkh43Qm11RdVicPFjsEgkPkQuKEtDFWHAIQupDWXbg5vh5flU/2faAlilwa46pRlBfgKKLiHYGE11c3zNit4F2MWq7nU04FI8gHBWbaKYOBFfyPE8Pcqu1Jq+p0pNlwA1E1nGUA6SREKYiRDCCureTe7JaCuqUXU8yUJ3BE58BMCRrth4yMZJWyyZP30F1MsklvLJgKIqoYMaDO0Fbhbkrt7toi8SVKzxAtMd/OCSXIExDtAwi3CKfKFvOMWXCaF3kWMX5XFynV4LoqQG4bWy3xDBnJPry/+8huB81eeF7kRq4moMwPFHKn0VKIdTtBCUM6KdpIp9WCq5bNvJjirQlXzKe3IbEmxuzL4GHQm3Dr/PDN3PPXqYDO6azl8cx+jm/eZL/0cD3+vQSc84bccnhOr2jG7GrHYN5EMXBapNPKgWIFVai5HzQYtapib093zV/eSL0HbqSegpQKRaXSB8xlmumqG8k/2zGyT9nH8hnfLlqh/6NSPL7pZ9/Gn/XwY3Avh3XkHU0e4puS8+4Qv8pcmFFr5inDScvp+BEVIuu4YxHgLitv2ccdq7jHmju3vrZ6Vse8A03Mtf27ViHwZKNy5YoxGWFfr5aqd14N+4cHSJOesTDEVsdyEtenytpd63asRNLXxa8SCb08vvwD
 ```
 
 ## Script Requirements
-- 1 impulse
+- 2 impulse
 - 0 conditions
 - 21 max actions
 - 1 script
 
 # Script interraction
 
+The script is within a WS.Fragzilla package for the script color.
+
 This script is toggled on/off with the key "f", the script will quit execution if this action is performed outside of town.<br>
+Its status has 3 modes, `hidden`, `script on` and `script off`. `script on/off` can be triggered by "f", `hidden` is triggered by "h"<br>
 At the top of the script you have 2 local variables:
 - cooldown is a double that informs the script for how much it should wait in the idle screen
 - hammer_count is an int that indicates how many times you will hammer the nodes before returning to the idle screen
 
 To use this script, you must turn off dynamic UI scaling, as it breaks relative vectors
-
-
-This package is activated/deactivated with the key "f", this action must be performed inside of town.<br>
-You can tweak the variables within the script called `Init`, where the number after 'cooldown=' represents how long the AI will wait on the idle screen for fragment collecting, and the number after 'hammercount=' represents how many times the sellected nodes will be hammered<br> 
-To use the package, you must turn dynamic UI scaling off, as it breaks the arithmetic due to an ingame bug.

@@ -1,20 +1,30 @@
 #version 2
-#script_name WS.Fragzilla v{version}
+#package(name) <color=#6AF>WS.Fragzilla:{name} v{version}</color>
 ; script version and name
 ; version, in case there's further updates to it
 ; script name, for ease of use
 
-#identifier "WS.Fragzilla"
+#identifier "WSFrag"
 ; script identifier, to create script-unique global variable names
 
-#status {identifier} . " is " . "running"
-#status.get global.bool.get({status})
+#status "<size=0>" . {identifier} . "status"
+#status.get global.string.get({status})
+#status.set(value) global.string.set({status}, "</size>" . {value})
 ; global name variable for the scripts status
-; a boolean that's true if the script is active
-; and false if the script is shut off
-; 
-; it can easily be switched out for a global string, if you'd like
-; a nicer user interface, but I won't make that decision for you
+; modifying this value must always end the hiding block
+; if you ever want to start another hiding block with it, either
+; explicitely call global.string.set() [which I do not recommend]
+; or set it to "<size=0>" . <contents>
+
+#status.color(color, info) "<color={color}>" . {info} . "</color>"
+; helper macro to more easily define status colors and contents
+
+#status.on {status.color(#0F0, {identifier} . " is running")}
+#status.off {status.color(#F00, {identifier} . " is offline")}
+; the statuses strings
+
+#script_active contains({status.get}, {status.on})
+; helper macro that checks if the script is on or not
 
 ; 
 ; guide for size

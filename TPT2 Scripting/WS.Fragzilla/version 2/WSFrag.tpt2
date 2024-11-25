@@ -3,22 +3,16 @@
 ; it's pretty bland, but it's still nice organization
 
 :budget_cap -1
-:name {script_name}
+:name {package(WSFrag)}
 ; set the script to run as fast as possible and
-; run the game
+; set its name
 
 :local double cooldown
 :local int hammer_count
 :local int remClicks
 
 key.f()
-
-; we start the script by determening the state
-; if all windows are closed, we toggle our status
-; otherwise, the status is always off
-; 
-; this is a clean script shut down/script wakeup operation
-global.bool.set({status}, not({status.get} || anyopen()))
+key.h()
 
 ; local doubles for the user to configure the script
 ; cooldown is how much time to wait in the idle screen
@@ -28,9 +22,22 @@ cooldown = 1.1
 ; should click the hammer before going back on cooldown
 hammer_count = 1
 
+; 
+; we start the script by determening the state
+; if all windows are closed, we toggle our status
+; otherwise, the status is always off
+; 
+; this is a clean script shut down/wakeup operation
+
+{status.set(if(contains(impulse(), "key.h"), "", if(\
+  anyopen() || {script_active}, \
+  {status.off}, \
+  {status.on}\
+)))}
+
 ; blocker condition that ensures we only
 ; interact with the game when we can
-goto(if({status.get}, hammer, quit))
+goto(if({script_active}, hammer, quit))
 
 hammer:
 ; this is the hammer chunk
@@ -64,7 +71,7 @@ waitframe()
 ; then, end this chunk by exiting the workshop
 ; and waitframe() for the action to be processed
 
-goto(if({status.get}, farm, quit))
+goto(if({script_active}, farm, quit))
 ; a secondary blocker to ensure we are still
 ; alowed to interact with the game
 
@@ -93,6 +100,6 @@ waitframe()
 
 ; and the end of the hammer chunk ensures we return to hammer
 ; only if the script isn't shut down
-gotoif(hammer, {status.get})
+gotoif(hammer, {script_active})
 
 quit:
