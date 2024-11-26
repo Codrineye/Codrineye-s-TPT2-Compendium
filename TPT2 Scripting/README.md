@@ -10,12 +10,12 @@ This package handles all movement needed to enter dificulties and regions for To
 For customized impulses, import the scripts source code.
 
 ```
-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
+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
 ```
 
 ## Requirements
 - 6 impulses
-- 1 condition
+- 2 condition
 - 35 actions
 - 1 script
 
@@ -30,11 +30,13 @@ The script has 3 variables:
 - `Region Cycling(W)` represents if the script is able to change regions or not
 - `Curent Mode(Q)` shows the mode the script is in
 
-The key inbetween (patenthesies) is the key you press to change its state. This value is given from the source, so changing the impulse keys will automatically change what's displayed
+The key inbetween (patenthesies) is the key you press to change its state. This value is given from the source, so changing the impulse key macros will automatically change what's displayed
 
 `Curent Mode` can have 2 modes, mode 1 is `Difficulty>Region` which means that the script will first cycle through all the difficulties and then change your region, and mode 2 is `Region>Difficulty` which means that the script will first cycle through all the regions and then change your difficulty.
 
-The script can cycle as long as its active, by default you'll be cycling from `Easy to Impossible`, once it reaches Impossible it will cycle back to Easy. It comes with an always true condition containing the strings you need to change the order. The condition should be easy to understand, if you think there's something that needs clarification feel free to ping me on the scripts post. The direction string is inputed on line 21, it is what the script is taking a substring of.
+The script can cycle as long as its active, by default you'll be cycling from `Easy to Impossible`, once it reaches Impossible it will cycle back to Easy.
+
+The script has always true conditions, the first one contains the strings reprezenting the cycling direction, the second one is used to tell you the line at which you change the directional string and the line at which you add your additional_cond
 
 ## The impulses
 <details>

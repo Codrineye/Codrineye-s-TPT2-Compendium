@@ -5,7 +5,7 @@
 ; transition delay is the amount of time
 ; it takes for the screen transition animation
 ; to happen. It's not hard coded since it can
-; change due to the users machine
+; change due to the users machiney
 :local double transition_delay
 
 ; store the coord_y value
@@ -30,7 +30,7 @@ key.{restart}()
 key.{exit}()
 key.{stats}()
 
-; condition that's for user convenience
+; conditions for user convenience
 ; 
 ; you get to chose the direction the difficulties are cycled in
 ; start with easy and move on to impossible, or
@@ -38,6 +38,19 @@ key.{stats}()
 
 concat("Easy -> Impossible", {difficulty_list}) != \
 concat("Impossible -> Easy", {inversed_difficulty_list})
+
+; helper macros containing the components of our second condition
+; telling the user at what line they input the difficulty direction string
+; or at which line they input their additional cond
+
+#instruct.change_direction "To change the difficulty direction you must"
+#goto_line.change_direction "go to line " . difficulty_list_pos
+
+#instruct.additional_cond "To use additional_cond you must"
+#goto_line.additional_cond "go to line " . additional_cond_pos
+
+concat({instruct.change_direction}, {goto_line.change_direction}) != \
+concat({instruct.additional_cond}, {goto_line.additional_cond})
 
 ; helper macros to shorten contains operation
 ; 
@@ -84,19 +97,15 @@ global.string.set({hider}, if(\
   "Cods TowerTesting is Hiding"\
 ))
 
-goto(if(\
-  contains({impulse.state}, impulse()), \
-  update_state, \
+goto(if(contains({impulse.state}, impulse()), update_state, if(\
+  isTowerTesting(), \
   if(\
-    not(isTowerTesting()), \
-    99, \
-    if(\
-      {contains.key({restart})}, \
-      restart, \
-      if({contains.key({exit})}, exit, stats)\
-    )\
-  )\
-))
+    {contains.key({restart})}, \
+    restart, \
+    if({contains.key({exit})}, exit, stats)\
+  ), \
+  99\
+)))
 
 update_state:
 ; state is toggled only if you want it to change
@@ -106,7 +115,8 @@ update_state:
 {region_cycling.set({region_cycling.get} != {contains.key({cycling})})}
 
 ; curent_mode cycles through its values only if you want it to change
-global.string.set({curent_mode}, if({contains.key({mode_switch})}, \
+global.string.set({curent_mode}, if(\
+  {contains.key({mode_switch})}, \
   if({contains.mode2}, {mode1}, {mode2}), \
   if({contains.mode2}, {mode2}, {mode1})\
 ))
@@ -132,14 +142,15 @@ waituntil(isTowerTesting() || not({state.get}))
 ; to determine when to exit
 in_towertesting:
 
-; waitframe() is here because we're using atomic functions
+; waitframe() is here to refresh our budget
 waitframe()
 
 ; additional_cond must always be false until it's met
 ; if you want to exit when you reach x amount of eras
 ; `era() >= x` => This is good
-;  `era() < x` => This is bad
+; `era() < x`  => This is bad
 
+additional_cond_pos:
 additional_cond = false
 
 ; stay in the loop as long as the tower is alive, the script is alive
@@ -161,15 +172,11 @@ wait(transition_delay)
 ; once out of towertesting we terminate the script if
 ; we're told by the user to exit or the AI is shut down
 ; otherwise, we return to loop
-goto(if(\
-  isTowerTesting(), \
-  exit, \
-  if(\
-    {contains.key({exit})} || not({state.get}), \
-    99, \
-    loop\
-  )\
-))
+goto(if(isTowerTesting(), exit, if(\
+  {contains.key({exit})} || not({state.get}), \
+  99, \
+  loop\
+)))
 
 ; mode1 means we cycle through our difficulties
 ; and change region only after 6 counts
@@ -189,13 +196,14 @@ change_region:
 {click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
 
 ; wait for the game to change regions
-wait(transition_delay)
+waitframe()
 
 change_difficulty:
 
 ; signal to the script that we're able to switch regions
 can_switch = true
 
+difficulty_list_pos:
 ; determine the difficulty we should switch to
 difficulty = s2d(\
   sub({difficulty_list}, difficulty_index * coord_size, coord_size), \
@@ -215,7 +223,7 @@ difficulty_index = if(\
 {click.relative(395.0/800.0, difficulty/450.0, 0.0, 1.0)}
 
 ; wait for our click to register
-wait(transition_delay)
+waitframe()
 
 ; launch a round of towertesting
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
@@ -250,14 +258,14 @@ wait(transition_delay)
 ; counting == 0 and we can change region
 ; otherwise, try to change difficulty
 goto(if(\
-  not({state.get}), \
-  99, \
+  {state.get}, \
   if(\
     ({contains.mode2} || {switch.mode1}) && \
     {region_cycling.get} && can_switch, \
     change_region, \
     change_difficulty\
-  )\
+  ), \
+  99\
 ))
 
 ; The user requested a restart

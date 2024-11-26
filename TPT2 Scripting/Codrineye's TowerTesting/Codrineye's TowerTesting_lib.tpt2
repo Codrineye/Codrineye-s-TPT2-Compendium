@@ -72,7 +72,6 @@
 {set_difficulty(145.0)}
 {set_difficulty(112.0)}
 
-
 ; const variables to make the difficulty logic easier to follow
 :const int coord_size {lua(return max_difficulty_digits)}
 :const int difficulty_count {lua(return #difficulty)}
@@ -99,16 +98,16 @@
 ; safety const declarations to prevent
 ; the same impulse key from repeating
 :const double {state_switch} 1.0
+
 :const double {mode_switch} 1.0
 :const double {cycling} 1.0
 :const double {exit} 1.0
 :const double {stats} 1.0
 :const double {restart} 1.0
 
-
 ; 
 ; guide for size for when I make changes to the script
 ; this is simply a marker that represents the size of my laptop screen
-; I keep lines under this line so it's easy to edit when on laptop
+; I keep lines under this limit so it's easy to edit when on laptop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 
