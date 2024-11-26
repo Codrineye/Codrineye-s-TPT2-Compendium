@@ -4,6 +4,11 @@
 #package(name) {spell_compactor_package({name})}
 
 ; 
+; guide for size
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; 
+
+; 
 ; This is the stand-alone spell compactor
 ; importing this should be the first action
 ; performed if you're using the compactor
