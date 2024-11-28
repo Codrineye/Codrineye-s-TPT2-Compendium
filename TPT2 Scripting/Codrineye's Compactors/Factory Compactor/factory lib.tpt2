@@ -4,6 +4,7 @@
 ; Since this is :imported, it can't produce any instructions.
 
 #version 3.2.3
+
 #script_name(name) D0S.factory {version}:{name}
 #identifier "D0S.factory {version} identifier"
 
@@ -21,4 +22,85 @@
 #right d
 #start f
 
+; Now that all the recipes are defined,
+; we have to put them in a valid order.
+; We do this with a modified breadth-first-search,
+; optimized around the structure of our data.
+; Items are a type-tier pair identified by the formula type * 10 + tier
+; They are sequentially checked against a graph
+; that is incrementally being formed.
+; If all its recipe-items have already been satisfied or it has none,
+; then it is also satisfied, and as long as it has recipe-items entry,
+; it's put on a queue to be outputed.
+; Otherwise, a count is kept of how many unsatisfied recipes it has,
+; and an entry is made in each blocking recipe pointing back to this item.
+; After each item, the queue is processed.
+; The head of the queue is popped and gets the next sequential id
+; this is how the recipes get their order.
+; Also, any items blocked on it will have
+; their tallies decremented by one.
+; If these go to zero, they are now satisfied
+; and will be added to the queue to be output as well.
 
+{lua(\
+  local recipes_list = {};\
+  factory.recipes_list = recipes_list;\
+  local items = factory.items;\
+  local recipes = factory.recipes;\
+  local graph = {};\
+  local queue = {};\
+  for tier = 10, 1, -1 do\
+    for item_id = 1, #items do\
+      local item = items[item_id];\
+      local id = 10 * item_id + tier - 1;\
+      local recipe = recipes[id];\
+      if not recipe then\
+        goto continue;\
+      end\
+      local entry = graph[id];\
+      if not entry then\
+        entry = {};\
+        entry.blocking = {};\
+        graph[id] = entry;\
+      end\
+      local blockers = 0;\
+      if recipe then\
+        for i = 1, #recipe, 2 do\
+          local other = graph[recipe[i]];\
+          if not other then\
+            other = {};\
+            other.blocking = {};\
+            other.blockers = -1;\
+            graph[recipe[i]] = other;\
+          end\
+          if other.blockers ~= 0 then\
+            blockers = blockers + 1;\
+            other.blocking[#other.blocking + 1] = id;\
+          end\
+        end\
+      end\
+      entry.blockers = blockers;\
+      \
+      if blockers == 0 then\
+        queue[#queue + 1] = id;\
+      end\
+      \
+      local q_front = 1;\
+      while q_front <= #queue do\
+        id = queue[q_front];\
+        entry = graph[id];\
+        recipes_list[#recipes_list + 1] = id;\
+        for i = 1, #entry.blocking do\
+          local other = graph[entry.blocking[i]];\
+          other.blockers = other.blockers - 1;\
+          if other.blockers == 0 then;\
+            queue[#queue + 1] = entry.blocking[i];\
+          end;\
+        end\
+        q_front = q_front + 1\
+      end\
+      queue = {};\
+      ::continue::\
+    end\
+  end\
+)}

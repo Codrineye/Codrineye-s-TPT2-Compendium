@@ -15,6 +15,13 @@
   factory.recipe_list = {};\
   factory.recipe_target = {};\
   \
+  factory.target = {};\
+  factory.target.item_name = "";\
+  factory.target.type = 0;\
+  factory.target.tiers = {};\
+  factory.target.counts = {};\
+  factory.target.machine = "";\
+  \
   factory.prods = {};\
   factory.prod_machines = {};\
   \
@@ -144,6 +151,24 @@
     util.text.const_data = tostring(new_item.id);\
     return util.print_text();\
   end\
+  \
+  function factory.add_recipe()\
+    \
+     --[[/*\
+         * Function for a generalized recipe processing sequence\
+         * Since recipes can either be produced or crafted, which have\
+         * similar processing sequences, funneling them down through\
+         * here should make everything easier to write out\
+         * \
+         * It uses external parameters stored in factory.target\
+         * to get the items name, determine which operation\
+         * to perform and parameters needed for multiple different\
+         * \
+         * \
+        */]]\
+    \
+  end\
+  \
   function factory.produce(item_name, source, gain, machine)\
   \
    --[[/*\
