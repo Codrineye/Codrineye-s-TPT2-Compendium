@@ -1,0 +1,50 @@
+
+#open_bracket {
+#closed_bracket }
+
+{lua(\
+  local vecs = table.pack(\
+    "gift_coord / 800.0, 300.0 / 450.0, 1.0, 0.5", \
+    "735.0 / 800.0, 140.0 / 450.0, 1.0, 0.5", \
+    "490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5", \
+    "combine_coord / 800.0, 180.0 / 450.0, 1.0, 0.5", \
+    "600.0 / 800.0, 180.0 / 450.0, 1.0, 0.5", \
+    "680.0 / 800.0, 180.0 / 450.0, 1.0, 0.5", \
+    "410.0 / 800.0, 250.0 / 450.0, 1.0, 0.5", \
+    "565.0 / 800.0, 250.0 / 450.0, 1.0, 0.5", \
+    "695.0 / 800.0, 250.0 / 450.0, 1.0, 0.5", \
+    "750.0 / 800.0, 030.0 / 450.0, 1.0, 0.5"\
+  );\
+  local actions = table.pack(\
+    "buy x",\
+    "unbox",\
+    "inv",\
+    "comb x", "comb res", "comb buy", \
+    "sell", "rebuy 1", "rebuy 2", \
+    "snowman"\
+  );\
+  local instr = {};\
+  for i, word in ipairs(actions) do\
+    instr[word] = vecs[i];\
+  end\
+  \
+  local instructions = table.pack(\
+    "buy x", "inv", "comb x",\
+    "comb buy", "comb res", "sell",\
+    "comb x",\
+    "rebuy 2", "inv", "comb x",\
+    "snowman", "snowman",\
+    "rebuy 1", "inv", "comb x",\
+    "comb buy", "comb res", "inv", "unbox"\
+  )\
+  local printer = {};\
+  for i, word in ipairs(instructions) do\
+    printer[1 + #printer] = "{open_bracket}";\
+    printer[1 + #printer] = "click.relative(";\
+    printer[1 + #printer] = instr[word];\
+    printer[1 + #printer] = "){closed_bracket}";\
+    printer[1 + #printer] = '\n';\
+  end\
+  return table.concat(printer);\
+)}
+

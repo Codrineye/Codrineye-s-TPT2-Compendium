@@ -1,0 +1,42 @@
+
+click(vec(460.0, 302.0)) ; buy gift 1
+; {pos.relative(460.0 / 800.0, 300.0 / 450.0, 1.0, 0.5)}
+
+click(vec(590.0, 302.0)) ; buy gift 2
+; {pos.relative(580.0 / 800.0, 300.0 / 450.0, 1.0, 0.5)}
+
+click(vec(710.0, 302.0)) ; buy gift 3
+; {pos.relative(700.0 / 800.0, 300.0 / 450.0, 1.0, 0.5)}
+
+click(vec(734.0, 141.0)) ; unbox all
+; {pos.relative(735.0 / 800.0, 140.0 / 450.0, 1.0, 0.5)}
+
+click(vec(491.0, 083.0)) ; inv slot last
+; {pos.relative(490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+
+click(vec(405.0, 179.0)) ; Combine slot 1
+; {pos.relative(405.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
+
+click(vec(470.0, 178.0)) ; Combine slot 2
+; {pos.relative(470.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
+
+click(vec(536.0, 178.0)) ; Combine slot 3
+; {pos.relative(535.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
+
+click(vec(600.0, 179.0)) ; Combine slot result
+; {pos.relative(600.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
+
+click(vec(677.0, 179.0)) ; Combine button buy
+; {pos.relative(680.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
+
+click(vec(408.0, 248.0)) ; Sell slot
+; {pos.relative(410.0 / 800.0, 250.0 / 450.0, 1.0, 0.5)}
+
+click(vec(565.0, 252.0)) ; Rebuy slot 1
+; {pos.relative(565.0 / 800.0, 250.0 / 450.0, 1.0, 0.5)}
+
+click(vec(693.0, 251.0)) ; Rebuy slot 2
+; {pos.relative(695.0 / 800.0, 250.0 / 450.0, 1.0, 0.5)}
+
+click(vec(785.0, 030.0)) ; Click snowman
+; {pos.relative(785.0 / 800.0, 030.0 / 450.0, 1.0, 1.0)}
