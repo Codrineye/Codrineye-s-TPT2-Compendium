@@ -1,7 +1,8 @@
-:name bigmax4X
+:name bigman4X
 :budget_cap 1
 
 key.x()
+key.c()
 
 key.i()
 key.j()
@@ -31,8 +32,9 @@ key.j()
 
 :global string buy_gift
 
-global.double.set(gift_name, max(gift_slot_1, min(gift_slot_3, if(\
-  contains(impulse(), "key.x"),\
+
+global.double.set(gift_name, min(gift_slot_3, max(gift_slot_1, if(\
+  contains("key.xkey.c", impulse()),\
   global.double.get(gift_name),\
   if(\
     contains(impulse(), "key.i"), \
@@ -56,7 +58,6 @@ buy_gift = i2s(25 + len(gift_to_buy)) . "</size>" .\
     sub(buy_gift, s2i(sub(buy_gift, 0, 2), 0), 99),\
     ""\
 )\
-
 
 gotoif(99, contains(buy_gift, "<br>") || contains("key.ikey.j", impulse()))
 
