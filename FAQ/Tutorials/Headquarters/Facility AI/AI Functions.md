@@ -6,11 +6,11 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups `data_type`, `buildings`, `digits` and `letters`. When you see these, just know that there's this impulse works for for all items in its coresponding list:
+For space, I've created the groups `data_type`, buildings, `digits` and `letters`. When you see these, just know that there's this impulse works for for all items in its coresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
-`buildings` = `arcade`, `construction firm`, `factory`, `headquarters`, `laboratory`, `mine`, `museum`, `power plant`, `shipyard`, `statue of cubos`, `trading post`, `workshop`
+buildings = "arcade", "construction firm", "factory", "headquarters", "laboratory", "mine", "museum", "power plant", "shipyard", "statue of cubos", "trading post", "workshop"
 
 `digits` = `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`
 
@@ -35,11 +35,11 @@ activate the script when the AI Overlay is activated.
 newround() `[impulse newround]`<br>
 activate the script when you start a game of towertesting.
 
-open.`building`() `[impulse open: building]`<br>
-activate the script when you enter the respective building.
+open.buildings() `[impulse open: buildings]`<br>
+activate the script when you enter the respective buildings.
 
-close.`building`() `[impulse close: building]`<br>
-activate the script when you exit the respective building.
+close.buildings() `[impulse close: buildings]`<br>
+activate the script when you exit the respective buildings.
 
 mouse.0.down() `[impulse mouse: left down]`<br>
 activate the script when your left mouse button is pressed down.
