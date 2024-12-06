@@ -11,8 +11,23 @@ click(vec(710.0, 302.0)) ; buy gift 3
 click(vec(734.0, 141.0)) ; unbox all
 ; {pos.relative(735.0 / 800.0, 140.0 / 450.0, 1.0, 0.5)}
 
-click(vec(491.0, 083.0)) ; inv slot last
-; {pos.relative(490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+; row ---
+; columm
+; |
+; |
+; |
+
+click(vec(402.0, 084.0)) ; inv slot 01 row 2
+; {pos.relative(400.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+
+click(vec(403.0, 117.0)) ; inv slot 01 row 1
+; {pos.relative(400.0 / 800.0, 115.0 / 450.0, 1.0, 0.5)}
+
+click(vec(432.0, 117.0)) ; inv slot 02 row 1
+; {pos.relative(430.0 / 800.0, 115.0 / 450.0, 1.0, 0.5)}
+
+click(vec(731.0, 112.0)) ; inv slot 12 row 1
+; {pos.relative(730.0 / 800.0, 115.0 / 450.0, 1.0, 0.5)}
 
 click(vec(405.0, 179.0)) ; Combine slot 1
 ; {pos.relative(405.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
@@ -40,3 +55,11 @@ click(vec(693.0, 251.0)) ; Rebuy slot 2
 
 click(vec(785.0, 030.0)) ; Click snowman
 ; {pos.relative(785.0 / 800.0, 030.0 / 450.0, 1.0, 1.0)}
+
+click(vec(389.0, 71.0)) ; bottom left corner of slot 1 row 2
+; {pos.relative(389.0 / 800.0, 070.0 / 450.0, 1.0, 0.5)}
+
+click(vec(416.0, 96.0)) ; top right corner of slot 1 row 2
+; {pos.relative(415.0 / 800.0, 095.0 / 450.0, 1.0, 0.5)}
+
+; slot size = vec(29.0, 29.0) color = #0F6A

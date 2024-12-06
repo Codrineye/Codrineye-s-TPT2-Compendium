@@ -1,11 +1,37 @@
 :name bigman4X
-:budget_cap 1
+:budget_cap 301
+; we use the budget here to prevent
+; a race condition from going through
+; 
+; if 2 instances are set to start
 
-key.x()
-key.c()
+#start x
+#gift_up i
+#gift_down j
 
-key.i()
-key.j()
+#config c
+#up w
+#down s
+#left a
+#right d
+
+key.{start}()
+key.{gift_up}()
+key.{gift_down}()
+
+key.{config}()
+key.{up}()
+key.{down}()
+key.{left}()
+key.{right}()
+
+; config = (config && not(contains(impulse(), "key.x"))) != contains(impulse(), "key.c")
+; 0 0 0 = 0
+; 0 0 1 = 1
+; 0 1 0 = 0
+; 1 0 0 = 1
+; 1 0 1 = 0
+; 1 1 0 = 0
 
 :const string gift_name '<size=0>gift coord'
 
@@ -13,65 +39,149 @@ key.j()
 :const double gift_slot_2 580.0
 :const double gift_slot_3 700.0
 
+:const double gift_slot_increment 120.0
+; 
+
 :const double gift_coord_y 300.0
 :const double rebuy_coord_y 250.0
+; 
 
-:const double gift_slot_increment 120.0
+:const double inv_coord_x 404.0
+:const double inv_coord_y 115.0
+#inv.default vec(inv_coord_x, inv_coord_y)
+
+#inv_slot_offset 29.75
+#inv_point_to_corner vec(13.5, 13.5)
+
+:const double inv_border_size 25.0
+:const double inv_slot_size 23.0
+
+:const string target_color '#0F6'
+; 
 
 :const double combine_slot_1 405.0
 :const double combine_slot_2 470.0
 :const double combine_slot_3 535.0
 
 :const double combine_slot_increment 65.0
+; 
 
 
 :local double buy_coord
 :local double combine_coord
 
-:local string gift_to_buy
+:global double inventory
+:local vector inv_slot
 
+:global bool config
+
+:local string target.gift
+:local string gift_info
 :global string buy_gift
+
+; helper macro to detect if an impulse
+; is contained inside of the string <str>
+
+#contains.key(key) contains(impulse(), "key.{key}")
+
+; const values for impulse groups
+:const string actions 'key.{start}key.{config}'
 
 
 global.double.set(gift_name, min(gift_slot_3, max(gift_slot_1, if(\
-  contains("key.xkey.c", impulse()),\
+  contains(actions, impulse()) || config,\
   global.double.get(gift_name),\
   if(\
-    contains(impulse(), "key.i"), \
+    {contains.key({gift_up})},\
     global.double.get(gift_name) + gift_slot_increment, \
     global.double.get(gift_name) - gift_slot_increment\
   )\
 ))))
 
+config = (config && not({contains.key({start})})) != {contains.key({config})}
+
+; we perform a substring to get our modification
+; key. = 4 => sub(impulse(), 4, 1) to get our keypress
+; key.{up} = inventory - 12.0
+; key.{down} = inventory + 12.0
+; key.{left} = inventroy - 1
+; key.{right} = inventory + 1
+
+:const string inv_str "-12.0+12.0-1.00+1.00"
+:const string inv_keys "{up}{down}{left}{right}"
+inventory = max(0.0, min(47.0, inventory + s2d(\
+  sub(\
+    inv_str, \
+    if(config, 5 * index(inv_keys, sub(impulse(), 4, 1), 0), 2), \
+    5\
+  ), \
+  0.0\
+)))
+
+inv_slot = vec(\
+  inv_coord_x + {inv_slot_offset} * ((inventory) % 12.0),\
+  inv_coord_y - {inv_slot_offset} * floor(inventory / 12.0)\
+)
+
 buy_coord = global.double.get(gift_name)
 combine_coord = combine_slot_1
 
-gift_to_buy = if(buy_coord == gift_slot_1, "red gift", if(\
+target.gift = if(buy_coord == gift_slot_1, "red gift", if(\
   buy_coord == gift_slot_2, \
   "green gift", \
   "blue gift"\
 ))
 
-buy_gift = i2s(25 + len(gift_to_buy)) . "</size>" .\
-  "script will buy " . gift_to_buy . if(\
-    contains(buy_gift, "<br>"),\
-    sub(buy_gift, s2i(sub(buy_gift, 0, 2), 0), 99),\
-    ""\
-)\
+#highlight(text) <color=" . target_color . ">{text}</color>
 
-gotoif(99, contains(buy_gift, "<br>") || contains("key.ikey.j", impulse()))
+gift_info = if(\
+  (config && contains(buy_gift, "<br>")) ||\
+  ({contains.key({config})} && config || {contains.key({start})}), \
+  if(\
+    config, \
+    "<br><mark=#00000050>" . \
+      "config enabled, press {highlight({start}/{config})} to <color=red>stop</color><br>" .\
+      "{highlight({up}/{down})} to change row<br>" . \
+      "{highlight({left}/{right})} to change inv slot" .\
+    "</mark>", \
+    "<br>combining with <color=#000>" . target.gift . "</color>"\
+  ),\
+  ""\
+)
+
+buy_gift = i2s(25 + len(target.gift)) . "</size>" . \
+  "script will buy " . target.gift . gift_info
+
+gotoif(if({contains.key({start})}, buy_sequence, 99), not(config))
+
+config_sequence:
+
+inv_slot = inv_slot - {inv_point_to_corner}
+
+canvas.clear()
+canvas.rect(\
+  {pos.relative(x(inv_slot) / 800.0, y(inv_slot) / 450.0, 1.0, 0.5)}, \
+  {pos.relative(inv_border_size / 800.0, inv_border_size / 450.0, 0.0, 0.0)}, \
+  "#000"\
+)
+canvas.rect(\
+  {pos.relative((x(inv_slot) + 1.0) / 800.0, (y(inv_slot) + 1.0) / 450.0, 1.0, 0.5)}, \
+  {pos.relative(inv_slot_size / 800.0, inv_slot_size / 450.0, 0.0, 0.0)}, \
+  target_color . "5"\
+)
+
+goto(99)
+
+buy_sequence:
 
 :local int buy
 :local int combine
-
-buy_gift = buy_gift . "<br>combining with " . \
-  "<color=#000>" . gift_to_buy . "</color>"
 
 buy_loop:
 
 {click.relative(buy_coord / 800.0, gift_coord_y / 450.0, 1.0, 0.5)}
 ; buy selected gift
-{click.relative(490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+{click.relative(inv_coord_x / 800.0, inv_coord_y / 450.0, 1.0, 0.5)}
 ; click on the inventory slot
 {click.relative(combine_coord / 800.0, 180.0 / 450.0, 1.0, 0.5)}
 ; put it in slot
@@ -110,7 +220,7 @@ gotoif(buy_loop, combine > 0)
 
 {click.relative(695.0 / 800.0, rebuy_coord_y / 450.0, 1.0, 0.5)}
 ; rebuy our second deleted gift
-{click.relative(490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+{click.relative(inv_coord_x / 800.0, inv_coord_y / 450.0, 1.0, 0.5)}
 ; rebuying places the item back in our inventory in the last slot
 ; so we have too click our inventory to sellect it
 {click.relative(combine_slot_2 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
@@ -125,7 +235,7 @@ waitframe()
 
 {click.relative(565.0 / 800.0, rebuy_coord_y / 450.0, 1.0, 0.5)}
 ; rebuy our first deleted item
-{click.relative(490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+{click.relative(inv_coord_x / 800.0, inv_coord_y / 450.0, 1.0, 0.5)}
 ; click our inventory to grab our rebought item
 {click.relative(combine_coord / 800.0, 180.0 / 450.0, 1.0, 0.5)}
 ; place it in our first combine slot
@@ -134,14 +244,14 @@ waitframe()
 ; click the combine button
 {click.relative(600.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
 ; click on our combine result
-{click.relative(490.0 / 800.0, 085.0 / 450.0, 1.0, 0.5)}
+{click.relative(inv_coord_x / 800.0, inv_coord_y / 450.0, 1.0, 0.5)}
 ; place it in our inventory
 
 {click.relative(735.0 / 800.0, 140.0 / 450.0, 1.0, 0.5)}
 ; and unwrap all presents
 
-; finally, to signal to the script that it's completed, we set
-; our instance_running to false
+; finally, we tell the user that the script has finished
+; so we remove our information text
 
 end:
 buy_gift = sub(buy_gift, 0, s2i(sub(buy_gift, 0, 2), 0))
