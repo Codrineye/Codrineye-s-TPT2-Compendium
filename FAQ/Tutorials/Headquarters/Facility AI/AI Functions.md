@@ -6,7 +6,7 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups <data_type>, <buildings>, <digits> and <letters>. When you see these, just know that there's this impulse works for for all items in its coresponding list:
+For space, I've created the groups `<data_type>`, `<buildings>`, `<digits>` and `<letters>`. When you see these, just know that there's this impulse works for for all items in its coresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
