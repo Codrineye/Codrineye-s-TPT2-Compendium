@@ -6,7 +6,7 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups `<data_type>`, `<buildings>`, `<digits>` and `<letters>`. When you see these, just know that there's this impulse works for for all items in its coresponding list:
+For space, I've created the groups `data_type`, `buildings`, `digits` and `letters`. When you see these, just know that there's this impulse works for for all items in its coresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
@@ -35,10 +35,10 @@ activate the script when the AI Overlay is activated.
 newround() `[impulse newround]`<br>
 activate the script when you start a game of towertesting.
 
-open.<building>() `[impulse open: <building>]`<br>
+open.`building`() `[impulse open: building]`<br>
 activate the script when you enter the respective building.
 
-close.<building>() `[impulse close: <building>]`<br>
+close.`building`() `[impulse close: building]`<br>
 activate the script when you exit the respective building.
 
 mouse.0.down() `[impulse mouse: left down]`<br>
@@ -59,10 +59,10 @@ activate the script when your middle mouse button is pressed down.
 mouse.2.up() `[impulse mouse: middle up]`<br>
 activate the script when your middle mouse button is no longer being pressed down.
 
-key.<digits>() `[impulse key: <digits>]`<br>
+key.`digits`() `[impulse key: `digits`]`<br>
 activate the script when you press the respective number key.
 
-key.<letters>() `[impulse key: <letters>]`<br>
+key.`letters`() `[impulse key: `letters`]`<br>
 activate the script when you press the respective letter key.
 
 ## Conditional functions
@@ -92,9 +92,9 @@ Permited operators
 `==` `=` means equal<br>
 `!=` means not equal
 
-comparison.<data_type>(<data_type>, "operator", <data_type>) 
-`[comparison: <data_type> type: <data_type>, type: string, type<data_type>]`<br>
-Compares two values of the same <data_type> (excluding vector) based on the selected operator.
+comparison.`data_type`(`data_type`, "operator", `data_type`) 
+`[comparison: `data_type` type: `data_type`, type: string, type`data_type`]`<br>
+Compares two values of the same `data_type` (excluding vector) based on the selected operator.
 
 global.bool.get("variable name") `[global: get (bool) type: string]`<br>
 Returns the value of the global bool variable with the coresponding name.
@@ -201,13 +201,13 @@ Any number bellow 1 is treated as 1, any number above your actions count will te
 gotoif(line number, condition) `[basic: goto-if type: int, type: bool]`<br>
 Same as a goto() but if your condition is false it continues to the next line instead of jumping to the line number.
 
-global.<data_type>.set("variable name", value) `[global: set (<data_type>) type: string, type: <data_type>]`<br>
+global.`data_type`.set("variable name", value) `[global: set (`data_type`) type: string, type: `data_type`]`<br>
 Assigns the inputed `value` inside the global variable `variable name`.
 
 global.unset("variable name") `[global: unset type: string]`<br>
 Deletes the global variable with the name `variable name`.
 
-local.<data_type>.set("variable name", value) `[local: set (<data_type>) type: string, type: <data_type>]`<br>
+local.`data_type`.set("variable name", value) `[local: set (`data_type`) type: string, type: `data_type`]`<br>
 Assigns the inputed `valuse` inside of the local variable `variable name`.
 
 local.unset("variable name") `[local: unset type: string]`<br>
