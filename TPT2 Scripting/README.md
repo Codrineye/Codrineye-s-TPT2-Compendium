@@ -23,7 +23,7 @@ Avoid using Dynamic UI Scaling as it will mess with click positions
 
 ## Details
 
-These details go over the actions triggered by the default impulses.
+The script has 2 instances running. The first instance exits tower testing for you, and the second one handles region/difficulty cycling.
 
 The script has 3 variables:
 - `status(X)` represents the scripts state, if it's active this value will be true, if the script is inactive its value will be false
