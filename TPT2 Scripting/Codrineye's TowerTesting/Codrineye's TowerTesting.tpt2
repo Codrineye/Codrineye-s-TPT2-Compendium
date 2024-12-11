@@ -52,7 +52,7 @@ concat("Impossible -> Easy", {inversed_difficulty_list})
 concat({instruct.change_direction}, {goto_line.change_direction}) != \
 concat({instruct.additional_cond}, {goto_line.additional_cond})
 
-; helper macros to shorten contains operation
+; helper macros to shorten contains operations
 ; 
 ; .key makes it easier to see what I'm checking for
 ; .mode1 is easier to understand the mode I'm looking for
@@ -92,20 +92,21 @@ gotoif(\
 #caller.qol {state.get} && contains({impulse.qol}, impulse())
 
 global.string.set({hider}, if(\
-  {caller.state} || {caller.toggles} || {caller.qol}, \
+  {caller.state} || ({caller.toggles}) || ({caller.qol}), \
   concat("Stop Hiding", "</size>"), \
   "Cods TowerTesting is Hiding"\
 ))
 
-goto(if(contains({impulse.state}, impulse()), update_state, if(\
+
+gotoif(if(\
   isTowerTesting(), \
   if(\
     {contains.key({restart})}, \
     restart, \
     if({contains.key({exit})}, exit, stats)\
-  ), \
+  ),\
   99\
-)))
+), contains({impulse.qol}, impulse()))
 
 update_state:
 ; state is toggled only if you want it to change
@@ -142,7 +143,9 @@ waituntil(isTowerTesting() || not({state.get}))
 ; to determine when to exit
 in_towertesting:
 
-; waitframe() is here to refresh our budget
+; waitframe() is here to prevent the script from
+; crashing Facility AI, as this loop only consists
+; of atomic actions
 waitframe()
 
 ; additional_cond must always be false until it's met
@@ -155,11 +158,10 @@ additional_cond = false
 
 ; stay in the loop as long as the tower is alive, the script is alive
 ; and the users additional_cond is not met, otherwise, we exit
-goto(if(\
-  health(false) > 0.0 && {state.get} && not(additional_cond), \
+gotoif(\
   in_towertesting, \
-  exit\
-))
+  health(false) > 0.0 && {state.get} && not(additional_cond)\
+)
 
 ; exit towertesting
 exit:
@@ -172,6 +174,7 @@ wait(transition_delay)
 ; once out of towertesting we terminate the script if
 ; we're told by the user to exit or the AI is shut down
 ; otherwise, we return to loop
+
 goto(if(isTowerTesting(), exit, if(\
   {contains.key({exit})} || not({state.get}), \
   99, \
