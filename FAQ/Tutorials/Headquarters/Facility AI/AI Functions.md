@@ -6,7 +6,7 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups `data_type`, buildings, `digits` and `letters`. When you see these, just know that there's this impulse works for for all items in its coresponding list:
+For space, I've created the groups `data_type`, buildings, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its coresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
@@ -72,16 +72,17 @@ If any of the conditions returns false, the script will terminate without execut
 
 There is a bug in how conditions handle script termination. If a script calls another script using [executesync()](#fundemental-functions), and the called script has a false condition, the called script will terminate itself. However, the calling script incorrectly continues to treat the called script as still running. 
 
-Permited operators
+## Permited operators
+
 ### Boolean
 
-`==` `=` means equal<br>
+`==`, `=` means equal<br>
 `!=` means not equal<br>
-`&&` `&` means and<br>
-`||` `|` means or
+`&&`, `&` means and<br>
+`||`, `|` means or
 
 ### Int/Double
-`==` `=` means equal<br>
+`==`, `=` means equal<br>
 `!=` means not equal<br>
 `<` means smaller than<br>
 `<=` means smaller or equal than<br>
@@ -89,8 +90,10 @@ Permited operators
 `>=` means larger or equal than
 
 ### String
-`==` `=` means equal<br>
+`==`, `=` means equal<br>
 `!=` means not equal
+
+## Conditions
 
 comparison.`data_type`(`data_type`, "operator", `data_type`) 
 `[comparison: `data_type` type: `data_type`, type: string, type`data_type`]`<br>

@@ -1,4 +1,4 @@
-# bigmax4X
+# bigman4X
 name provided by WootImNoob
 
 This is an AI for Winter Wonderland that combine gifts 2 tiers above themselves by using 1 inventory slot.<br>

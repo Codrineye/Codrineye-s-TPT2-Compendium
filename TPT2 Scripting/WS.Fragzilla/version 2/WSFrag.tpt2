@@ -4,15 +4,15 @@
 
 :budget_cap -1
 :name {package(WSFrag)}
-; set the script to run as fast as possible and
+; set the script to run as fast as possible
 ; set its name
 
 :local double cooldown
 :local int hammer_count
 :local int remClicks
 
-key.f()
-key.h()
+key.{start}()
+key.{hide}()
 
 ; local doubles for the user to configure the script
 ; cooldown is how much time to wait in the idle screen
@@ -29,15 +29,15 @@ hammer_count = 1
 ; 
 ; this is a clean script shut down/wakeup operation
 
-{status.set(if(contains(impulse(), "key.h"), "", if(\
-  anyopen() || {script_active}, \
-  {status.off}, \
-  {status.on}\
+{status.set(if({contains.key({hide})}, "", if(\
+  anyopen() || {script.active}, \
+  status.off, \
+  status.on\
 )))}
 
 ; blocker condition that ensures we only
-; interact with the game when we can
-goto(if({script_active}, hammer, quit))
+; interact with the game when not shut down
+gotoif(quit, not({script.active}))
 
 hammer:
 ; this is the hammer chunk
@@ -46,7 +46,6 @@ hammer:
 
 show("workshop", true)
 ; we enter the workshop, as that's where the hammer button is
-
 waitframe()
 ; and wait a frame for the action to be performed
 
@@ -71,9 +70,8 @@ waitframe()
 ; then, end this chunk by exiting the workshop
 ; and waitframe() for the action to be processed
 
-goto(if({script_active}, farm, quit))
-; a secondary blocker to ensure we are still
-; alowed to interact with the game
+gotoif(quit, not({script.active}))
+; a secondary gotoif() blocker to ensure we quit when shut down
 
 farm:
 ; this is the farm chunk
@@ -93,13 +91,13 @@ wait(cooldown)
 ; because it's useless for the cooldown to be 0.0
 ; wait(0.0) moves so fast that the click isn't registered
 ; (unless you have a budget <= 100)
-; so we can exit towertesting without any issues
+; so we can exit the towertesting window without any issues
 
 show("towertesting", false)
 waitframe()
 
 ; and the end of the hammer chunk ensures we return to hammer
 ; only if the script isn't shut down
-gotoif(hammer, {script_active})
+gotoif(hammer, {script.active})
 
 quit:
