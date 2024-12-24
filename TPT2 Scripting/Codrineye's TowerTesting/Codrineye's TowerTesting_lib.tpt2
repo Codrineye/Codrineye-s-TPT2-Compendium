@@ -2,7 +2,7 @@
 ; Easy naming scheme to follow
 
 ; Script identifier value
-#identifier "Condineye's TowerTesting"
+#identifier "{script_name}"
 
 ; impulse key macros for easy customization
 ; there's a const declaration at the bottom of the script
@@ -12,6 +12,7 @@
 ; 
 #mode_switch q
 #cycling w
+
 ; 
 #restart r
 #exit e
@@ -20,11 +21,14 @@
 ; variable macros for improved visibility in the source code
 ; a display var hides the identifier to prevent screen clutter
 ; 
+#display_var(name) "<size=0>" . {identifier} . "</size>" . "{name}"
+; 
 ; a var impulse can be added to a display var if
 ; it's modified by an impulse, this uses the lua function
 ; instead of the ingame function so that the value is pre-computed
-#display_var(name) "<size=0>" . {identifier} . "</size>" . "{name}"
 #var_impulse(impulse) ({lua(return string.upper([[{impulse}]]))})
+; 
+; this makes the var name only 1 string instead of a concat
 
 ; block hider
 ; it prevents the variables from being hidden
@@ -76,23 +80,21 @@
 :const int coord_size {lua(return max_difficulty_digits)}
 :const int difficulty_count {lua(return #difficulty)}
 
-#difficulty_list {lua(\
+; Simple lua macro that outputs the difficulty list based on
+; the inputed number. Negative number = reversed list and
+; Positive number = normal list
+
+#diff_list(mode) {lua(\
+  local reversed = {mode} < 0;\
   local diff_list = {};\
-  diff_list[1 + #diff_list] = [["]];\
   for i = 1, #difficulty do\
-    diff_list[1 + #diff_list] = difficulty[i];\
+    if reversed then\
+      diff_list[i] = difficulty[#difficulty + 1 - i];\
+    else\
+      diff_list[i] = difficulty[i];\
+    end\
   end\
-  diff_list[1 + #diff_list] = [["]];\
   return table.concat(diff_list);\
-)}
-#inversed_difficulty_list {lua(\
-  local diff_list = {};\
-  diff_list[1 + #diff_list] = [["]];\
-  for i = #difficulty, 1, -1 do\
-    diff_list[1 + #diff_list] = difficulty[i];\
-  end\
-  diff_list[1 + #diff_list] = [["]];\
-  return table.concat(diff_list)\
 )}
 
 ; safety const declarations to prevent

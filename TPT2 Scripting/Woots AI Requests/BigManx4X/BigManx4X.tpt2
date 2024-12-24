@@ -1,9 +1,15 @@
-:name bigman4X
+#name BigManx4X
+#name.reverse {lua(return string.reverse("{name}"))}
+; name of the script
+
+:name {name}
 :budget_cap 201
 ; we use the budget here to prevent
 ; a race condition from going through
 ; 
 ; if 2 instances are set to start
+
+#inv_fill m
 
 #start x
 #gift_up p
@@ -17,6 +23,8 @@
 
 
 wakeup()
+
+key.{inv_fill}()
 
 key.{start}()
 key.{gift_up}()
@@ -95,11 +103,17 @@ key.{right}()
 
 #contains.key(key) contains(impulse(), "key.{key}")
 
-; const values for impulse groups
-:const string actions 'key.{start}key.{config}wakeup'
+; macros and const values for impulse groups
+
+:const string inv_fill 'key.{inv_fill}{name}'
+:const string in_config 'key.{config}wakeup'
+:const string no_config 'key.{start}key.{inv_fill}'
+#actions no_config . "key.{config}wakeup{name}"
+#filler "key.{up}key.{down}key.{right}key.{gift_up}key.{gift_down}" . \
+  in_config
 
 global.double.set(gift_name, min(2.0, max(0.0, if(\
-  contains(actions, impulse()) || config,\
+  contains({actions}, impulse()) || config,\
   global.double.get(gift_name),\
   if(\
     {contains.key({gift_down})},\
@@ -113,7 +127,7 @@ buyer = vec(\
   gift_coord_y\
 )
 
-config = (config && not({contains.key({start})})) != {contains.key({config})}
+config = contains(in_config, impulse()) != (config && contains({filler}, impulse()))
 
 ; we perform a substring to get our modification
 ; key. = 4 => sub(impulse(), 4, 1) to get our keypress
@@ -150,7 +164,7 @@ target.gift = if(x(buyer) == gift_slot_1, "red gift", if(\
 
 gift_info = if(\
   not(contains(impulse(), "wakeup")) && (config && contains(buy_gift, "<br>")) ||\
-  ({contains.key({config})} && config || {contains.key({start})}), \
+  (contains(in_config, impulse()) && config || contains(no_config, impulse())), \
   if(\
     config, \
     "<br><mark=#00000050>" . \
@@ -169,10 +183,9 @@ gift_info = if(\
   ""\
 )
 
-buy_gift = i2s(25 + len(target.gift)) . "</size>" . \
-  "script will buy " . target.gift . gift_info
+buy_gift = "</size>script will buy " . target.gift . gift_info
 
-gotoif(config_sequence, not({contains.key({start})}))
+gotoif(config_sequence, contains({filler}, impulse()))
 
 buy_sequence:
 
@@ -264,12 +277,22 @@ end:
 ; finally, we tell the user that the script has finished
 ; so we remove our information text
 
-buy_gift = sub(buy_gift, 0, s2i(sub(buy_gift, 0, 2), 0))
+buy_gift = "</size>script will buy " . target.gift
 
+inventory = inventory + 1.0
+
+execute(if(\
+  contains(inv_fill, impulse()) && inventory < 48.0, \
+  "{name}", \
+  "{name}4{name.reverse}"\
+))
 
 config_sequence:
 
-inv_slot = inv_slot - {inv_point_to_corner}
+inv_slot = vec(\
+  inv_coord_x + inv_slot_offset * ((inventory) % 12.0),\
+  inv_coord_y - inv_slot_offset * floor(inventory / 12.0)\
+) - {inv_point_to_corner}
 
 canvas.clear()
 canvas.rect(\
@@ -282,3 +305,4 @@ canvas.rect(\
   {pos.relative(inv_slot_size / 800.0, inv_slot_size / 450.0, 0.0, 0.0)}, \
   target_color . "5"\
 )
+

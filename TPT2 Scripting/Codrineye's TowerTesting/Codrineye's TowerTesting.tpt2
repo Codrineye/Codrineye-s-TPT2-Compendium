@@ -2,14 +2,19 @@
 :name {script_name}
 :budget_cap max
 
-; transition delay is the amount of time
-; it takes for the screen transition animation
-; to happen. It's not hard coded since it can
-; change due to the users machiney
-:local double transition_delay
-
 ; store the coord_y value
 :local double difficulty
+
+; const string that define in which direction the script can
+; cycle through difficulties
+; Positive number = Easy to Impossible
+; Negative number = Impossible to Easy
+
+:const string forwards_diff_list "{diff_list(1)}"
+:const string reversed_diff_list "{diff_list(-1)}"
+
+; QOL macro to determine the direction
+#difficulty_list forwards_diff_list
 
 ; detect at which difficulty we're at
 :local int difficulty_index
@@ -22,6 +27,9 @@
 
 ; variable that lets you add aditional conditions
 :local bool additional_cond
+; 
+; QOL macro that lets you add the additional cond from the source
+#additional_cond false
 
 key.{state_switch}()
 key.{mode_switch}()
@@ -36,8 +44,8 @@ key.{stats}()
 ; start with easy and move on to impossible, or
 ; start with impossible and move on to easy
 
-concat("Easy -> Impossible", {difficulty_list}) != \
-concat("Impossible -> Easy", {inversed_difficulty_list})
+concat("Easy -> Impossible", forwards_diff_list) != \
+concat("Impossible -> Easy", reversed_diff_list)
 
 ; helper macros containing the components of our second condition
 ; telling the user at what line they input the difficulty direction string
@@ -68,13 +76,17 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 ; .toggle is the string representing all toggle impulses
 ; .state is the string that represents all update_state impulses
 
+
 #impulse.qol "key.{restart}key.{exit}key.{stats}"
 #impulse.toggles "key.{mode_switch}key.{cycling}"
 #impulse.state "key.{state_switch}" . {impulse.toggles}
 
 ; Start of code
 
-transition_delay = 0.5
+; I could use this for a jump table if I wanted to
+; local.int.set("restart_lable", restart)
+; local.int.set("exit_lable", exit)
+; local.int.set("stats_lable", stats)
 
 gotoif(\
   if({state.get}, movement_manager, 99), \
@@ -96,7 +108,6 @@ global.string.set({hider}, if(\
   concat("Stop Hiding", "</size>"), \
   "Cods TowerTesting is Hiding"\
 ))
-
 
 gotoif(if(\
   isTowerTesting(), \
@@ -154,7 +165,7 @@ waitframe()
 ; `era() < x`  => This is bad
 
 additional_cond_pos:
-additional_cond = false
+additional_cond = {additional_cond}
 
 ; stay in the loop as long as the tower is alive, the script is alive
 ; and the users additional_cond is not met, otherwise, we exit
@@ -168,7 +179,7 @@ exit:
 exit()
 
 ; wait for the exit transition animation
-wait(transition_delay)
+wait(0.222)
 
 ; attempt to exit while we're still in towertesting
 ; once out of towertesting we terminate the script if
@@ -222,19 +233,23 @@ difficulty_index = if(\
   (difficulty_index + 1) % difficulty_count\
 )
 
+launch_round:
 ; click on the difficulty
 {click.relative(395.0/800.0, difficulty/450.0, 0.0, 1.0)}
-
-; wait for our click to register
-waitframe()
 
 ; launch a round of towertesting
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
 
-; wait for the game to place us in towertesting
-; or if the script is shut down
-waituntil(not({state.get}) || isTowerTesting())
+; quit if the script is shut down, otherwise try to launch
+; a round of towertesting otherwise proceed since we are
+; in a round of TowerTesting
+goto(if(\
+  {state.get}, \
+  if(isTowerTesting(), in_towerTesting, launch_round),\
+  99\
+))
 
+in_towerTesting:
 ; increment counting based on our mode
 counting = if(\
   {contains.mode1}, \
@@ -248,13 +263,9 @@ movement_manager:
 ; wait for our transition_delay to expire
 
 waitwhile({state.get} && (isTowerTesting() || anyopen()))
-wait(transition_delay)
 
 ; open towertesting
 show("towertesting", true)
-
-; wait for the game to put us in the towertesting window
-wait(transition_delay)
 
 ; exit script if we're shut down
 ; enter region if region_cycling is on and we're in mode 2 or
@@ -280,5 +291,5 @@ restart()
 ; resource/sec, xp/sec and frags obtained are seen
 
 stats:
-wait(transition_delay)
+waitframe()
 {click.relative(260.0/800.0, 275.0/450.0, 0.5, 0.5)}
