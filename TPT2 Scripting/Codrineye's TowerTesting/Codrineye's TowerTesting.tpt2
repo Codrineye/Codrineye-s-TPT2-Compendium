@@ -63,12 +63,10 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 ; helper macros to shorten contains operations
 ; 
 ; .key makes it easier to see what I'm checking for
-; .mode1 is easier to understand the mode I'm looking for
-; .mode2 is the same reason as for mode1
+; .mode(mode) makes it easier to see what mode I'm looking for
 
 #contains.key(impulse) contains(impulse(), "key.{impulse}")
-#contains.mode1 contains({curent_mode.get}, {mode1})
-#contains.mode2 contains({curent_mode.get}, {mode2})
+#contains.mode(mode) contains({curent_mode.get}, {mode})
 
 ; impulse macros to shorten contains() checks
 ; 
@@ -129,8 +127,8 @@ update_state:
 ; curent_mode cycles through its values only if you want it to change
 global.string.set({curent_mode}, if(\
   {contains.key({mode_switch})}, \
-  if({contains.mode2}, {mode1}, {mode2}), \
-  if({contains.mode2}, {mode2}, {mode1})\
+  if({contains.mode(mode2)}, mode1, mode2), \
+  if({contains.mode(mode2)}, mode2, mode1)\
 ))
 
 ; exit the script if we're called
@@ -194,15 +192,15 @@ goto(if(isTowerTesting(), exit, if(\
 
 ; mode1 means we cycle through our difficulties
 ; and change region only after 6 counts
-; {contains.mode1} && counting < 6
+; {contains.mode(mode1)} && counting < 6
 :const int base.mode1 6
-#switch.mode1 {contains.mode1} && counting == 0
+#switch.mode1 {contains.mode(mode1)} && counting == 0
 
 ; mode2 means we always advance through the region
 ; and change difficulty only after 15 repetitions
-; {contains.mode2} && counting < 14
+; {contains.mode(mode2)} && counting < 14
 :const int base.mode2 15
-#switch.mode2 {contains.mode2} && counting < 14
+#switch.mode2 {contains.mode(mode2)} && counting < 14
 
 change_region:
 
@@ -252,7 +250,7 @@ goto(if(\
 in_towerTesting:
 ; increment counting based on our mode
 counting = if(\
-  {contains.mode1}, \
+  {contains.mode(mode1)}, \
   (counting + 1) % base.mode1, \
   (counting + 1) % base.mode2\
 )
@@ -274,7 +272,7 @@ show("towertesting", true)
 goto(if(\
   {state.get}, \
   if(\
-    ({contains.mode2} || {switch.mode1}) && \
+    ({contains.mode(mode2)} || {switch.mode1}) && \
     {region_cycling.get} && can_switch, \
     change_region, \
     change_difficulty\

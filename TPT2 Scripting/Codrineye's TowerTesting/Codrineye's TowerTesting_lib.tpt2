@@ -52,8 +52,8 @@
 #curent_mode.get global.string.get({curent_mode})
 
 ; mode values, so it's easy to edit
-#mode1 "Difficulty>Region" . "</size>"
-#mode2 "Region>Difficulty" . "</size>"
+:const string mode1 "Difficulty>Region</size>"
+:const string mode2 "Region>Difficulty</size>"
 
 ; simple lua macro for recording coordinates
 
