@@ -4,13 +4,14 @@
 
 # Codrineye's TowerTesting
 
-[Version 2.0.0](/TPT2%20Scripting/Codrineye's%20TowerTesting/README.md)
+[Version 2.0.0](./Codrineye's%20TowerTesting/README.md)
 
 This package handles all movement needed to enter dificulties and regions for TowerTesting.<br>
-For customized impulses, import the scripts source code.
+Please keep in mind that the script does not know what region or difficulty you're on, nor does it try to interact with blueprint. This is purely for movement automation, not for entire TowerTesting automation.<br>
+For script comments and easier script customization, import the scripts [source code](./Codrineye's%20TowerTesting/README.md).
 
 ```
-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
+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
 ```
 
 ## Requirements
@@ -19,47 +20,45 @@ For customized impulses, import the scripts source code.
 - 31 actions
 - 1 script
 
-Avoid using Dynamic UI Scaling as it will mess with click positions
-
 ## Details
 
-The script has 2 instances running. The first instance exits tower testing for you, and the second one handles region/difficulty cycling.
+The script runs 2 instances of itself. One TowerTesting manager and one Movement manager.
 
-It uses 3 variables:
-- `status(X)` represents the scripts state, if it's active this value will be true, if the script is inactive its value will be false
-- `Region Cycling(W)` represents if the script is able to change regions or not
-- `Curent Mode(Q)` shows the mode the script is in
+The TowerTesting manager ensures you exit TowerTesting as soon as your goal in `additional_cond` is reached, your towers health reaches 0 or if you manually exit TowerTesting.
 
-The key inbetween (patenthesies) is the key you press to change its state. This value is given from the source, so changing the impulse key macros will automatically change what's displayed
+`additional_cond` is an additional condition to the exit condition. This is used to exit your run early if you want multiple difficulties and regions to be at equal wave-goals.
 
-`Curent Mode` can have 2 modes, mode 1 is `Difficulty>Region` which means that the script will first cycle through all the difficulties and then change your region, and mode 2 is `Region>Difficulty` which means that the script will first cycle through all the regions and then change your difficulty.
+The Movement manager handles moving in the TowerTesting menu.<br>
+(Note that the TowerTesting menu is where you press the Launch button to start a TowerTesting instance).
 
-The script can cycle as long as its active, by default you'll be cycling from `Easy to Impossible`, once it reaches Impossible it will cycle back to Easy.
+This handles clicking on the arrow to change regions, clicking on the difficulty buttons and clicking on the Launch Button.<br>
+For these clicks to work, you need to turn off Dynamic UI Scaling.
+
+The Movement manager will wait until you're no longer in any screens. This means that, if you activate the script while you have a menu open, it will wait until you close that menu.
+
+## The Impulses
+
+You have 6 impulses that let you interract with the script.
+
+Three of them control the scripts global variables.<br>
+These variables are hidden until you press either of them.
+- `status(X)` is the scripts status. You press `x` to activate or deactivate the script. The variables will hide themselves when you deactivate the script.
+- `Region Cycling(W)` determines if the script is allowed to change regions or not
+- `Curent Mode(Q)` shows the scripts mode. There are 2 modes the script can be in:
+- * `Difficulty>Region` means that the script will cycle through every difficulty before changing region
+- * `Region>Difficulty` means that the script will cycle through every region before changing difficulty
+
+The key inbetween `(parenthesies)` is the key you press to change the value. This value is calculated within the source, so changing the impulse key macros will automatically change what's displayed
+
+The other three impulses are for Quality Of Life (QOL) features.<br>
+The values outlined here are from the default version, they do not apply to any version with customized impulses.
+- `e` to exit TowerTesting
+- `r` to restart TowerTesting
+- `t` to open up the stats menu and open the Wave tab. This impulse assumes that your ingame hotkey to open the stats menu is `t`.
+
+The script is able to cycle as long as it's active, by default you'll be cycling from `Easy to Impossible`, once it reaches Impossible, it will cycle back from Easy.
 
 The script has always true conditions, the first one contains the strings reprezenting the cycling direction, the second one is used to tell you the line at which you change the directional string and the line at which you add your additional_cond
-
-## The impulses
-<details>
-  <summary>
-    Table View
-  </summary>
-    x will start/stop the AI<br>
-    w will toggle Region_Cycling<br>
-    q will toggle through your modes<br>
-    r will restart<br>
-    e will exit<br>
-    t will open stats and move to the Wave tab
-</details>
-<details>
-  <summary>
-    Complete descreption
-  </summary>
-    The AI's variables start hidden, you can press `x`, `q` or `w` to show them<br>
-    You start and stop the AI by pressing `x`.<br>
-    You can restart instantly by pressing `r`, exit by pressing `e` or showing stats by pressing `t`, crucially this qol feature only works if it's impulse is set as the same key that the game uses to open stats.<br>
-    Once the AI is shut down, the variables will be hidden again, pressing `q` or `w` will still stop them from hiding, as it assumes you're attemting to communicate with it. You can hide it again by pressing x twice or you can disable the script while you don't use it.<br>
-    If you are in a towertesting run and want to stop the AI, it will exit this round of towertesting.
-</details>
 
 ## The Budget
 

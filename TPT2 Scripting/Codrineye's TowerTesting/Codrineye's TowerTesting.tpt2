@@ -204,11 +204,12 @@ goto(if(isTowerTesting(), exit, if(\
 
 change_region:
 
+; wait for the game to enter the towertesting window
+waitframe()
+
 ; click on the arrow to change region
 {click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
 
-; wait for the game to change regions
-waitframe()
 
 change_difficulty:
 
