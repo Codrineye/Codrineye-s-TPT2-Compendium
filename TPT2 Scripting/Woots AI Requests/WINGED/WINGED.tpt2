@@ -1,0 +1,47 @@
+:name WINGED
+
+game.newround()
+
+:const string reset_check "<size=0>reset check"
+:local int reset_compare
+
+global.int.set(reset_check, time.frame())
+reset_compare = global.int.get(reset_check)
+
+global.string.set("Stop Hiding Block", "</size>")
+
+:local string era_priority
+; string variable that gets build up to hold the priority
+
+era_priority = concat(era_priority, "air|")
+era_priority = concat(era_priority, "darkness|")
+era_priority = concat(era_priority, "earth|")
+era_priority = concat(era_priority, "electricity|")
+era_priority = concat(era_priority, "fire|")
+era_priority = concat(era_priority, "light|")
+era_priority = concat(era_priority, "nature|")
+era_priority = concat(era_priority, "neutral|")
+era_priority = concat(era_priority, "universal|")
+era_priority = concat(era_priority, "water|")
+
+:global int idx
+:local string era
+loop:
+era = sub(era_priority, idx, index(era_priority, "|", idx) - idx)
+
+inner_loop:
+waituntil(\
+  disable.cost(era) < xp() || \
+  reset_compare != global.int.get(reset_check)\
+)
+disable.era(era)
+
+goto(if(\
+  reset_compare != global.int.get(reset_check) || not(isTowerTesting()),\
+  99,\
+  if(disable.cost(era) == -1.0, increment, inner_loop)\
+))
+
+increment:
+idx = 1 + index(era_priority, "|", idx)
+gotoif(loop, isTowerTesting() && idx > 0)
