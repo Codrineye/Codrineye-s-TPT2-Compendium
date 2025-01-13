@@ -1,0 +1,33 @@
+:name istowerdead
+
+:const string tower_state "<size=100>tower"
+
+:global bool lock
+
+game.newround()
+
+not(lock)
+
+lock = true
+global.unset(tower_state)
+
+loop:
+global.string.set(\
+  "inf",\
+  d2s(infinity()) . (\
+    "(" . \
+      d2s(floor(infinity() / (10.0 ^ floor(infinity() // 10.0)))) . "E" .\
+      d2s(floor(infinity() // 10.0)) .\
+    ")"\
+  )\
+)
+
+gotoif(loop, health(false) > 0.0)
+global.string.set(tower_state, "dead</size>")
+global.unset("lock")
+gotoif(99, health(false) > 0.0)
+
+waitwhile(isTowerTesting())
+
+global.unset(tower_state)
+global.unset("inf")

@@ -1,0 +1,77 @@
+:name istowerdead
+:budget_cap 1
+
+; Since we're working with only atomic functions,
+; we can set the budget_cap to 1 for fast operations
+; 
+; right, so, things you could try to add:
+; - kills per second
+; - wave accels/skips/whatever
+; - xp, other resources (idk if this is possible :/)
+; - number/type of era/inf secures
+; - current tower attack speed, health, energy, *etc.*
+
+game.newround()
+
+:const string info_var "<size=0>istowerdead info"
+#info global.string.get(info_var)
+
+:local double fps
+:local double kps
+:local double time
+
+:local int max_str_length
+
+:local int recording_limit
+:local int recordings
+
+:local int enemies
+:local int frames
+
+:local string enem_recs
+:local string fps_recs
+
+; breaking our sequences into multiple macros
+; so that I can both easily modify the contains() that
+; prevents multiple instances from happening
+; 
+; We only want 1 instance updating the info_var
+; since on boot up we mostly show garbage values
+
+recording_limit = 3
+
+gotoif(99, not(contains("</size>", {info})))
+
+loop:
+
+time = time.unscaled()
+frames = time.frame()
+enemies = enemies()
+
+
+loop.fps:
+
+
+; In order to calculate our framerate,
+; we'll take multiple recordings as we go on
+; on and output the mean of the values combined
+; First calculation is for our fps, so it's as accurate
+; as we can accomplish
+
+global.string.set(info_var, "</size>towertesting is " . if(\
+  pause.get(),\
+  "paused",\
+  "not paused"\
+))
+
+; d2s(infinity()) . "(" . \
+  d2s(floor(infinity() / (10.0 ^ floor(infinity() // 10.0)))) . \
+  "E" .\
+  d2s(floor(infinity() // 10.0)) .\
+")"
+
+
+waitframe()
+gotoif(loop, isTowerTesting())
+
+global.string.set(info_var, "</size>")
