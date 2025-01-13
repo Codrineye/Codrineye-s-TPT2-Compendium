@@ -1,0 +1,37 @@
+:import winAMT lib
+:name {package(main)}
+
+; Use these macros to determine the order in which
+; the era abilities get disabled
+
+:global bool waves_lock
+:global double tm
+
+game.newround()
+
+stop("{package(waves)}")
+stop("{package(rak)}")
+stop("{package(wootclock)}")
+stop("{package(wootsync)}")
+; stop("{package(wootSpam)}")
+
+waves_lock = true
+execute("{package(wootclock)}")
+execute("{package(waves)}")
+
+gotoif(99, software.enabled("software.wavehorizon"))
+waitwhile(waveAcceleration() >= 10.0)
+executesync("{package(rak)}")
+waves_lock = false
+
+waituntil(waves_lock || health(false) <= 0.0)
+gotoif(99, health(false) <= 0.0)
+
+execute("{package(wootsync)}")
+; execute("{package(wootSpam)}")
+
+waitwhile(tm > 0.1 && health(false) > 0.0)
+waitwhile(tm <= 0.1 && health(false) > 0.0)
+gotoif(99, health(false) <= 0.0)
+
+useinstant(active.index("sphere.energy"))

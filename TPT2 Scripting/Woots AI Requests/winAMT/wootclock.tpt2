@@ -1,0 +1,40 @@
+:import winAMT lib
+:name {package(wootclock)}
+
+:budget_cap 1
+
+:global double t
+:global double tm
+:global double skips
+
+gotoif(start_infty, contains(impulse(), "{package(main)}"))
+t = time.delta() * 2.0
+
+loop:
+waitframe()
+; waitframe needed because we're using atomic actions
+t = t + time.delta()
+tm = t % 24.5
+skips = fixedWavesPerInterval()
+goto(loop)
+
+{set_priority(light)}
+{set_priority(darkness)}
+{set_priority(fire)}
+{set_priority(water)}
+{set_priority(earth)}
+{set_priority(electricity)}
+{set_priority(nature)}
+{set_priority(air)}
+
+start_infty:
+execute("{package(wootclock)}")
+
+infty:
+disable.era({disable.era})
+
+disable.inf("gift.neutral")
+disable.inf("resistance.abs")
+disable.inf("shield.immortality")
+
+goto(infty)

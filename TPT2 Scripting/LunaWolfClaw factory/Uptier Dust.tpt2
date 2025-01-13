@@ -1,0 +1,59 @@
+:import Dust Management lib
+:name {package(UpDust)}
+
+:local double d_MAX_VOLUME ; max amount of ore lumps to be refined at once.
+:local double d_RETAIN_PERCENTAGE ; min amount of the lower ore to keep.
+:local int i_TIER
+
+
+wakeup()
+open.factory() 
+
+isopen("factory")
+
+; Set the maximum amount of ore lumps to process at once
+d_MAX_VOLUME = 1000.0
+; Set the percentage of the lower level dust to keep.
+; (0.00 = 0%, 0.5 = 50%, 1.00 = 100%)
+d_RETAIN_PERCENTAGE = 0.25
+
+reset:
+; Select dust tier to convert.
+; Must have a minimum of 5 units of dust and be at least 4 times
+; the volume of the tier to be converted to.
+i_TIER = if(\
+  count("dust", 9) > 5.0 && (count("dust", 9) / 4.0) > count("dust", 10), \
+  9, \
+  if(\
+    count("dust", 8) > 5.0 && (count("dust", 8) / 4.0) > count("dust", 9), \
+    8, \
+    if(\
+      count("dust", 7) > 5.0 && ((count("dust", 7) / 4.0) > count("dust", 8)),7, \
+		 if(((count("dust", 6) > 5.0) & ((count("dust", 6) / 4.0) > count("dust", 7))),6, \
+		 if(((count("dust", 5) > 5.0) & ((count("dust", 5) / 4.0) > count("dust", 6))),5, \
+		 if(((count("dust", 4) > 5.0) & ((count("dust", 4) / 4.0) > count("dust", 5))),4, \
+		 if(((count("dust", 3) > 5.0) & ((count("dust", 3) / 4.0) > count("dust", 4))),3, \
+		 if(((count("dust", 2) > 5.0) & ((count("dust", 2) / 4.0) > count("dust", 3))),2, \
+		 if(((count("dust", 1) > 5.0) & ((count("dust", 1) / 4.0) > count("dust", 2))),1, \
+         0)))))))))
+
+gotoif(end, not(isopen("factory")) || i_TIER == 0)
+
+processDust:
+; Craft up to d_MAX_VOLUME ore lumps leaving
+; at least d_RETAIN_PERCENTAGE of the lower tier dust.
+craft("lump", i_TIER, min(\
+  min(\
+    (count("dust", i_TIER) - (count("dust", i_TIER) * d_RETAIN_PERCENTAGE)) / 4.0, \
+    count("dust", i_TIER + 1)\
+  ), \
+  d_MAX_VOLUME\
+))
+;Put ore lumps into mixer
+produce("lump", i_TIER, count("lump", i_TIER), "mixer")
+
+waitwhile(active("mixer"))
+
+end:
+; If the factory window is still open, restart script.
+gotoif(reset, isopen("factory"))

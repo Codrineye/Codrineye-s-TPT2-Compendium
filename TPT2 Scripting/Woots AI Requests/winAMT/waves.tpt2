@@ -1,0 +1,71 @@
+:import winAMT lib
+:name {package(waves)}
+
+:local double restart_detect
+:global bool waves_lock
+
+waves_lock = waves_lock
+; initializes waves_lock if it's used stand-alone
+
+gotoif(disabled, not(software.enabled("software.wavehorizon")))
+software.toggle("software.criticalWavejump", false)
+software.toggle("software.wavemomentum", false)
+software.toggle("software.wavestorm", false)
+software.toggle("software.wavepersistence", false)
+software.toggle("software.waveinstability", false)
+software.toggle("software.wavevortex", false)
+software.toggle("software.wavecatalyst", false)
+software.toggle("software.waveendurance", false)
+software.toggle("software.newbounds", false)
+software.toggle("software.wavemarathon", false)
+software.toggle("software.wavecompression", false)
+software.toggle("software.nobounds", false)
+software.toggle("software.wavehorizon", false)
+software.toggle("software.wavebreach", false)
+software.toggle("software.erafloor", false)
+software.toggle("software.waverestart", false)
+software.toggle("software.infinityhorizon", false)
+
+; disables a lot of things, I can easily convert it into
+; a gotoif() loop to only happen in about 3 actions
+
+
+restart_detect = fixedWavesPerInterval()
+; restart detection, if we've restarted, the
+; snapshot of fixedWavesPerInterval should be
+; bigger than the curent value
+
+restart:
+restart()
+goto(if(\
+  fixedWavesPerInterval() >= restart_detect, \
+  restart, \
+  99\
+))
+
+disabled:
+waituntil(not(waves_lock))
+; lock for everything to finish
+
+software.toggle("software.wavefloor", true)
+software.toggle("software.wavevortex", true)
+software.toggle("software.waveendurance", true)
+software.toggle("software.wavemarathon", true)
+software.toggle("software.wavecompression", true)
+software.toggle("software.wavehorizon", true)
+software.toggle("software.wavebreach", true)
+software.toggle("software.infinityhorizon", true)
+
+waituntil(fixedWavesPerInterval() >= 3.9999e16)
+software.toggle("software.waveendurance", false)
+software.toggle("software.wavemarathon", false)
+software.toggle("software.waveendurance", true)
+software.toggle("software.wavemarathon", true)
+
+waituntil(fixedWavesPerInterval() >= 3.99999999e16)
+software.toggle("software.waveendurance", false)
+software.toggle("software.wavemarathon", false)
+software.toggle("software.wavehorizon", false)
+
+; signal that we've finished
+waves_lock = true

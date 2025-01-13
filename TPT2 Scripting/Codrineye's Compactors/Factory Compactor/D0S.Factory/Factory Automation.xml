@@ -1,0 +1,195 @@
+<v background-color="#0000" content-size-fitter="true">
+  <text text-alignment="center">Factory AI by d0sboots</text>
+  <text text-alignment="center" id="Status">Status</text>
+  <v background-color="#000" spacing="5" padding="5" size="250 60">
+    <h background-color="#0000" spacing="2">
+      <button sprite="noborder.shadow" color="#0F0" id="D.D6" size="25">
+        <text text-alignment="center">6</text>
+      </button>
+      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D5">
+        <text text-alignment="center">5</text>
+      </button>
+      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D4">
+        <text text-alignment="center">4</text>
+      </button>
+      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D3">
+        <text text-alignment="center">3</text>
+      </button>
+      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D2">
+        <text text-alignment="center">2</text>
+      </button>
+      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D1">
+        <text text-alignment="center">1</text>
+      </button>
+      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D0">
+        <text text-alignment="center">0</text>
+      </button>
+      <button sprite="flat.plus" color="#F00" script="Factory AI" impulse="Sign" id="Sign" size="25"/>
+      <button sprite="noborder.shadow" size="25" color="#000"/>
+    </h>
+    <h background-color="#0000" spacing="2">
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D0">
+        <text text-alignment="center">0</text>
+      </button>
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D1">
+        <text text-alignment="center">1</text>
+      </button>
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D2">
+        <text text-alignment="center">2</text>
+      </button>
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D3">
+        <text text-alignment="center">3</text>
+      </button>
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D4">
+        <text text-alignment="center">4</text>
+      </button>
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D5">
+        <text text-alignment="center">5</text>
+      </button>
+      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D6">
+        <text text-alignment="center">6</text>
+      </button>
+      <img sprite="noborder.shadow" color="#0F0" size="25">
+        <text text-alignment="center">T</text>
+      </img>
+      <button sprite="noborder.shadow" id="I.T" color="#F00" size="25">
+        <text text-alignment="center">1</text>
+      </button>
+    </h>
+  </v>
+  <h background-color="#0000" spacing="25" size="0">
+    <v background-color="#0000" spacing="25" padding="5" size="125">
+      <h background-color="#0000" size="0">
+        <v background-color="#000" padding="2" spacing="2">
+          <button sprite="factory.item.32" size="25 25" id="Select Producers" script="Factory AI" impulse="Producers"/>
+          <v id="Producers" background-color="#000">
+            <button sprite="tree" size=" 25" id="Town"/>
+            <button sprite="factory" size=" 25" id="Factory"/>
+            <button sprite="mine" size=" 25" id="Mine"/>
+            <button sprite="workshop" size=" 25" id="Workshop"/>
+            <button sprite="constructionFirm" size=" 25" id="Construction Firm"/>
+            <button sprite="laboratory" size=" 25" id="Laboratory"/>
+            <button sprite="headquarters" size=" 25" id="Headquarters"/>
+            <button sprite="powerplant" size=" 25" id="Power Plant"/>
+            <button sprite="arcade" size=" 25" id="Arcade"/>
+            <button sprite="tradingpost" size=" 25" id="Trading Post"/>
+            <button sprite="shipyard" size=" 25" id="Shipyard"/>
+            <button sprite="museum" size=" 25" id="Museum"/>
+            <button sprite="statueofcubos" size=" 25" id="Statue of Cubos"/>
+          </v>
+        </v>
+        <v background-color="#000" padding="2" spacing="2">
+          <button sprite="factory.item.256" size="25 25" id="Select Machines" script="Factory AI" impulse="Machines"/>
+          <v id="Machines" background-color="#000">
+            <button sprite="factory.item.257" size=" 25" id="Assembly"/>
+            <button sprite="factory.item.264" size=" 25" id="Boiler"/>
+            <button sprite="factory.item.263" size=" 25" id="Belt"/>
+            <button sprite="factory.item.259" size=" 25" id="Crusher"/>
+            <button sprite="factory.item.260" size=" 25" id="Cutter"/>
+            <button sprite="factory.item.262" size=" 25" id="Mixer"/>
+            <button sprite="factory.item.256" size=" 25" id="Oven"/>
+            <button sprite="factory.item.261" size=" 25" id="Presser"/>
+            <button sprite="factory.item.258" size=" 25" id="Refiner"/>
+            <button sprite="factory.item.257" size=" 25" id="Shaper"/>
+          </v>
+        </v>
+        <v background-color="#000" padding="2" spacing="2">
+          <button sprite="factory.item.2" size="25 25" id="Select Craft" script="Factory AI" impulse="Crafts"/>
+          <v id="Crafts" background-color="#000">
+            <button sprite="factory.item.22" id="Block" size=" 25"/>
+            <button sprite="factory.item.5" id="Chip" size=" 25"/>
+            <button sprite="factory.item.2" id="Hammer" size=" 25"/>
+            <button sprite="factory.item.21" size=" 25" id="Insul Cable"/>
+            <button sprite="factory.item.12" size=" 25" id="Motor"/>
+            <button sprite="factory.item.15" size=" 25" id="Pump"/>
+            <button sprite="factory.item.50" size=" 25" id="Rainbow Dust"/>
+            <button sprite="factory.item.24" size=" 25" id="Stacked Plates"/>
+            <button sprite="factory.item.40" size=" 25" id="Stacked Pumpkin"/>
+            <button sprite="factory.item.53" size=" 25" id="Void Saplings"/>
+          </v>
+        </v>
+        <v background-color="#000" padding="2" spacing="2">
+          <button sprite="factory.item.5" size="25 25" id="Select Part" script="Factory AI" impulse="Parts"/>
+          <v id="Parts" background-color="#000">
+            <button sprite="factory.item.43" id="Anti Pumpkin" size=" 25"/>
+            <button sprite="factory.item.6" size=" 25" id="Board"/>
+            <button sprite="factory.item.3" size=" 25" id="Cable"/>
+            <button sprite="factory.item.42" size=" 25" id="Carved Pumpkin"/>
+            <button sprite="factory.item.4" size=" 25" id="Circuit"/>
+            <button sprite="factory.item.30" size=" 25" id="Dense Block"/>
+            <button sprite="factory.item.23" size=" 25" id="Dense Plate"/>
+            <button sprite="factory.item.1" size=" 25" id="Ingot"/>
+            <button sprite="factory.item.14" size=" 25" id="Pipe"/>
+            <button sprite="factory.item.8" size=" 25" id="Plate"/>
+            <button sprite="factory.item.41" size=" 25" id="Pumpkin Plate"/>
+            <button sprite="factory.item.51" size=" 25" id="Rainbow Ingot"/>
+            <button sprite="factory.item.52" size=" 25" id="Rainbow Plate"/>
+            <button sprite="factory.item.13" size=" 25" id="Ring"/>
+            <button sprite="factory.item.0" size=" 25" id="Rod"/>
+            <button sprite="factory.item.25" size=" 25" id="Rubber Plate"/>
+            <button sprite="factory.item.7" size=" 25" id="Screw"/>
+            <button sprite="factory.item.9" size=" 25" id="Wire"/>
+          </v>
+        </v>
+        <v background-color="#000" padding="2" spacing="2">
+          <button sprite="factory.machine.crafter" id="Select Groups" script="Factory AI" impulse="Groups" size="25 25"/>
+          <v id="Groups" background-color="#000">
+            <button sprite="factory.icon" size=" 25" id="All"/>
+            <button sprite="factory.item.5" size=" 25" id="Chips"/>
+            <button sprite="factory.item.33" id="Chips+Prods" size=" 25">
+              <v background-color="#0000" content-size-fitter="true" size="25 25">
+                <img sprite="factory.item.5"/>
+              </v>
+            </button>
+            <button sprite="factory.item.256" size=" 25" id="Machines"/>
+            <button sprite="factory.item.2" size=" 25" id="Parts"/>
+            <button sprite="factory.item.16" size=" 25" id="Producers"/>
+          </v>
+        </v>
+      </h>
+    </v>
+    <v background-color="#0000" size="75" padding="15 ">
+      <h background-color="#0000" size=" 25">
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">7</text>
+        </button>
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">8</text>
+        </button>
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">9</text>
+        </button>
+      </h>
+      <h background-color="#0000" size=" 25">
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">4</text>
+        </button>
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">5</text>
+        </button>
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">6</text>
+        </button>
+      </h>
+      <h background-color="#0000" size=" 25">
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">1</text>
+        </button>
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">2</text>
+        </button>
+        <button sprite="noborder.shadow" color="#F00">
+          <text text-alignment="center">3</text>
+        </button>
+      </h>
+      <h background-color="#0000" size=" 25">
+        <button sprite="noborder.shadow" color="#F00" size="25">
+          <text text-alignment="center">0</text>
+        </button>
+        <button sprite="noborder.shadow" color="#0F0" id="Enter" size="53">
+          <text>Enter</text>
+        </button>
+      </h>
+    </v>
+  </h>
+</v>

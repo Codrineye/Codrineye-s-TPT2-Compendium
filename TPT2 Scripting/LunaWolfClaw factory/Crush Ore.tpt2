@@ -1,0 +1,72 @@
+:import Dust Management lib
+:name {package(CrushOre)}
+
+:local int i_TIER ; current tier of ore being crushed
+:local double d_MAX_VOLUME ; max ammount of ores to crush in a single action
+:local double d_RETAIN_ORE ; ammount of ore to keep and not crush.
+:local double d_PERCENT_DUST ; percent ammount of dust to have before
+
+wakeup()
+open.factory()
+
+isopen("factory")
+
+;Settings - Change these values to adjust the script.
+
+d_MAX_VOLUME = 1000.0 ; Set the maximum amount of ore to crush.
+d_RETAIN_ORE = 1000.0 ; Set the minimum amount of ore to save.
+d_PERCENT_DUST = 0.50 ; 
+
+; crushing ore gives 2 dust
+; crushing ingot gives 1 dust
+
+{lua(\
+  function editor_operation(val_left, op_name, val_right)\
+    return string.format("%s %s %s", val_left, op_name, val_right);\
+  end\
+  function editor_if(condition, val_true, val_false)\
+    return string.format("if(%s, %s, %s)", condition, val_true, val_false);\
+  end\
+  function editor_count(item, tier)\
+    return string.format('count(%s, %s)', item, tier);\
+  end\
+  function tier_cond(tier)\
+    local ore_count = editor_count('"ore"', tier);\
+    local ore_bigger_retainORE = editor_operation(ore_count, ">", "d_RETAIN_ORE");\
+    local dust_count = editor_count('"dust"', tier);\
+    local half_dust = editor_operation(dust_count, "/", "2.0");\
+    local ore_bigger_halfDust = editor_operation(ore_count, ">", half_dust);\
+    return editor_operation(ore_bigger_retainORE, "&&", ore_bigger_halfDust);\
+  end\
+  function i_TIER_builder(index)\
+    if index == 0 then\
+      return 0;\
+    end\
+    local tier = index;\
+    local i_TIER_cond = tier_cond(tier);\
+    local case_true = tier;\
+    index = index - 1;\
+    return editor_if(i_TIER_cond, case_true, i_TIER_builder(index));\
+  end\
+)}
+
+reset:
+
+; Select the highest ore tier with excess dust.
+i_TIER = {lua(return i_TIER_builder(10))}
+; Skip if no dust to convert
+gotoif(end, not(isopen("factory")) || i_TIER == 0)
+
+crushOre:
+;Crush as much ore as possible within limits.
+produce(\
+  "ore", \
+  i_TIER, \
+  min(d_MAX_VOLUME, count("ore", i_TIER) - d_RETAIN_ORE), \
+  "crusher"\
+)
+
+waitwhile(active("crusher"))
+
+end:
+gotoif(reset, isopen("factory"))

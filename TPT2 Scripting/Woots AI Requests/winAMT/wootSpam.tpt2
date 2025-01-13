@@ -1,0 +1,20 @@
+:import winAMT lib
+:name {package(wootSpam)}
+
+:global bool spam
+
+gotoif(multishot, contains(impulse(), "{package(wootSpam)}"))
+execute("{package(wootSpam)}")
+
+wootspam:
+waituntil(spam)
+useinstant(active.index("spell.simpleheal"))
+useinstant(active.index("spell.advancedheal"))
+useinstant(active.index("spell.dispel"))
+
+goto(wootspam)
+
+multishot:
+useinstant(active.index("spell.multishot"))
+useinstant(active.index("spell.superbounce"))
+goto(multishot)

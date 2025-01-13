@@ -1,0 +1,40 @@
+:import winAMT lib
+:name {package(wootsync)}
+
+:global double tm
+:global bool spam
+
+spam = not(spam)
+
+loop:
+waitwhile(tm <= 0.1)
+
+spam_chunk_1:
+useinstant(active.index("spell.recharge"))
+useinstant(active.index("shield.immortality"))
+gotoif(spam_chunk_1, cooldown(active.index("shield.immortality")) <= 5.0)
+
+spam = not(spam)
+
+waitwhile(tm < 4.6)
+spam = not(spam)
+waitwhile(tm < 4.8)
+
+spam_titanium:
+useinstant(active.index("hull.titanium"))
+
+gotoif(spam_titanium, cooldown(active.index("hull.titanium")) <= 20.0)
+
+spam = not(spam)
+waitwhile(tm < 14.8)
+
+gotoif(skip_snap, fixedWavesPerInterval() < 1e16)
+useinstant(active.index("spell.snapOfDestiny"))
+
+skip_snap:
+waitwhile(tm < 24.3)
+
+spam = not(spam)
+
+waitwhile(tm > 0.1)
+goto(loop)

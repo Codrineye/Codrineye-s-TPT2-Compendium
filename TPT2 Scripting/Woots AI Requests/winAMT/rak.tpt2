@@ -1,0 +1,14 @@
+:import winAMT lib
+:name {package(rak)}
+
+:global double raxtax
+:local double stax
+:local double hp
+
+hp = health.max()
+useinstant(active.index("spell.raksCurse"))
+gotoif(99, health(false) == 0.0)
+stax = if((health.max() / hp) < 9.0, stax, stax + 1.0)
+raxtax = stax
+
+gotoif(0, stax < 5.0)

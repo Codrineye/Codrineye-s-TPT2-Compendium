@@ -1,0 +1,74 @@
+#package(name) winAMT:{name}
+; consistent naming accross scripts
+
+
+; Using lua here so you can easily edit what elements get prioritised
+; elements stores the era elements in the order you want them in
+; element_cost is just the pre-computed disable.cost(element) function call
+; par is just to create a set of parenthesies I can use all arround
+; par[1] = `(` and par[2] = `)`
+{lua(\
+  elements = {};\
+  element_cost = {};\
+  par = table.pack(\
+    "(", \
+    ")"\
+  );\
+  --[[disable.cost and if() require parenthesies]]\
+)}
+
+; helper macro so you can use set_priority easier
+; the [[]] no parse blocks are recommended here
+; Use this to create the priority listing
+#set_priority(element_name) {lua(\
+  local name = [[{element_name}]];\
+  local index = 1 + #elements;\
+  elements[index] = table.concat(table.pack('"', name, '"'));\
+  element_cost[index] = table.concat(table.pack(\
+    "disable.cost", par[1], \
+      elements[index], \
+    par[2]\
+  ));\
+)}
+
+; Use this to get the big ol if() else if() statement
+#disable.era {lua(\
+    local idx = #elements;\
+    local printer = {};\
+    for i, name in ipairs(elements) do\
+      --[[/*\
+          * Concat printer so the previous text isn't lost\
+          * Create the if(disable.cost != -1.0, element, if()) statement\
+         */]]\
+      printer = table.pack(\
+        table.concat(printer),\
+        "if", par[1], \
+        element_cost[i], " != ", -1.0,\
+        ", ", name, ", "\
+      );\
+    end\
+    --[[/*\
+        * We've now made an if statement for every element\
+        * remove the last if statement because that one's the\
+        * result if all other costs are -1\
+        * add the last element name and slap on\
+        * the ending parenthesies :par[2]\
+       */]]\
+    printer = table.pack(\
+      printer[1], \
+      elements[idx], \
+      string.rep(par[2], idx - 1)\
+    );\
+    return table.concat(printer);\
+)}
+
+; helper macro to get the sum of all costs
+#element_costs {lua(\
+  local costs = {}\
+  for _, cost in ipairs(element_cost) do\
+    --[[We just do disable.cost(element) + disable.cost(element)]]\
+    costs = table.pack(table.concat(costs), cost, " + ");\
+  end\
+  --[[We remove the last + and return the concat values]]\
+  return table.concat(table.pack(costs[1], costs[2]));\
+)}
