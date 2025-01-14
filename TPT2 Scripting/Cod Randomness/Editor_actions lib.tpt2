@@ -6,38 +6,30 @@
 ; readability and maintinability if used correctly
 
 {lua(\
-  function editor_multiParameterOperation(op_name, ...)\
-    --[[/*\
-        * root operation definition so these functions are\
-        * generated dynamically\
-        * \
-        * op_name is the operations name, if set to nil\
-        * we set op_name to nil if the operation we're making\
-        * \
-        * string of parameters in function call\
-        */]]\
-    local is_primitive = op_name == "";\
-    parameters = {};\
-    for _, value in ipairs(table.pack(...)) do\
-      parameters = table.pack(\
-        table.concat(parameters), \
-        value\
-      );\
-      if encase then\
-        parameters = table.pack(\
-          table.concat(parameters), \
-          ", "\
-        );\
-      end\
-    end\
-    local values = table.concat(parameters);\
-    if encase then\
-      values = string.format("(%s)", values);\
-    end\
-    return string.format("%s%s", op_name, values);\
-  end\
-  \
   local actions = {};\
+  actions.meta = {};\
+  actions.meta.names = table.pack(\
+    "varGet", "get_%sVar",\
+    "operation",\
+    "operation_%sPrimitive",\
+    "%s",\
+    "%sString",\
+    "%s"\
+  );\
+  actions.names = table.pack(\
+    "varGet", "get_%sVar",\
+    "operation",\
+    "operation_%sPrimitive",\
+    "not", "if",\
+    "contains",\
+    "len", "index",\
+    "concat", "sub",\
+    "%sString",\
+    "%s",\
+    "vector_%sCoord",\
+    "vec",\
+    "conversion_%sTO%s"\
+  );\
   actions.operands = table.pack(\
     --[[local/global.data_type.get]] "%s.%s.get", \
     \
@@ -173,7 +165,7 @@
     \
     --[[worker.]] "worker_operation", "worker_ID",\
     --[[adventure.]] "adventure_operation", "operation_request",\
-    --[[Factory]] \
+    \
     --[[active]] "machine_name",\
     --[[count]] "item_name", "item_tier",\
     --[[machine.item.count]] "machine_name",\
@@ -183,5 +175,95 @@
     --[[museum.]] "museum_operation", "stone_index",\
     --[[tier]] "target_menu", "target_slot",\
     --[[element]] "target_menu", "target_slot"\
+  );\
+  --[[/*\
+      * We define types as already-known values\
+      * For instance, local/global.data_type.get is\
+      * defined as 2, 0, 0\
+      * 2 is for local/global\
+      * 0 is for the data_types\
+      * 0 is for the name\
+      * since names and data_types not already-known values,\
+      * we set them to 0\
+     */]]\
+  actions.parameter.types = {};\
+  actions.parameter.types.count = table.pack(\
+    --[[local/global.data_type.get]] 2, 0, 0,\
+    --[[math/bool operations]] 0, 0, 0,\
+    --[[comparison/arithmetic primitives]] 2,\
+    \
+    --[[not/if]] 0, 0, 0, 0,\
+    \
+    --[[contains]] 0, 0,\
+    --[[len/index]] 0, 0, 0, 0,\
+    --[[concat/sub]] 0, 0, 0, 0, 0,\
+    --[[lower/upper]] 2, 0,\
+    \
+    --[[floor ceil round sin cos tan asin acos atan atan2]]\
+    10, 0,\
+    --[[min max rnd]]\
+    3, 0, 0,\
+    \
+    --[[vec2.x/y]] 2,\
+    --[[vec]] 0, 0,\
+    \
+    --[[type conversion]]\
+    3, 3, 0,\
+    --[[for string to value]] 0,\
+    \
+    --[[visibility.get]] 0,\
+    --[[child.visibility.get]] 0, 0,\
+    \
+    --[[isopen]] 0,\
+    --[[resource]] 0,\
+    \
+    --[[software.]] 2, 0,\
+    --[[tower.]] 4, 0,\
+    --[[highscore.]] 3, 0, 0,\
+    --[[disable.cost]] 0,\
+    --[[active.id]] 0,\
+    \
+    --[[worker.]] 4, 0,\
+    --[[adventure.]] 7, 0,\
+    \
+    --[[active]] 0,\
+    --[[count]] 0, 0,\
+    --[[machine.item.count]] 0,\
+    --[[machine.item]] 0,\
+    --[[factory.find]] 0,\
+    \
+    --[[museum.]] 8, 0,\
+    --[[tier]] 0, 0,\
+    --[[element]] 0, 0\
+  );\
+  actions.parameter.types.names = table.pack(\
+    --[[variable types]] "local", "global",\
+    \
+    --[[primitives]] "comparison", "arithmetic",\
+    "upper", "lower",\
+    \
+    "floor", "ceil", "round", \
+    "sin", "cos", "tan", "asin", "acos", "atan", "atan2",\
+    \
+    "min", "max", "rnd",\
+    \
+    --[[vec2.%s()]] "x", "y",\
+    \
+    --[[int/double/string]] "i", "d", "s",\
+    --[[2]]\
+    --[[int/double/string]] "i", "d", "s",\
+    \
+    --[[software.]] "enable", "find",\
+    --[[tower.]] "health", "shield", "energy", "module.cooldown",\
+    --[[highscore]] "wave", "era", "infinity",\
+    \
+    --[[worker.]] "paused", "group", "name", "task",\
+    --[[adventure.]] "countEntities", "hasItem", \
+    "isWall", "isBomb", "isEnemy", "isCompleted", \
+    "entityType",\
+    \
+    --[[museum.]] "pref", "isLocked", "freeSlots", \
+    "maxTier", "slotTier", "trashTier", \
+    "slotElement", "trashElement"\
   );\
 )}
