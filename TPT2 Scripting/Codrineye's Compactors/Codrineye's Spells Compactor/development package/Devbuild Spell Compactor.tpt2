@@ -1,13 +1,9 @@
-:import Devbuild Spell Compactor Debugger
+:import Devbuild Spell Compactor Utils
 :name devbuild Spell Compactor
 
 ; 
-; Package found on discord or on my github repo
-; discord: https://discord.com/channels/488444879836413975/1275961817151307847/1275961817151307847
-; github: https://github.com/Codrineye/Codrineye-s-TPT2-Compendium/blob/e22ebcef5fa54fa5d8c3726f8163ea59d4c69a91/TPT2%20Scripting/Codrineye's%20Compactors/Codrineye's%20Spells%20Compactor/README.md
-; 
-; Welcome to the compactor, a set of 2 lua macros
-; and macros defined at the bottom of the script for the user interactions
+; Welcome to the compactor, a set of 2 lua macros + macros defined
+; at the bottom of the script for the user interactions
 ; 
 ; This compactor is structured to be as easy to read and as
 ; flexible as possible, the following comments will explain
@@ -17,593 +13,318 @@
 ; working in the table `spell`
 ; everything here is strictly to process spell values
 ; if a name appends spell. it is defined in the spell compactor
-; if a name appends spell_debug. it is defined in the compactors debugger
-; 
-; .active defines processes relevant to user input
-; all spells are registered inside of spell.active
-; 
-; .batch is a part of .active that stores data relevant to batches
-; batches mark sequences of spells, to support multiple
-; sections of spells in the same string
-; this stores the
-; 
-; .max_batch is a helper value attatched to .batch
-; to store the maximum length of the batch size
-; 
-; .sync is the process of synchronization, a part of .active
-; sync tells the script "sync" how many copies of itself to make
-; this is done when you want to activate multiple spells
-; at once
-; 
-; .index is a helper value attatched to .sync
-; to store the index of the curent sync sequence
-; 
-; .copies_internal is a helper value attatched to .sync
-; to store how many copies we're making
-; 
-; .delay_internal is a helper value attatched to .sync
-; to store how much delay is added to the timer
-; 
-; spell.active_max_length is the length of the maximum
-; spell size we can store
-; 
-; spell.text is a table in charge of all values
-; related to text
-; 
-; .name_max_length is self explanetory, storing the
-; maximum length of the spell name
-; 
-; .attribute_max_length is like the previous one, but
-; stores the maximum length of the spell attribute
-; 
-; .text_ending_character is a character that marks
-; the end of a string
-; 
-; finally, spell.precision
-; .precision is used to store dynamically changing
-; length values relative to the inputed number values
-; 
-; .sync is the precision of a sync, this is the maximum
-; amount of active modules you want to run
-; 
-; if this value is 1, you're within values 0 to 9
-; if this value is 2, you're within valuse 00 to 09
-; to 10 to 99
-; 
-; .timer is the precision of a time value
-; .placement is the precision of a coordinate
+; if a name appends utils. it is defined in the compactors Utils
+; if a name appends spell_comp it's a spell compactor utility
+; if a name appends spell_debug it's a debugging utility
 ; 
 
 {lua(\
-  spell = {};\
-  spell.active = {};\
-  spell.active.batch = {};\
-  spell.active.batch.max_batch = 0;\
-  spell.active.sync = {};\
-  spell.active.sync.index = 0;\
-  spell.active.sync.copies_internal = 0;\
-  spell.active.sync.delay_internal = 0;\
-  spell.active_max_length = 0;\
-  spell.text = {};\
-  spell.text.name_max_length = 0;\
-  spell.text.attribute_max_length = 0;\
-  spell.text.text_ending_character = ':';\
-  spell.precision = {};\
-  spell.precision.sync = 0;\
-  spell.precision.timer = 0;\
-  spell.precision.placement = 0;\
+  spell = {}; --[[Root Table]]\
+  spell.stop = false;\
+  spell.active = {}; --[[Table holds spell data]]\
+  spell.active.space = 0; --[[keep track of how much space is used]]\
+  spell.active.pointer_mult = 1; --[[getting implemented]]\
+  spell.active.sync_ammount = 0; --[[ammount of spells getting sync'd]]\
 )}
 
+; Recording format change
+; currently we have
+; `sync` . `timer` . `coord_x` . `coord_y` . `name` . `text end char`
 ; 
-; This is the second lua macro
-; all function definitions are here
+; format change to
+; sync . cooldown . coord_x . coord_y . name . pointer mult
+; ---------------------------
+; sync detector = always 1 character
+; sync no longer makes copies of the script, it now tells the AI to
+; perform a waitframe() after all spells that required synchronization
+; have been activated
 ; 
-; first function, spell.add_batch()
-; it takes 1 parameter
-; * batch_name is the name assigned to this batch
-;   this name can be used for identifying the
-;   sequence we're looking at
+; size of cooldown size
+; cooldown size
+; spell activation timer
 ; 
-; we initialize 2 local variables
-; the next batch index, being 1 + how many batches
-; we have recorded
-; and the table batch
+; size of coord_x size
+; coord_x size
+; coord_x
 ; 
-; batch.checkpoint is the position in the configuration we
-; were declaired in
-; we make this checkpoint for 2 reasons
-; to calculate the size of this batch
-; to know when we've reached this batch
-; when inside of spell.concat_actives()
+; size of coory_y size
+; coord_y size
+; coord_y
 ; 
-; if this is the first batch being recorded, we are of size 0
-; alternatively, if there exists a previous batch
-; we can calculate the size of our batch
+; size of name_size
+; name_size
+; name
 ; 
-; we record this batch, by adding it to the root table
-; spell.active.batch and update our max_batch
+; pointer_mult
+; 1 by default
+; 0 on add_blueprint() call
+; this works by pointer = pointer * s2i(sub(`pointer_mult`, pointer, 1), 0)
+; always 1 character
+; ---------------------------
 ; 
-; we end by creating a table 'printer' and
-; building a :const int batch_name #spell.active
-; 
-; spell.synchronization()
-; this function requires 2 parameters
-; * copies represent how many activations we want
-; * delay represents how much time to add to the
-;   timer of the copies it has
-; 
-; this means that
-; copy1 = spell_timer + 0 * delay
-; copy2 = spell_timer + 1 * delay
-; copy3 = spell_timer + 2 * delay
-; and so on
-; 
-; just like in spell.add_batch, we start
-; by creating our local index and sync table
-; 
-; due to how sync works, we give sync.copies 1 less
-; copy than requested because the frist spell is covered by
-; how spell recording works
-; 
-; so, we assign sync.copies copies - 1 and then
-; sync.delay 0.0 + tonumber(timer)
-; sync.delay needs to be a floating point number, and float
-; operations with non float numbers returns a float result
-; thus, 0.0 + toumber(timer) will always return a float
-; we perform tonumber(timer) as we get a number, if a number is
-; inputed, or nil if the input is not a number.
-; since the timer must be a number, this error message
-; will make sure no invalid input is let in
-; 
-; we add our sync to spell.active.sync
-; and just like in batch, we update our max value
-; 
-; 
-; spell.add_spell()
-; this function takes 5 parameters
-; * name of the spell
-; * attribute assigned to the spell
-; * coord_x of the spell
-; * coord_y of the spell
-; * timer of the spell
-; 
-; this function uses our debugger function spell_debug.log()
-; the spell_debug functions are defined inside the debugger
-; 
-; for the definitions of `spell_debug.`, please look at
-; the comments inside of the Compactors Debugger
-; 
-; the script compilation can halt, and this enables
-; logging, but just because the next lines aren't being compiled
-; they're still being recorded and logged
-; 
-; this beginning part prevents this
-; by returning nothing if the process is halted
-; 
-; the same structure as the beginning of our previous functions
-; active_index is the index and new_spell is our spell table
-; 
-; new_spell.name is the spell name with the ending of
-; text_ending_input
-; 
-; new_spell.attribute is the value of attribute without any
-; whitespace ` `
-; new_spell.coord_x and .coord_y are stored as floating point numbers
-; 
-; new_spell.sync is initialised with 0 and
-; assign to a local table sync the global table spell.active.sync
-; so that looking at the code is easier to understand
-; 
-; we now define an internal local function to handle
-; sync(), featuring comments to explain what
-; it's doing
-; 
-; inside this function, we assign to new_spell.sync a non
-; 0 value only if we can increase our sync index
-; 
-; we create a local sync_offset variable and
-; assign it the return value from our add_sync() function
-; the function only returns a positive floating point number
-; 
-; we now assign to new_spell.timer tonumber(timer) + sync_offset
-; and have the guarantee that it too is stored as a floating
-; point number
-; 
-; we can now add our new_spell to our spell.active at position
-; of active_index, followed by updating our max values
-; 
-; .name_max_length is the maximum between itself and the
-; amount of characters in new_spell.name
-; .attribute_max_length is the same as .name_max_length but
-; with new_spell.attribute
-; 
-; for numbers, we convert our numbers to strings and
-; perform the calculations like we do for the text
-; when we have floating point numbers, we have to
-; subtract 1 to the size because of the added dot `.`
-; additionally, when updating .precision.placement, we
-; convert the maximum between our 2 coordinates
-; in order not to update the same value 2 times 
-; 
-; the update ends with declaring the local active_length
-; which is the sum of our max values and is then compared
-; arithmetically to our attribte_max_length
-; 
-; 
-; this is the only function that returns a :const
-; this const isn't used for reading, and is
-; a relic kept from the old compactor
-; it can be repurposed to act as a safety net
-; as it's a const string spell.<active_index> 'new_spell.name'
-; 
-; 
-; final function, spell.concat_actives()
-; this is the complex one, so there's a lot of
-; comments inside to describe the functions purpose
-; 
-; yes, this one function is comprised of multiple interlocking
-; functions, that work give the output its structure
-; 
-; the complexity comes from integrating our debugging separators
-; inside of it, for an easy way for users to enable debugging
-; 
-; we add a batch at the finale of our recordings
-; so that our batch.max_batch is accurate to the recordings
-; additionally, this simplifies the logic a little bit by
-; always knowing that there's at minimum 1 registered batch
-; 
-; and now, we get to the function definitions
-; there's a big comment that explains the reason this logic
-; is broken up into peaces, but essentially
-; having functions provides an easier implementation
-; cycle than adding the same lines of code over and over
-; again
-; 
-; it does make the flow of logic slightly harder to
-; follow, but the function definitions are written from
-; most important process to least important process,
-; included in-function comments to help explain
-; what is happening and made the function names as explicit
-; as I could in as little words possible
+; Also, remove a large majority of comments in public build
+; and include comments **in** the lua macros as well as outside
 ; 
 
 {lua(\
-  function spell.add_batch(batch_name)\
-    local batch_index = 1 + #spell.active.batch;\
-    local batch = {};\
-    batch.checkpoint = #spell.active;\
-    batch.size = 0;\
-    if batch_index > 1 then\
-      local curent_checkpoint = batch.checkpoint;\
-      active_batch = spell.active.batch;\
-      local previous_checkpoint = active_batch[#active_batch].checkpoint;\
-      batch.size = curent_checkpoint - previous_checkpoint;\
-    end\
-    spell.active.batch[batch_index] = batch;\
-    spell.active.batch.max_batch = math.max(\
-      spell.active.batch.max_batch,\
-      batch.size\
-    );\
-    local printer = {};\
-    printer[1 + #printer] = ":const int" .. ' ';\
-    printer[1 + #printer] = batch_name:gsub(" ", "");\
-    printer[1 + #printer] = ' ';\
-    printer[1 + #printer] = #spell.active;\
-    return table.concat(printer);\
+  function spell.add_blueprint(blueprint_name)\
+      --[[/*\
+          * Adding a new blueprint marks the end of this "chunk"\
+          * For the stand-alone compactor to recognize this, we set\
+          * this multiplier to 0, so that the pointer can go back\
+          * to the start of the recorded sequence.\
+         */]]\
+    spell.active.pointer_mult = 0;\
+    local bp_name = "blueprint_" .. blueprint_name;\
+    return spell_comp.const("int", bp_name, spell.active.space);\
+    --[[/*\
+        * Returned value is used by user to take an index in a\
+        * substring action to extract the desired recorded sequence\
+       */]]\
   end\
   \
-  function spell.synchronization(copies, delay)\
-    local sync_index = 1 + #spell.active.sync;\
-    local sync = {};\
-    sync.copies = -1 + math.tointeger(tonumber(copies));\
-    sync.delay = 0.0 + tonumber(delay);\
-    spell.active.sync[sync_index] = sync;\
-    spell.active.sync.index = math.max(\
-      1,\
-      spell.active.sync.index\
-    );\
-    spell.precision.sync = math.max(\
-      spell.precision.sync,\
-      #tostring(sync.copies)\
-    );\
+  function spell.sync(spell_ammount)\
+    --[[/*\
+        * Sync system prevents the compactor from refreshing its budget\
+        * until all synchronized spells have been used.\
+       */]]\
+    local sync_ammount = tonumber(spell_ammount);\
+    if sync_ammount < 0 then\
+      local printer = table.pack(\
+        "Attempt to add a negative sync ammount at spell nr ",\
+        1 + #spell.active, "\n", "Default behaviour sets it to 0"\
+      );\
+      print(table.concat(printer));\
+    end\
+    sync_ammount = math.max(0, sync_ammount);\
+    --[[/*\
+        * max operation prevents sync_ammount from being negative\
+        * value in spell.active.sync_ammount always gets overwritten\
+       */]]\
+    spell.active.sync_ammount = sync_ammount;\
   end\
   \
-  function spell.add_spell(name, coord_x, coord_y, timer)\
-    local halt_limit = spell_debug.should_halt;\
-    halt_limit = halt_limit - spell_debug.can_halt;\
-    if spell_debug.can_halt > 0 then\
-      if halt_limit <= 0 then\
-        return;\
-      end\
+  function spell.add_spell(name, spell_type, timer, ...)\
+    local halt_limit_reached = spell_debug.halt_limit == 0;\
+    halt_limit_reached = halt_limit_reached and spell_debug.can_halt;\
+    --[[Check if our halt limit has been reached]]\
+    \
+    if halt_limit_reached or spell.stop then\
+      --[[/*\
+          * Prevent spells from getting recorded if halted,\
+          * a halted compactor stops recording data\
+         */]]\
+      return;\
     end\
+    \
     local actives_index = 1 + #spell.active;\
     local new_spell = {};\
-    new_spell.name = name .. spell.text.text_ending_character;\
-    new_spell.coord_x = 0.0 + tonumber(coord_x);\
-    new_spell.coord_y = 0.0 + tonumber(coord_y);\
+    --[[/*\
+        * Record the pointer multiplier and then set it to 1,\
+        * Must be reset to 1 in case we added a blueprint\
+       */]]\
+    new_spell.pointer_mult = spell.active.pointer_mult;\
+    local used_space = 1\
+    --[[/*\
+        * Recordings take space in the compacted data\
+        * We keep track of the space we're taking up with this variable\
+       */]]\
+    spell.active.pointer_mult = 1;\
     \
     new_spell.sync = 0;\
-    local sync = spell.active.sync;\
-    local function add_sync()\
+    used_space = 1 + used_space;\
+    --[[Add the ammount of space the sync marker takes up]]\
+    \
+    local can_sync = spell.active.sync_ammount > 0;\
+    if can_sync then\
+      new_spell.sync = 1;\
+      spell.active.sync_ammount = spell.active.sync_ammount - 1;\
       --[[/*\
-          * Function to handle the sync system\
-          * if we've run through the internal copies\
-          *   if the next sync exists\
-          *     increment the index\
-          *     update our internal copies\
-          *     add a sync to the spell\
-          *   setup so we only have 1 return\
-          *   1 return means only 1 logic sequence\
-          *   to follow\
-          * we can continue\
-          * by increasing the delay and\
-          * decreasing our internal copies\
+          * Signals that we don't refresh the execution budget\
+          * Decrement our sync ammount\
          */]]\
-      if sync.index == 0 then\
-        return 0.0;\
-      end\
-      if sync.copies_internal == 0 then\
-        if #sync > sync.index then\
-          sync.index = sync.index + 1;\
-          sync.copies_internal = sync[sync.index].copies;\
-          new_spell.sync = sync[sync.index].copies;\
-        end\
-        sync.copies_internal = sync.copies_internal + 1;\
-        sync.delay_internal = 0.0 - sync[sync.index].delay;\
-      end\
-      sync.delay_internal = sync.delay_internal + sync[sync.index].delay;\
-      sync.copies_internal = sync.copies_internal - 1;\
-      return sync.delay_internal;\
+    end\
+    new_spell.name = name:gsub(" ", "");\
+    \
+    local grounded_spell = spell_type:gsub(" ", "") == "grounded";\
+    new_spell.grounded = grounded_spell;\
+    --[[/*\
+         * Check to see if the spell_type is grounded\
+         * if it is, we've got to include our coordinates\
+        */]]\
+    local parameters = table.pack(timer);\
+    local doubles = table.pack("timer");\
+    if grounded_spell then\
+      parameters = table.pack(timer, ...);\
+      doubles = table.pack("timer", "coord_x", "coord_y");\
     end\
     \
-    local sync_offset = add_sync();\
-    new_spell.timer = sync_offset + tonumber(timer);\
-    spell.active[actives_index] = new_spell;\
+    for i, variable in ipairs(doubles) do\
+      local value = tonumber(parameters[i]);\
+      new_spell[variable] = {};\
+      new_spell[variable] = 0.0 + value\
+      --[[/*\
+          * the addition with 0.0 here is to guarantee\
+          * the correct data type. timer, coord_x, coord_y need to be\
+          * doubles for the actions waitwhile() and vec().\
+          * float and double are the same type in this editor\
+         */]]\
+    end\
+    --[[/*\
+        * Get all our spell data inside a table. We use table.unpack\
+        * instead of table.concat() here to retain the ability to\
+        * index between the values in the "doubles" table\
+       */]]\
+    local spell_data = table.pack("name", "timer");\
+    local sizes = table.pack("name_size", "timer_size");\
+    if grounded_spell then\
+      spell_data = table.pack(\
+        table.unpack(spell_data), \
+        "coord_x", "coord_y"\
+      );\
+      sizes = table.pack(\
+        table.unpack(sizes), \
+        "size_x", "size_y"\
+      );\
+    end\
+    for i, variable in ipairs(spell_data) do\
+      local size = sizes[i];\
+      new_spell[size] = {};\
+      new_spell[size] = #tostring(new_spell[variable]);\
+      used_space = used_space + new_spell[size];\
+      --[[/*\
+          * Get the ammount of characters in each variable\
+          * and add this ammount to our used space\
+         */]]\
+    end\
+    for i, size in ipairs(sizes) do\
+      local size_of_size = size .. "_size";\
+      new_spell[size_of_size] = {};\
+      new_spell[size_of_size] = #tostring(new_spell[size]);\
+      used_space = used_space + 1 + new_spell[size_of_size];\
+      --[[/*\
+          * Get the size of each variables size\
+          * then add these to the used space\
+          * we add 1 to it because we've also got\
+          * a marker telling us this size\
+         */]]\
+    end\
     \
-    spell.text.name_max_length = math.max(\
-      spell.text.name_max_length,\
-      #new_spell.name\
-    );\
-    spell.precision.placement = math.max(\
-      spell.precision.placement,\
-      #tostring(math.max(new_spell.coord_x, new_spell.coord_y)) - 1\
-    );\
-    spell.precision.timer = math.max(\
-      spell.precision.timer,\
-      #tostring(new_spell.timer) - 1\
-    );\
-  \
-    local active_length = spell.precision.sync;\
-    active_length = active_length + spell.precision.timer;\
-    active_length = active_length + 2;\
-    active_length = active_length + spell.precision.placement;\
-    active_length = active_length + 2;\
-    active_length = active_length + spell.precision.placement;\
-    active_length = active_length + 2;\
-    active_length = active_length + spell.text.name_max_length;\
-  \
-    spell.active_max_length = math.max(\
-      spell.active_max_length,\
-      active_length\
-    );\
-    local debug_check = spell_debug.can_halt;\
-    debug_check = debug_check + spell_debug.can_log;\
-    if debug_check > 0 then\
+    local space = used_space;\
+    local prev_space = -1;\
+    \
+    while space ~= prev_space do\
+      prev_space = space\
+      new_spell.space = space;\
+      new_spell.space_size = #tostring(new_spell.space);\
+      new_spell.space_size_size = #tostring(new_spell.space_size);\
+      space = used_space;\
+      local spaces = table.pack("space_size", "space_size_size");\
+      for _, size in ipairs(spaces) do\
+        space = space + new_spell[size];\
+      end\
+    end\
+    \
+    used_space = space;\
+    \
+    spell.active[actives_index] = new_spell;\
+    spell.active.space = spell.active.space + used_space;\
+    --[[/*\
+        * Add the space used in this recording to our\
+        * overall used space\
+       */]]\
+    \
+    local logging_check = spell_debug.can_halt or spell_debug.can_log;\
+    if logging_check then\
       spell_debug.log();\
     end\
-    if spell_debug.can_halt > 0 then\
-      spell_debug.should_halt = spell_debug.should_halt - 1;\
+    if spell_debug.can_halt then\
+      spell_debug.halt_limit = spell_debug.halt_limit - 1;\
     end\
-    \
-    local output = {};\
-    output[1 + #output] = ":const string" .. ' ';\
-    output[1 + #output] = "spell.";\
-    output[1 + #output] = actives_index;\
-    output[1 + #output] = " '" .. new_spell.name .. "'";\
-    return table.concat(output);\
   end\
   \
   function spell.concat_actives()\
-    local spells = {};\
+    local spells = {}; --[[table holding the compacted data]]\
   \
-    local recordings = spell.active;\
-    local active_count = #spell.active;\
+    local actives = spell.active; --[[access our recordings]]\
+    local actives_count = #spell.active; --[[nr of recordings]]\
+    actives[actives_count].pointer_mult = 0;\
+    --[[Set the last multiplier to 0 to enables sequence looping]]\
     \
-    spell.add_batch('');\
-    local batches = spell.active.batch;\
-    local batch_index = 1;\
-    local batch_concat = '';\
-    local index = 0;\
+    local index = 0; --[[index to access our recordings]]\
     \
-    local spells_debug = {};\
-    spells_debug.format = '';\
-    spells_debug.spacer_open = '';\
-    spells_debug.spacer_close = '';\
-    spells_debug.chunk = '';\
-  \
-    local spells_format = {};\
-    spells_format.debug_format = 1;\
-    spells_format.batch = 0;\
+    local spells_debug = table.pack(\
+      "format", "space", "chunk"\
+    );\
+    utils.pack_assign(spells_debug, "", table.unpack(spells_debug));\
     \
-    spells_format.number = 0;\
-    spells_format.text = 0;\
+    local text_debugging = spell_debug.can_display;\
     \
-    spells_format.target = 0;\
-    \
-    spells_format.encase = 0;\
-    spells_format.chunk = 0;\
-    \
-  \
-    local debug_text = spell_debug.text.concat_in_batch;\
-    debug_text = debug_text + spell_debug.text.can_concat;\
-    \
-    local debug_batch = debug_text;\
-    debug_batch = debug_batch + spell_debug.text.spacer_in_number;\
-    if debug_text > 0 then\
-      spells_debug.spacer_open = spell_debug.text.spacer_open;\
-    \
-      if debug_text == spell_debug.text.concat_in_batch then\
-        batch_concat = spell_debug.text.concat_format;\
-        spells_format.batch = 1;\
-      else\
-        spells_debug.format = spell_debug.text.concat_format;\
-        spells_debug.chunk = spell_debug.text.chunk;\
-      end\
-    \
-      spells_debug.spacer_close = spell_debug.text.spacer_close;\
+    if text_debugging then\
+      spells_debug.format = spell_debug.concat_format;\
+      spells_debug.space = " ";\
+      spells_debug.chunk = spell_debug.chunk;\
     end\
     \
      --[[/*\
-         * Sequence for concatenation\
-         * It will get broken up into separate\
-         * local functions\
-         * This is done to add implementation flexibility\
-         * and to improve overall readability\
+         * Sequence for concatenation. Broken up into separate\
+         * local functions to add implementation flexibility and to\
+         * improve overall readability\
         */]]\
     \
-    local function concat_format()\
-      \
-       --[[/*\
-           * Function that formats the\
-           * contents of spells according\
-           * to the values in spells_format\
-          */]]\
-      \
-      local printer = {};\
-      local fmt = spells_format;\
-      \
-      if fmt.debug_format == 1 then\
-        printer[1 + #printer] = spells_debug.format;\
-      end\
-      if fmt.batch == 1 then\
-        printer[1 + #printer] = batch_concat;\
-      end\
-      \
-      printer[1 + #printer] = spells[#spells];\
-      if fmt.number == 1 then\
-        local number = printer[#printer];\
-        local format = "%.";\
-        if math.type(number) == 'integer' then\
-          format = "%0";\
-        end\
-        format = format .. fmt.target .. "f";\
-        local number_format = string.format(format, number);\
-        printer[#printer] = string.sub(\
-          number_format,\
-          1,\
-          fmt.target + 2\
-        );\
-      end\
-      \
-      if fmt.text == 1 then\
-        local spells_text = printer[#printer];\
-      \
-        local spacing_size = fmt.target;\
-        spacing_size = spacing_size - #spells_text;\
-      \
-        local spacer = spacing_size;\
-        if spell_debug.text.spacer_in_number == 0 then\
-          spacer = string.rep('.', spacing_size);\
-        end\
-        printer[1 + #printer] = spells_debug.format;\
-        printer[1 + #printer] = spacer;\
-      end\
-      \
-      if fmt.encase == 1 then\
-        local sequence = printer[#printer];\
-        printer[#printer] = spells_debug.spacer_open;\
-        printer[1 + #printer] = sequence;\
-        printer[1 + #printer] = spells_debug.spacer_close;\
-      end\
-    \
-      if fmt.chunk == 1 then\
-        printer[1 + #printer] = spells_debug.format;\
-        printer[1 + #printer] = spells_debug.chunk;\
-      end\
-      \
-      fmt.debug_format = 1;\
-      fmt.batch = 0;\
-      fmt.number = 0;\
-      fmt.text = 0;\
-      fmt.target = 0;\
-      fmt.encase = 0;\
-      fmt.chunk = 0;\
-      \
-      spells[#spells] = table.concat(printer);\
-    end\
-    \
     local function number_handling()\
-      local numbers = {};\
-      local precisions = {};\
+      local nr = actives[index];\
       \
-      table.insert(numbers, recordings[index].sync);\
-      table.insert(numbers, recordings[index].timer);\
-      table.insert(numbers, recordings[index].coord_x);\
-      table.insert(numbers, recordings[index].coord_y);\
+      spells = table.pack(\
+        table.concat(spells), \
+        spells_debug.format, nr.space_size_size,\
+        spell_debug.space, nr.space_size,\
+        spell_debug.space, nr.space,\
+        \
+        spell_debug.format, nr.sync\
+      );\
+      --[[Add the used_space and the sync]]\
       \
-      local precision = spell.precision\
-      table.insert(precisions, precision.sync);\
-      table.insert(precisions, precision.timer);\
-      table.insert(precisions, precision.placement);\
-      table.insert(precisions, precision.placement);\
+      local numbers = table.pack("timer");\
+      local number_sizes = table.pack("timer_size");\
+      if actives[index].grounded then\
+        numbers = table.pack("timer", "coord_x", "coord_y");\
+        number_sizes = table.pack("timer_size", "size_x", "size_y")\
+      end\
+      local size_sizes = {};\
+      for i, size in ipairs(number_sizes) do\
+        size_sizes[i] = size .. "_size";\
+      end\
       \
-      for i = 1, #numbers do\
-        spells_format.number = 1;\
-        spells_format.target = precisions[i];\
-        spells[1 + #spells] = numbers[i];\
-        concat_format();\
+      for i, number in ipairs(numbers) do\
+        local size_of_size = size_sizes[i];\
+        local number_size = number_sizes[i];\
+        spells = table.pack(\
+          table.concat(spells),\
+          spells_debug.format, nr[size_of_size], \
+          spells_debug.space, nr[number_size], \
+          spells_debug.space, nr[number]\
+        );\
       end\
     end\
     local function text_handling()\
-      local texts = {};\
-      table.insert(texts, recordings[index].name);\
-      \
-      local lengths = {};\
-      local stxt = spell.text;\
-      table.insert(lengths, stxt.name_max_length);\
-      \
-      for i = 1, #texts do\
-        spells[1 + #spells] = texts[i];\
-        spells_format.debug_format = #texts - i;\
-        spells_format.text = 1;\
-        spells_format.target = lengths[i];\
-        spells_format.encase = 1;\
-        concat_format();\
-      end\
-    \
+      local text = actives[index]\
+      spells = table.pack(\
+        table.concat(spells),\
+        spells_debug.format, text.name_size_size,\
+        spells_debug.space, text.name_size,\
+        spells_debug.space, text.name\
+      )\
     end\
-    local function batch_handling()\
-      local batch = batches.max_batch;\
-      batch = batch - batches[batch_index].size;\
-      if batches[batch_index].checkpoint ~= index then\
-        batch = 0;\
-      end\
-      batch = batch * spell.active_max_length;\
-      batch = batch + #spells[#spells];\
-    \
-      spells_format.debug_format = 0;\
-      spells_format.text = 1;\
-      spells_format.target = batch;\
-      if debug_batch > 0 then\
-        spells_format.encase = 1;\
-      end\
-      concat_format();\
-    \
-      if #batches > batch_index then\
-        if index == batches[batch_index].checkpoint then\
-          batch_index = batch_index + 1;\
-          spells_format.batch = 1;\
-        end\
-      end\
-    end\
-  \
-    while index < active_count do\
+    while index < actives_count do\
       index = index + 1;\
       number_handling();\
       text_handling();\
-      batch_handling();\
-      spells_format.chunk = spell_debug.text.can_concat;\
-      concat_format();\
+      spells = table.pack(\
+        table.concat(spells), \
+        spells_debug.format, actives[index].pointer_mult,\
+        spells_debug.format, spells_debug.chunk\
+      );\
     end\
     return table.concat(spells);\
   end\
@@ -614,38 +335,30 @@
 ; compactor in an easier manner
 ; 
 
-#add_batch(name) {lua(return spell.add_batch("{name}"))}
+#add_blueprint(name) {lua(return spell.add_blueprint("{name}"))}
+#synchronize(spell_count) {lua(return spell.sync({spell_count}))}
 
-
-#synchronize(copies, delay) {lua(return spell.synchronization(\
-  [[{copies}]],\
-  [[{delay}]]\
-))}
-
-; 
-; Root add_spell that all spell_types
-; get filtered down through
-; 
-
-#add_spell(name, placement_x, placement_y, timer) {lua(\
+; general add_spell lua function call
+#add_spell(name, type, timer, coord_x, coord_y) {lua(\
   return spell.add_spell(\
-    {name},\
-    [[{placement_x}]],\
-    [[{placement_y}]],\
-    [[{timer}]]\
+    '{name}',\
+    [[{type}]],\
+    [[{timer}]],\
+    [[{coord_x}]],\
+    [[{coord_y}]]\
   );\
 )}
 
 #add_spell.instant(name, timer) {add_spell(\
-  '{name}',\
-  0.0,\
-  0.0,\
-  {timer}\
+  {name},\
+  instant,\
+  {timer}, ,\
 )}
-
+; Exclude the x, y coordinates for instant spells
 #add_spell.grounded(name, timer, coord_x, coord_y) {add_spell(\
-  '{name}',\
+  {name},\
+  grounded,\
+  {timer},\
   {coord_x},\
-  {coord_y},\
-  {timer}\
+  {coord_y}\
 )}

@@ -53,12 +53,10 @@
 ; this only applies if you want to display the output
 ; 
 
-{spell_debug.log(0)}
-{spell_debug.halt_compilation(0)}
+{spell_debug.log(false)}
+{spell_debug.halt_compilation(false)}
 {spell_debug.recordings_before_halt(2)}
-{spell_debug.display_spells(0)}
-{spell_debug.display_spacers_as_numbers(0)}
-{spell_debug.display_spells_in_batch(0)}
+{spell_debug.display_spells(true)}
 {spell_debug.display_format('\n|')}
 
 ; 
@@ -111,29 +109,30 @@
 ; to follow
 ; 
 
-{synchronize(2, 0.0)}
+{synchronize(2)}
 {add_spell.instant(barrier.temporal, 0.0)}
 {add_spell.instant(spell.floof, 0.0)}
 
-{synchronize(2, 0.0)}
+{synchronize(1)}
 {add_spell.instant(spell.response.neutral, 0.0)}
 {add_spell.grounded(spell.void, 0.0, 0.0, 0.0)}
 
 {add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
 
-{synchronize(4, 0.0)}
+{synchronize(0)}
 {add_spell.instant(spell.snapOfDestiny, 1.0)}
 {add_spell.instant(spell.recharge, 1.0)}
 {add_spell.instant(spell.cooling, 1.0)}
 {add_spell.grounded(spell.something, 1.0, 5.0, 15.0)}
 
-{synchronize(2, 0.0)}
+{synchronize(2)}
 {add_spell.instant(spell.response.neutral, 2.0)}
 {add_spell.grounded(spell.void, 2.0, 0.0, 0.0)}
 
 {add_spell.instant(spell.snapOfDestiny, 3.0)}
 
-{synchronize(6, 0.0)}
+{synchronize(6)}
+
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 {add_spell.instant(spell.refresh, 28.0)}
 {add_spell.instant(spell.recharge, 28.0)}
@@ -141,7 +140,7 @@
 {add_spell.instant(spell.floof, 28.0)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 
-{synchronize(2, 0.0)}
+{synchronize(2)}
 {add_spell.instant(spell.cooling, 29.0)}
 {add_spell.instant(spell.recharge, 29.0)}
 
@@ -149,7 +148,7 @@
 
 {add_spell.grounded(spell.something, 30.5, 12.0, 10.0)}
 
-{synchronize(5, 0.0)}
+{synchronize(5)}
 {add_spell.instant(spell.snapOfDestiny, 31.0)}
 {add_spell.instant(spell.recharge, 31.0)}
 {add_spell.instant(spell.refresh, 31.0)}
@@ -179,13 +178,4 @@
 ; create separate sequences if need be
 ; Such as for a fragment AI
 ; 
-
-:const string actives '{lua(return spell.concat_actives())}'
-:const string text_end_character '{lua(return spell.text.text_ending_character)}'
-:const int spells_count {lua(return #spell.active)}
-:const int spell_size {lua(return spell.active_max_length)}
-
-:const int sync_precision {lua(return spell.precision.sync)}
-:const int time_precision {lua(return 2 + spell.precision.timer)}
-:const int placement_precision {lua(return 2 + spell.precision.placement)}
 
