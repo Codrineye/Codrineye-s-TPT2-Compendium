@@ -1,0 +1,269 @@
+; Script that defines multiple helper lua functions
+; that let you easily build and return large expressions
+; by using a lua macro instead of multiple line breaks
+; 
+; Building expressions in lua can greately improve script
+; readability and maintinability if used correctly
+
+{lua(\
+  local actions = {};\
+  actions.meta = {};\
+  actions.meta.names = table.pack(\
+    "varGet", "get_%sVar",\
+    "operation",\
+    "operation_%sPrimitive",\
+    "%s",\
+    "%sString",\
+    "%s"\
+  );\
+  actions.names = table.pack(\
+    "varGet", "get_%sVar",\
+    "operation",\
+    "operation_%sPrimitive",\
+    "not", "if",\
+    "contains",\
+    "len", "index",\
+    "concat", "sub",\
+    "%sString",\
+    "%s",\
+    "vector_%sCoord",\
+    "vec",\
+    "conversion_%sTO%s"\
+  );\
+  actions.operands = table.pack(\
+    --[[local/global.data_type.get]] "%s.%s.get", \
+    \
+    --[[left_arg, op_name, right_arg]] "%s %s %s", \
+    --[[comparison/arithmetic.type]] "%s.%s", \
+    \
+    --[[bools]] "not", "if", \
+    \
+    --[[strings]]\
+    "contains", \
+    "len", "index", \
+    "concat", "sub", \
+    --[[lower/upper]] "%s", \
+    \
+    --[[floor ceil round sin cos tan asin acos atan atan2]] "%s", \
+    --[[min max rnd]] "%s", \
+    \
+    --[[vec2.x/y]] "vec2.%s", \
+    "vec", \
+    \
+    --[[type conversion]] "%s2%s", \
+    \
+    --[[UI]] "visibility.get", "child.visibility.get", \
+    \
+    --[[Town]] "isopen", "resource", \
+    \
+    --[[.enabled/find]] "software.%s", \
+    --[[.health/energy/shield/module.cooldown]] "tower.%s", \
+    --[[.wave/era/infinity]] "highscore.%s", \
+    "disable.cost", "active.id", \
+    \
+    --[[worker.paused/group/name/task]] "worker.%s", \
+    \
+    --[[Arcade Adventure]]\
+    --[[countEntities/hasItem/isWall/Bomb/Enemy/Completed/entityType]]\
+    "adventure.%s", \
+    \
+    --[[Factory]]\
+    "active", \
+    "count", "machine.item.count", \
+    "machine.item", "factory.find", \
+    \
+    --[[Museum]]\
+    --[[pref/isLocked/freeSlots/max slot trash Tier/slot trash Elememt]]\
+    "museum.%s", \
+    "tier", \
+    "element"\
+  );\
+  actions.parameter = {};\
+  actions.parameter.count = table.pack(\
+    --[[local/global.data_type.get]] 3, \
+    \
+    --[[math/bool operations]] 3, \
+    --[[condition/arithmetic.type]] 4, \
+    \
+    --[[not, if]] 1, 3, \
+    \
+    --[[contains]] 2, \
+    --[[len, index]] 1, 3, \
+    --[[concat, sub]] 2, 3, \
+    --[[lower/upper]] 2, \
+    \
+    --[[floor ceil round sin cos tan asin acos atan atan2]] 2, \
+    --[[min max rnd]] 3, \
+    \
+    --[[vec2.x/y]] 2, \
+    --[[vec]] 2, \
+    \
+    --[[type conversion]] 3, \
+    \
+    --[[visibility.get child.visibility.get]] 1, 2, \
+    --[[isopen, resource]] 1, 1, \
+    \
+    --[[software.]] 2, \
+    --[[tower. highscore.]] 2, 3, \
+    --[[disable.cost active.id]] 1, 1, \
+    \
+    --[[worker.paused/group/name/task]] 2, \
+    \
+    --[[Arcade Adventure]]\
+    --[[adventure.]] 2, \
+    \
+    --[[Factory]]\
+    --[[active]] 1, \
+    --[[count machine.item.count]] 2, 1, \
+    --[[machine.item factory.find]] 1, 1, \
+    \
+    --[[Museum]]\
+    --[[museum.]] 2, \
+    --[[tier]] 2, \
+    --[[element]] 2\
+  );\
+  actions.parameter.names = table.pack(\
+    --[[local/global.data_type.get]]\
+    "var_type", "data_type", "var_name", \
+    --[[math/bool operations]]\
+    "left_value", "operator_name", "right_value",\
+    --[[primitive operation]] "data_type", \
+    \
+    --[[not]] "value_to_negate", \
+    --[[if]] "condition", "value_case_true", "value_case_false",\
+    \
+    --[[contains]] "parent_string", "checker_string",\
+    --[[len]] "string_value", \
+    --[[index]] "parent_string", "checker_string", "offset",\
+    --[[concat]] "left_string", "right_string", \
+    --[[sub]] "parent_string", "string_offset", "substring_length", \
+    --[[lower/upper]] "operation_name", "string_to_manipulate", \
+    \
+    --[[floor ceil round sin cos tan asin acos atan atan2]]\
+    "math_action_name", "action_value",\
+    --[[min max rnd]]\
+    "math_action_name", "left_value", "right_value",\
+    \
+    --[[vec2.x/y]] "vector_to_get_value_from",\
+    --[[vec]] "vector_coord_x", "vector_coord_y",\
+    \
+    --[[type conversion]]\
+    "type_to_conver_from", "type_to_convert_to", "value_to_convert",\
+    --[[for string to value]] "fallback_value",\
+    \
+    --[[visibility.get]] "window_ID",\
+    --[[child.visibility.get]] "window_ID", "element_ID",\
+    \
+    --[[isopen]] "roomID",\
+    --[[resource]] "resourceID",\
+    \
+    --[[software.]] "operation_name", "software_operation_value",\
+    --[[tower.]] "tower_stat", "tower_stat_parameter",\
+    --[[highscore.]] "highscore_target", "region", "difficulty",\
+    --[[disable.cost]] "element_name",\
+    --[[active.id]] "active_spell_name",\
+    \
+    --[[worker.]] "worker_operation", "worker_ID",\
+    --[[adventure.]] "adventure_operation", "operation_request",\
+    \
+    --[[active]] "machine_name",\
+    --[[count]] "item_name", "item_tier",\
+    --[[machine.item.count]] "machine_name",\
+    --[[machine.item]] "machine_name",\
+    --[[factory.find]] "item_name",\
+    \
+    --[[museum.]] "museum_operation", "stone_index",\
+    --[[tier]] "target_menu", "target_slot",\
+    --[[element]] "target_menu", "target_slot"\
+  );\
+  --[[/*\
+      * We define types as already-known values\
+      * For instance, local/global.data_type.get is\
+      * defined as 2, 0, 0\
+      * 2 is for local/global\
+      * 0 is for the data_types\
+      * 0 is for the name\
+      * since names and data_types not already-known values,\
+      * we set them to 0\
+     */]]\
+  actions.parameter.types = {};\
+  actions.parameter.types.count = table.pack(\
+    --[[local/global.data_type.get]] 2, 0, 0,\
+    --[[math/bool operations]] 0, 0, 0,\
+    --[[comparison/arithmetic primitives]] 2,\
+    \
+    --[[not/if]] 0, 0, 0, 0,\
+    \
+    --[[contains]] 0, 0,\
+    --[[len/index]] 0, 0, 0, 0,\
+    --[[concat/sub]] 0, 0, 0, 0, 0,\
+    --[[lower/upper]] 2, 0,\
+    \
+    --[[floor ceil round sin cos tan asin acos atan atan2]]\
+    10, 0,\
+    --[[min max rnd]]\
+    3, 0, 0,\
+    \
+    --[[vec2.x/y]] 2,\
+    --[[vec]] 0, 0,\
+    \
+    --[[type conversion]]\
+    3, 3, 0,\
+    --[[for string to value]] 0,\
+    \
+    --[[visibility.get]] 0,\
+    --[[child.visibility.get]] 0, 0,\
+    \
+    --[[isopen]] 0,\
+    --[[resource]] 0,\
+    \
+    --[[software.]] 2, 0,\
+    --[[tower.]] 4, 0,\
+    --[[highscore.]] 3, 0, 0,\
+    --[[disable.cost]] 0,\
+    --[[active.id]] 0,\
+    \
+    --[[worker.]] 4, 0,\
+    --[[adventure.]] 7, 0,\
+    \
+    --[[active]] 0,\
+    --[[count]] 0, 0,\
+    --[[machine.item.count]] 0,\
+    --[[machine.item]] 0,\
+    --[[factory.find]] 0,\
+    \
+    --[[museum.]] 8, 0,\
+    --[[tier]] 0, 0,\
+    --[[element]] 0, 0\
+  );\
+  actions.parameter.types.names = table.pack(\
+    --[[variable types]] "local", "global",\
+    \
+    --[[primitives]] "comparison", "arithmetic",\
+    "upper", "lower",\
+    \
+    "floor", "ceil", "round", \
+    "sin", "cos", "tan", "asin", "acos", "atan", "atan2",\
+    \
+    "min", "max", "rnd",\
+    \
+    --[[vec2.%s()]] "x", "y",\
+    \
+    --[[int/double/string]] "i", "d", "s",\
+    --[[2]]\
+    --[[int/double/string]] "i", "d", "s",\
+    \
+    --[[software.]] "enable", "find",\
+    --[[tower.]] "health", "shield", "energy", "module.cooldown",\
+    --[[highscore]] "wave", "era", "infinity",\
+    \
+    --[[worker.]] "paused", "group", "name", "task",\
+    --[[adventure.]] "countEntities", "hasItem", \
+    "isWall", "isBomb", "isEnemy", "isCompleted", \
+    "entityType",\
+    \
+    --[[museum.]] "pref", "isLocked", "freeSlots", \
+    "maxTier", "slotTier", "trashTier", \
+    "slotElement", "trashElement"\
+  );\
+)}

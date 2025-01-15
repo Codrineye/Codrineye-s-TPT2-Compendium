@@ -6,264 +6,262 @@
 ; readability and maintinability if used correctly
 
 {lua(\
-  local actions = {};\
-  actions.meta = {};\
-  actions.meta.names = table.pack(\
-    "varGet", "get_%sVar",\
-    "operation",\
-    "operation_%sPrimitive",\
-    "%s",\
-    "%sString",\
-    "%s"\
-  );\
-  actions.names = table.pack(\
-    "varGet", "get_%sVar",\
-    "operation",\
-    "operation_%sPrimitive",\
-    "not", "if",\
-    "contains",\
-    "len", "index",\
-    "concat", "sub",\
-    "%sString",\
-    "%s",\
-    "vector_%sCoord",\
-    "vec",\
-    "conversion_%sTO%s"\
-  );\
-  actions.operands = table.pack(\
-    --[[local/global.data_type.get]] "%s.%s.get", \
-    \
-    --[[left_arg, op_name, right_arg]] "%s %s %s", \
-    --[[comparison/arithmetic.type]] "%s.%s", \
-    \
-    --[[bools]] "not", "if", \
-    \
-    --[[strings]]\
-    "contains", \
-    "len", "index", \
-    "concat", "sub", \
-    --[[lower/upper]] "%s", \
-    \
-    --[[floor ceil round sin cos tan asin acos atan atan2]] "%s", \
-    --[[min max rnd]] "%s", \
-    \
-    --[[vec2.x/y]] "vec2.%s", \
-    "vec", \
-    \
-    --[[type conversion]] "%s2%s", \
-    \
-    --[[UI]] "visibility.get", "child.visibility.get", \
-    \
-    --[[Town]] "isopen", "resource", \
-    \
-    --[[.enabled/find]] "software.%s", \
-    --[[.health/energy/shield/module.cooldown]] "tower.%s", \
-    --[[.wave/era/infinity]] "highscore.%s", \
-    "disable.cost", "active.id", \
-    \
-    --[[worker.paused/group/name/task]] "worker.%s", \
-    \
-    --[[Arcade Adventure]]\
-    --[[countEntities/hasItem/isWall/Bomb/Enemy/Completed/entityType]]\
-    "adventure.%s", \
-    \
-    --[[Factory]]\
-    "active", \
-    "count", "machine.item.count", \
-    "machine.item", "factory.find", \
-    \
-    --[[Museum]]\
-    --[[pref/isLocked/freeSlots/max slot trash Tier/slot trash Elememt]]\
-    "museum.%s", \
-    "tier", \
-    "element"\
-  );\
-  actions.parameter = {};\
-  actions.parameter.count = table.pack(\
-    --[[local/global.data_type.get]] 3, \
-    \
-    --[[math/bool operations]] 3, \
-    --[[condition/arithmetic.type]] 4, \
-    \
-    --[[not, if]] 1, 3, \
-    \
-    --[[contains]] 2, \
-    --[[len, index]] 1, 3, \
-    --[[concat, sub]] 2, 3, \
-    --[[lower/upper]] 2, \
-    \
-    --[[floor ceil round sin cos tan asin acos atan atan2]] 2, \
-    --[[min max rnd]] 3, \
-    \
-    --[[vec2.x/y]] 2, \
-    --[[vec]] 2, \
-    \
-    --[[type conversion]] 3, \
-    \
-    --[[visibility.get child.visibility.get]] 1, 2, \
-    --[[isopen, resource]] 1, 1, \
-    \
-    --[[software.]] 2, \
-    --[[tower. highscore.]] 2, 3, \
-    --[[disable.cost active.id]] 1, 1, \
-    \
-    --[[worker.paused/group/name/task]] 2, \
-    \
-    --[[Arcade Adventure]]\
-    --[[adventure.]] 2, \
-    \
-    --[[Factory]]\
-    --[[active]] 1, \
-    --[[count machine.item.count]] 2, 1, \
-    --[[machine.item factory.find]] 1, 1, \
-    \
-    --[[Museum]]\
-    --[[museum.]] 2, \
-    --[[tier]] 2, \
-    --[[element]] 2\
-  );\
-  actions.parameter.names = table.pack(\
-    --[[local/global.data_type.get]]\
-    "var_type", "data_type", "var_name", \
-    --[[math/bool operations]]\
-    "left_value", "operator_name", "right_value",\
-    --[[primitive operation]] "data_type", \
-    \
-    --[[not]] "value_to_negate", \
-    --[[if]] "condition", "value_case_true", "value_case_false",\
-    \
-    --[[contains]] "parent_string", "checker_string",\
-    --[[len]] "string_value", \
-    --[[index]] "parent_string", "checker_string", "offset",\
-    --[[concat]] "left_string", "right_string", \
-    --[[sub]] "parent_string", "string_offset", "substring_length", \
-    --[[lower/upper]] "operation_name", "string_to_manipulate", \
-    \
-    --[[floor ceil round sin cos tan asin acos atan atan2]]\
-    "math_action_name", "action_value",\
-    --[[min max rnd]]\
-    "math_action_name", "left_value", "right_value",\
-    \
-    --[[vec2.x/y]] "vector_to_get_value_from",\
-    --[[vec]] "vector_coord_x", "vector_coord_y",\
-    \
-    --[[type conversion]]\
-    "type_to_conver_from", "type_to_convert_to", "value_to_convert",\
-    --[[for string to value]] "fallback_value",\
-    \
-    --[[visibility.get]] "window_ID",\
-    --[[child.visibility.get]] "window_ID", "element_ID",\
-    \
-    --[[isopen]] "roomID",\
-    --[[resource]] "resourceID",\
-    \
-    --[[software.]] "operation_name", "software_operation_value",\
-    --[[tower.]] "tower_stat", "tower_stat_parameter",\
-    --[[highscore.]] "highscore_target", "region", "difficulty",\
-    --[[disable.cost]] "element_name",\
-    --[[active.id]] "active_spell_name",\
-    \
-    --[[worker.]] "worker_operation", "worker_ID",\
-    --[[adventure.]] "adventure_operation", "operation_request",\
-    \
-    --[[active]] "machine_name",\
-    --[[count]] "item_name", "item_tier",\
-    --[[machine.item.count]] "machine_name",\
-    --[[machine.item]] "machine_name",\
-    --[[factory.find]] "item_name",\
-    \
-    --[[museum.]] "museum_operation", "stone_index",\
-    --[[tier]] "target_menu", "target_slot",\
-    --[[element]] "target_menu", "target_slot"\
-  );\
-  --[[/*\
-      * We define types as already-known values\
-      * For instance, local/global.data_type.get is\
-      * defined as 2, 0, 0\
-      * 2 is for local/global\
-      * 0 is for the data_types\
-      * 0 is for the name\
-      * since names and data_types not already-known values,\
-      * we set them to 0\
-     */]]\
-  actions.parameter.types = {};\
-  actions.parameter.types.count = table.pack(\
-    --[[local/global.data_type.get]] 2, 0, 0,\
-    --[[math/bool operations]] 0, 0, 0,\
-    --[[comparison/arithmetic primitives]] 2,\
-    \
-    --[[not/if]] 0, 0, 0, 0,\
-    \
-    --[[contains]] 0, 0,\
-    --[[len/index]] 0, 0, 0, 0,\
-    --[[concat/sub]] 0, 0, 0, 0, 0,\
-    --[[lower/upper]] 2, 0,\
-    \
-    --[[floor ceil round sin cos tan asin acos atan atan2]]\
-    10, 0,\
-    --[[min max rnd]]\
-    3, 0, 0,\
-    \
-    --[[vec2.x/y]] 2,\
-    --[[vec]] 0, 0,\
-    \
-    --[[type conversion]]\
-    3, 3, 0,\
-    --[[for string to value]] 0,\
-    \
-    --[[visibility.get]] 0,\
-    --[[child.visibility.get]] 0, 0,\
-    \
-    --[[isopen]] 0,\
-    --[[resource]] 0,\
-    \
-    --[[software.]] 2, 0,\
-    --[[tower.]] 4, 0,\
-    --[[highscore.]] 3, 0, 0,\
-    --[[disable.cost]] 0,\
-    --[[active.id]] 0,\
-    \
-    --[[worker.]] 4, 0,\
-    --[[adventure.]] 7, 0,\
-    \
-    --[[active]] 0,\
-    --[[count]] 0, 0,\
-    --[[machine.item.count]] 0,\
-    --[[machine.item]] 0,\
-    --[[factory.find]] 0,\
-    \
-    --[[museum.]] 8, 0,\
-    --[[tier]] 0, 0,\
-    --[[element]] 0, 0\
-  );\
-  actions.parameter.types.names = table.pack(\
-    --[[variable types]] "local", "global",\
-    \
-    --[[primitives]] "comparison", "arithmetic",\
-    "upper", "lower",\
-    \
-    "floor", "ceil", "round", \
-    "sin", "cos", "tan", "asin", "acos", "atan", "atan2",\
-    \
-    "min", "max", "rnd",\
-    \
-    --[[vec2.%s()]] "x", "y",\
-    \
-    --[[int/double/string]] "i", "d", "s",\
-    --[[2]]\
-    --[[int/double/string]] "i", "d", "s",\
-    \
-    --[[software.]] "enable", "find",\
-    --[[tower.]] "health", "shield", "energy", "module.cooldown",\
-    --[[highscore]] "wave", "era", "infinity",\
-    \
-    --[[worker.]] "paused", "group", "name", "task",\
-    --[[adventure.]] "countEntities", "hasItem", \
-    "isWall", "isBomb", "isEnemy", "isCompleted", \
-    "entityType",\
-    \
-    --[[museum.]] "pref", "isLocked", "freeSlots", \
-    "maxTier", "slotTier", "trashTier", \
-    "slotElement", "trashElement"\
-  );\
+  --[[Easy way for the user to encase a value]]\
+  function value_encase(value)\
+    return string.format('(%s)', value);\
+  end\
+  --[[root var get and its "children"]]\
+  function editor_varGet(var_type, data_type, var_name)\
+    return string.format('%s.%s.get(%s)', var_type, data_type, var_name);\
+  end\
+  \
+  function editor_get_globalVar(data_type, var_name)\
+    return editor_varGet("global", data_type, var_name);\
+  end\
+  function editor_get_localVar(data_type, var_name)\
+    return editor_varGet("local", data_type, var_name);\
+  end\
+  \
+  --[[handle most string/bool/arithmetical operations]]\
+  function editor_math(leftVal, op_name, right_val)\
+    return string.format("%s %s %s", leftVal, op_name, right_val);\
+  end\
+  function editor_prim_math(leftVal, op_name, right_val)\
+    return string.format('%s, %s, %s', leftVal, op_name, right_val);\
+  end\
+  function editor_prim_compare(data_type, leftVal, op_name, rightVal)\
+    local comparison = editor_prim_math(leftVal, op_name, rightVal);\
+    return string.format('comparison.%s(%s)', data_type, comparison);\
+  end\
+  function editor_prim_arithmetic(dataType, leftVal, op_name, rightVal)\
+    local arithmetic = editor_prim_math(leftVal, op_name, rightVal);\
+    return string.format('arithmetic.%s(%s)', dataType, arithmetic);\
+  end\
+  function editor_not(value_to_negate)\
+    return string.format("not(%s)", value_to_negate);\
+  end\
+  function editor_if(condition, val_true, val_false)\
+    local if_contents = table.pack(condition, val_true, val_false);\
+    local if_statemant = editor_prim_math(table.unpack(if_contents));\
+    return string.format("if(%s)", if_statemant);\
+  end\
+  function editor_contains(parent_string, checker_string)\
+    local contains = table.pack(parent_string, checker_string);\
+    return string.format("contains(%s, %s)", table.unpack(contains));\
+  end\
+  function editor_len(string_value)\
+    return string.format("len(%s)", string_value);\
+  end\
+  function editor_index(parent_string, checker_string, offset)\
+    local index = table.pack(parent_string, checker_string, offset);\
+    return string.format('index(%s, %s, %s)', table.unpack(index));\
+  end\
+  function editor_concat(left_string, right_string)\
+    return string.format('concat(%s, %s)', left_string, right_string)\
+  end\
+  function editor_sub(parent_string, offset, length)\
+    local substring = table.pack(parent_string, offset, length);\
+    return string.format('sub(%s, %s, %s)', table.unpack(substring));\
+  end\
+  function editor_lower(string_to_manipulate)\
+    return string.format('lower(%s)', string_to_manipulate);\
+  end\
+  function editor_upper(string_to_manipulate)\
+    return string.format('upper(%s)', string_to_manipulate);\
+  end\
+  function editor_floor(floor_value)\
+    return string.format('floor(%s)', floor_value);\
+  end\
+  function editor_ceil(ceil_value)\
+    return string.format('ceil(%s)', ceil_value);\
+  end\
+  function editor_round(round_value)\
+    return string.format('round(%s)', round_value);\
+  end\
+  function editor_sin(sin_value)\
+    return string.format('sin(%s)', sin_value);\
+  end\
+  function editor_cos(cos_value)\
+    return string.format('cos(%s)', cos_value);\
+  end\
+  function editor_tan(tan_value)\
+    return string.format('tan(%s)', tan_value);\
+  end\
+  function editor_asin(asin_value)\
+    return string.format('asin(%s)', asin_value);\
+  end\
+  function editor_acos(acos_value)\
+    return string.format('acos(%s)', acos_value);\
+  end\
+  function editor_atan(atan_value)\
+    return string.format('atan(%s)', atan_value);\
+  end\
+  function editor_atan2(atan2_value)\
+    return string.format('atan2(%s)', atan2_value);\
+  end\
+  function editor_min(leftVal, rightVal)\
+    return string.format('min(%s, %s)', leftVal, rightVal);\
+  end\
+  function editor_max(leftVal, rightVal)\
+    return string.format('max(%s, %s)', leftVal, rightVal);\
+  end\
+  function editor_rnd(minVal, maxVal)\
+    return string.format('rnd(%s, %s)', minVal, maxVal);\
+  end\
+  function editor_vector_xCoord(vector_value)\
+    return string.format('vec2.x(%s)', vector_value);\
+  end\
+  function editor_vector_yCoord(vector_value)\
+    return string.format('vec2.y(%s)', vector_value);\
+  end\
+  function editor_vec(vector_coord_x, vector_coord_y)\
+    local vector = table.pack(vector_coord_x, vector_coord_y);\
+    return string.format('vec(%s, %s)', table.unpack(vector));\
+  end\
+  function editor_convertDataType(originType, desiredType, value)\
+    return string.format('%s2%s(%s)', originType, desiredType, value);\
+  end\
+  function editor_convertFromString(desiredType, value, fallback)\
+    return string.format('s2%s(%s, %s)', desiredType, value, fallback);\
+  end\
+  function editor_convertIntToDouble(value)\
+    return editor_convertDataType("i", "d", value);\
+  end\
+  function editor_convertIntToString(value)\
+    return editor_converDataType("i", "s", value);\
+  end\
+  function editor_convertDoubleToInt(value)\
+    return editor_convertDataType("d", "i", value);\
+  end\
+  function editor_convertDoubleToString(value)\
+    return editor_convertDataType("d", "s", value);\
+  end\
+  function editor_convertStringToInt(value, fallback)\
+    return editor_convertFromString("i", value, fallback);\
+  end\
+  function editor_convertStringToDouble(value, fallback)\
+    return editor_convertFromString("d", value, fallback);\
+  end\
+  function editor_visibilityGet(windowID)\
+    return string.format('visibility.get(%s)', windowID);\
+  end\
+  function editor_childVisibilityGet(windowID, elementID);\
+    local windowStr = 'child.visibility.get(%s, %s)';\
+    return string.format(windowStr, windowID, elementID);\
+  end\
+  function editor_isopen(roomID)\
+    return string.format('isopen(%s)', roomID);\
+  end\
+  function editor_resource(resourceID)\
+    return string.format('resource(%s)', resourceID);\
+  end\
+  function editor_softwareEnabled(softwareID)\
+    return string.format('software.enabled(%s)', softwareID);\
+  end\
+  function editor_softwareFind(softwareName)\
+    return string.format('software.find(%s)', softwareName);\
+  end\
+  function editor_towerHealth(percentage)\
+    return string.format('tower.health(%s)', percentage);\
+  end\
+  function editor_towerEnergy(percentage)\
+    return string.format('tower.energy(%s)', percentage);\
+  end\
+  function editor_towerShield(percentage)\
+    return string.format('tower.shield(%s)', percentage);\
+  end\
+  function editor_moduleCooldown(module_index)\
+    local cooldown = 'tower.module.cooldown(%s)';\
+    return string.format(cooldown, module_index);\
+  end\
+  function editor_highscoreWave(region, difficulty)\
+    local highscore = 'highscore.wave(%s, %s)';\
+    return string.format(highscore, region, difficulty);\
+  end\
+  function editor_highscoreEra(region, difficulty)\
+    local highscore = 'highscore.era(%s, %s)';\
+    return string.format(highscore, region, difficulty);\
+  end\
+  function editor_highscoreInfinity(region, difficulty)\
+    local highscore = 'highscore.infinity(%s, %s)';\
+    return string.format(highscore, region, difficulty);\
+  end\
+  function editor_disableCost(element_name)\
+    return string.format('disable.cost(%s)', element_name);\
+  end\
+  function editor_activeID(active_spell_name)\
+    return string.format('active.id(%s)', active_spell_name);\
+  end\
+  function editor_workerPaused(workerID)\
+    return string.format('worker.paused(%s)', workerID);\
+  end\
+  function editor_workerGroup(workerID)\
+    return string.format('worker.group(%s)', workerID);\
+  end\
+  function editor_workerName(workerID)\
+    return string.format('worker.name(%s)', workerID);\
+  end\
+  function editor_workerTask(workerID)\
+    return string.format('worker.task(%s)', workerID);\
+  end\
+  function editor_adventureCountEntities(entityType)\
+    return string.format('adventure.countEntities(%s)', entityType);\
+  end\
+  function editor_adventureHasItem(item_name)\
+    return string.format('adventure.hasItem(%s)', item_name);\
+  end\
+  function editor_adventureIsWall(tile_coords)\
+    return string.format('adventure.isWall(%s)', tile_coords);\
+  end\
+  function editor_adventureIsBomb(tile_coords)\
+    return string.format('adventure.isBomb(%s)', tile_coords);\
+  end\
+  function editor_adventureIsEnemy(tile_coords)\
+    return string.format('adventure.isEnemy(%s)', tile_coords);\
+  end\
+  function editor_adventureIsCompleted(room_coords)\
+    return string.format('adventure.isCompleted(%s)', room_coords);\
+  end\
+  function editor_adventureEntityType(tile_coords)\
+    return string.format('adventure.entityType(%s)', tile_coords);\
+  end\
+  function editor_isMachineActive(machine_name)\
+    return string.format('active(%s)', machine_name)\
+  end\
+  function editor_countFactoryItems(item_name, item_tier)\
+    return string.format('count(%s, %s)', item_name, item_tier);\
+  end\
+  function editor_CountItemsInMachine(machine_name)\
+    return string.format('machine.item.count(%s)', machine_name);\
+  end\
+  function editor_factoryItemInMachine(machine_name)\
+    return string.format('machine.item(%s)', machine_name);\
+  end\
+  function editor_findFactoryItem(item_name)\
+    return string.format('factory.find(%s)', item_name);\
+  end\
+  function editor_marketPreference(stone_element)\
+    return string.format('museum.pref(%s)', stone_element);\
+  end\
+  function editor_isMarketSlotLocked(stone_index)\
+    return string.format('museum.isLocked(%s)', stone_index);\
+  end\
+  function editor_museumFreeSlots(target_menu)\
+    return string.format('museum.freeSlots(%s)', target_menu);\
+  end\
+  function editor_maxStoneTier(element)\
+    return string.format('museum.maxTier(%s)', element);\
+  end\
+  function editor_slotTier(offerSlot)\
+    return string.format('museum.slotTier(%s)', offerSlot);\
+  end\
+  function editor_trashTier(trashSlot)\
+    return string.format('museum.trashTier(%s)', trashSlot);\
+  end\
+  function editor_slotElement(offerSlot)\
+    return string.format('museum.slotElement(%s)', offerSlot);\
+  end\
+  function editor_trashElement(trashSlot)\
+    return string.format('museum.trashElement(%s)', trashSlot);\
+  end\
 )}
