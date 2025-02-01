@@ -1,6 +1,6 @@
 # Perfect Tower lib
 
-This is a library you import into desmos by pasting in this link into your graph `https://www.desmos.com/calculator/0ggizwae6x`.
+This is a library you import into desmos by pasting in this link into your graph https://www.desmos.com/calculator/0ggizwae6x.
 
 It consists of a UI size slider, a game screen rectangle, a game mouse and a button to reset the UI status to the default state of an 800x450 resolution with a 100% ui size.
 
