@@ -5,177 +5,142 @@
 ; This script has macros that allow you to
 ; communicate with the compactor and its debugger
 ; 
-; The following macros let you communicate
-; with the debugger
-; You can freely change the values you
-; give the macros, if you're curious as
-; to what each debug macro effects
-; 
-; spell_debug.log permits logging to
-; the browser developer console
-; 
-; 
-; What does it mean for the compactor to halt?
-; When the compactor halts, it means that 
-; adding a spell will no longer be stored
-; 
-; Halting is useful when debugging, as you can see
-; what the program "sees" at that time
-; 
-; spell_debug.halt_compilation signals to the
-; compactor that compilation should halt eventually
-; 
-; spell_debug.recordings_before_halt is the amount
-; of spells you can add before compilation halts
-; this value has no effect if spell_debug.halt_compilation
-; is set to 0
-; 
-; spell_debug.display_spells tells the debugger
-; to display the spells you added
-; 
-; spell_debug.display_spacers_as_numbers tells
-; the debugger to convert all spacing sequences
-; as the number of spaces, instead of the
-; spacing sequence itself
-; 
-; essentially, it converts [...] to [3]
-; This improves readability when
-; displaying spells
-; 
-; spell_debug.display_spells_in_batch signals the
-; compactor to display your spells, but to only add
-; a `display_format` at the start of a new batch 
-; 
-; spell_debug.display_format is a string that
-; acts as a separtor for inputs
-; the string you input in this field will be
-; at the beginning of every recorded field
-; this only applies if you want to display the output
-; 
-
 {spell_debug.log(false)}
-{spell_debug.halt_compilation(false)}
+; Set to true if you want to get a log of your recording
+; 
+{spell_debug.can_halt(false)}
+; Set to true if you want to create a 'breakpoint'
+; Setting it to true also enables logging implicitly
+; 
 {spell_debug.recordings_before_halt(2)}
-{spell_debug.display_spells(true)}
+; Set the number of spells you can record
+; before the recording system halts.
+; It does nothing if can_halt is false 
+; 
+{spell_debug.display_spells(false)}
+; Set to true if you want to display your spells
+; You will see them as an error message to the right
+; 
 {spell_debug.display_format('\n|')}
+; Set the string that'll be used to format your spells
+; This is only used if display_spells is set to true
+; 
+; Lastly <spell_debug.add_breakpoint>
+; as its name implies, you use it to add a breakpoint
+; it sets display_spells to true and halts the program at that point
+; so that you can see the current state of the script
 
 ; 
-; Time for the actual recording
-; you have 4 functions at your disposal
+; For recording a blueprint, you have the following
+; 4 macros
 ; 
-; add_spell.instant()
-; this takes in 2 parameters 
-; * the name of the spell, this can be obtained by
-;   simply importing a script that uses all the modules you want
-; * the timer for the spell, being the amount of time you want
-;   to pass before activation
+; recorded_blueprint(blueprint_name, loopable_blueprint)
+; Is used after a recording sequence to define a blueprint
 ; 
-; add_spell.grounded()
-; this takes in 4 parameters
-; * the name, just like in add_spell.instant()
-; * the timer, just like in add_spell.instant()
-; * the x position of where you want to cast the spell
-; * the y position of where you want to cast the spell
+; It returns a const int variable
+; called "blueprint_<blueprint_name>"
+; that holds an index for you to use in a substring to extract
+; the desired blueprint
 ; 
-; blueprint AI's usually use winemast for the timer `t`
-; the timer is the value of `t` at the time of activation
+; blueprint_name is just any string. You do not include the double quotes
+; loopable_blueprint is a true/false value
+; if true, it makes the compactor execute the recording sequence on loop
 ; 
-; synchronize()
-; this takes in 2 parameters
-; * the number of modules you want to activate at once
-; * a potential delay you may want to add to the spell timers
+; synchronize(spell_ammount) 
+; it makes the following spell_ammount recordings
+; get used on the same gametick
 ; 
-; add_batch()
-; this takes in 1 parameter
-; * the name you want to give this batch
+; onto the add_spell.<spell_type> functions
+; they all require the spell ID, which you can obtain
+; by importing a script that uses the modules you want
 ; 
-; a batch reprezents a separation in the recording
-; this is done when you have multiple activation sequences
-; that you want to have in the same actives string
+; These functions also return a const int spell_<spell_number>
+; holding the current ammount of space in your recording after
+; the addition of the new spell
 ; 
-; The batch name is used to determine
-; when a batch starts
+; add_spell.instant(spell_name, timer)
+; spell_name is the active modules ID.
+; timer is the time at which you'd like the spell to be used
 ; 
+; add_spell.grounded(spell_name, timer, coord_x, coord_y);
+; Same as add_spell.instant but you now define the x/y coordinates
+; you want the spell to be cast at
 ; 
-; If you have a grounded module with coordinates 0,0
-; I do not recommend defining it as an instant module
-; 
-; Even tho your input will be correctly processed
-; you will likely have to change things at some point
-; and this definition can lead to confusion
-; 
-; You should not define an instant module as grounded
-; for the same reason, make the sequence easier for you
-; to follow
+; There's a little wrinkle with add_spell.instant
+; that treates instant spells as grounded spells
+; that are placed at position 0.0 0.0
 ; 
 
-{synchronize(2)}
+; All recorded spells get concatenated into the const string
+; `recorded_actives` with its length being stored in the const int
+; `recording_size`
+
+; ===================================================================== ; 
+; -------------------------> START RECORDING <------------------------- ; 
+; ===================================================================== ; 
+
+
 {add_spell.instant(barrier.temporal, 0.0)}
-{add_spell.instant(spell.floof, 0.0)}
+; adds the instant spell `temporal barrier` to be used when t >= 0.0
 
-{synchronize(1)}
-{add_spell.instant(spell.response.neutral, 0.0)}
 {add_spell.grounded(spell.void, 0.0, 0.0, 0.0)}
+; adds the grounded spell `void` to be used
+; at position 0.0, 0.0 on the map when t >= 0.0
 
-{add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
-
-{synchronize(0)}
-{add_spell.instant(spell.snapOfDestiny, 1.0)}
-{add_spell.instant(spell.recharge, 1.0)}
-{add_spell.instant(spell.cooling, 1.0)}
-{add_spell.grounded(spell.something, 1.0, 5.0, 15.0)}
+{recorded_blueprint(start, false)}
+; defines the blueprint called "blueprint_start" that doesn't loop
+; the spell activation sequence when it executes the last spell
 
 {synchronize(2)}
-{add_spell.instant(spell.response.neutral, 2.0)}
-{add_spell.grounded(spell.void, 2.0, 0.0, 0.0)}
+; makes the next 2 recordings happen on the same game_tick
 
-{add_spell.instant(spell.snapOfDestiny, 3.0)}
+{add_spell.instant(spell.response.neutral, 0.0)}
+; adds the instant spell `neutral response` to be used when t >= 0.0
+{add_spell.grounded(spell.void, 10.0, 0.0, 0.0)}
+; adds the grounded spell `void` to be used
+; at position 0.0, 0.0 on the map when t is a multiple of 10.0
 
-{synchronize(6)}
+{recorded_blueprint(loop, true)}
+; defines the blueprint called "blueprint_loop" that loops
 
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
-{add_spell.instant(spell.refresh, 28.0)}
-{add_spell.instant(spell.recharge, 28.0)}
-{add_spell.instant(barrier.temporal, 28.0)}
-{add_spell.instant(spell.floof, 28.0)}
-{add_spell.instant(spell.snapOfDestiny, 28.0)}
-
-{synchronize(2)}
-{add_spell.instant(spell.cooling, 29.0)}
-{add_spell.instant(spell.recharge, 29.0)}
-
-{add_spell.grounded(spell.void, 29.0, 0.0, 0.0)}
-
-{add_spell.grounded(spell.something, 30.5, 12.0, 10.0)}
-
-{synchronize(5)}
-{add_spell.instant(spell.snapOfDestiny, 31.0)}
-{add_spell.instant(spell.recharge, 31.0)}
-{add_spell.instant(spell.refresh, 31.0)}
-{add_spell.instant(barrier.temporal, 31.0)}
-{add_spell.grounded(spell.something, 31.0, 5.0, 15.0)}
-
-{add_spell.instant(spell.snapOfDestiny, 33.0)}
-
-{add_spell.instant(spell.snapOfDestiny, 57.0)}
+; adds the instant spell `snap of destiny` to be used
+; when t is a multiple of 28.0
 
 ; 
-; This marks the end of spell configuration
-; we now have a macro spell_debug
-; this is in charge of outputing debugging data
-; and prevents the output string from being read
-; when its contents are modified for displaying
+; If you just sent the sequence `recorded_actives` to the compactor
+; you'd execute
+; temporal barier, void, neutral response, void
+; and loop back to using temporal barrier
 ; 
+; Notice that, since blueprint_loop has the loop property
+; snap of destiny will never be executed
+
+; 
+; To execute just blueprint_start, you can cut that sequence
+; by using sub(recorded_actives, 0, blueprint_start)
+; 
+; If you want to isolate blueprint_loop, you cut it using
+; sub(recorded_actives, blueprint_start, blueprint_loop - blueprint_start)
+; 
+; and if you want to use snap of destiny every 28 seconds you use
+; sub(recored_actives, blueprint_loop, recording_size)
+; The last spell always gets the looping tag
+
+; ===================================================================== ; 
+; ----------------------------END RECORDING---------------------------- ;
+; ===================================================================== ; 
 
 {spell_debug}
 
 ; 
-; These are the constants you'll be dealing with
-; It's more convenient to put them at the end of this file
-; rather than copy them
-; Putting the const declaration here is
-; also beneficial since it shows you can
-; create separate sequences if need be
-; Such as for a fragment AI
-; 
+; String holding the recorded spell data
+:const string recorded_actives {lua(return Spell.comp.concat_actives())}
 
+; 
+; Int holding the size of the recorded string
+; value is the same as return #Spell.comp.concat_actives() but
+; the function version runs the function one more time, which
+; can get very slow if you have a big recording sequence
+
+:const int recoring_size {lua(return Spell.active.space)}

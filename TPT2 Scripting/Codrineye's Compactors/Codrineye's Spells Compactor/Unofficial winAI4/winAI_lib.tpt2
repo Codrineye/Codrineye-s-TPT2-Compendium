@@ -1,0 +1,63 @@
+:import Spell Config winAI
+:import Spell Compactor resources
+:import Editor_actions lib
+; Consistent naming across scripts
+#package(name) Unofficial winAI4:{name}
+
+{lua(\
+  elements = {};\
+  element_cost = {};\
+)}
+
+; helper macro so you can use set_priority easier
+; the [[no parse blocks]] are recommended here to
+; ensuse our input is a string
+; 
+; Use this to create the priority listing
+; The macro doesn't check if it's a valid element since
+; the editor checks for us :D
+#set_priority(element_name) {lua(\
+  local name = [[{element_name}]];\
+  --[[/*\
+      * Prevent recording the same element multiple times\
+      * by checking if its name has already been read\
+      * if it has, return to prevent another entry\
+     */]]\
+  if elements[name] ~= nil then\
+    return;\
+  end\
+  local index = 1 + #elements;\
+  elements[index] = Editor_stringify_value(name);\
+  element_cost[index] = Editor_disableCost(elements[index]);\
+  elements[name] = index;\
+)}
+
+; important thing to know about disable.cost(element)
+; if we input an element we can't disable, disable.cost returns -1.0
+; 
+; Here we use this fact to create an if statement
+; if(disable.cost("element"), "element", if(next_element))
+; and we repeat this until our last recorded element
+; that if statement is if(disable.cost("element"), "element", "last_element")
+#disable.era {lua(\
+  local last_element = elements[#elements];\
+  for i = #elements - 1, 1, -1 do\
+    local cost = element_cost[i];\
+    local condition = Editor_math(cost, "!=", -1.0);\
+    local caseTrue = elements[i];\
+    last_element = Editor_if(condition, caseTrue, last_element);\
+  end\
+  return last_element;\
+)}
+
+; Here we construct the condition for the bool ended_era
+; ended_era = -<number_of_elements> == <sum_of_elements_cost>
+#disabled_era {lua(\
+  local negative_costs = 0.0 - #elements;\
+  local last_cost = element_cost[#elements];\
+  for i = #elements - 1, 1, -1 do\
+    last_cost = Editor_math(last_cost, "+", element_cost[i]);\
+  end\
+  return Editor_math(negative_costs, "!=", last_cost);\
+)}
+

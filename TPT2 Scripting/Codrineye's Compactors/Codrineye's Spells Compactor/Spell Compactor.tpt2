@@ -1,0 +1,102 @@
+:import Spell Compactor lib
+:name {spell_compactor}
+
+:budget_cap max
+
+
+gotoif(timer, contains(impulse(), "{spell_compactor}"))
+; The compactor calls itself only when it needs to start the 
+
+pointer = {pointer.get}
+compactor = {compactor.get}
+
+; We use local variables to prevent a messy interface
+; And to let the user have more instances
+; of the compactor running at the same time
+
+{caller.set(if(\
+  contains(impulse(), ":"), \
+  sub(impulse(), 0, index(impulse(), ":", 0)),\
+  impulse()\
+))}
+; We also set the caller so that the user knows
+; how the compactor got accessed
+; 
+; This will typically only have 1 value, but if
+; it has a name that you don't expect, it should tell the
+; user that there's another script that uses the compactor
+; which they might want to shut down
+
+gotoif(loop, {timer.get} != 0.0)
+; We skip setting the timer if it was already run
+
+{timer.set(time.delta() * 2.0)}
+execute("{spell_compactor}")
+; If the timer hasn't been run yet, we do the
+; normal winemast initialization, setting a ticker
+; and going into our loop
+goto(loop)
+
+timer:
+waitframe()
+{timer.add(time.delta())}
+goto(if(\
+  contains({caller.get}, "idle mode"), \
+  end, \
+  timer\
+))
+
+; The timer will always run, even if the compactor shuts down
+; the only way to stop the timer is by calling the compactor, again
+; outside of towertesting or by stopping all instances of the compactor
+
+loop:
+; Since getting the timer and spell_ID are resource intensive operations
+; whose values are called more than once, we calculate then here
+spell_ID = {get_name}
+clock = {get_timer}
+
+; 0.05 is a timer buffer aka the minimum ammount of deviation
+; the timer allows
+; 
+waituntil({timer.get} % clock < 0.5 && {timer.get} >= clock)
+; 
+; We use both instant and grounded spells here because we
+; don't actually know what spell we're casting, just that we
+; have to cast one with the given parameters
+useinstant(active.index(spell_ID))
+useposition(active.index(spell_ID), {get_pos})
+
+; If we're activating multiple spells through synchronization
+; this checks if we skip refreshing the budget (signaled with an `s`)
+gotoif(no_frame, contains({get_bits}, "s"))
+waitframe()
+
+no_frame:
+{pointer.increment}
+; We add to our pointer the size of our spell
+
+#end_of_compactor contains("", sub(compactor, pointer, 10))
+; when we initialize our compactor, we add the ending bit "e" as the
+; last character in our string. This e is used to check
+; if we've ended our string (aka, haven't looped)
+; 
+; We also take a substring of size 10 and compare it with a string of size 1
+; so it can only return true if we truely are at the end of our string
+
+goto(if(\
+  {end_of_compactor}, \
+  99, \
+  if(isTowerTesting(), loop, idle)\
+))
+; We terminate the program if we reach the end of the string
+; This doesn't enter idle mode, as it's possible that the user might
+; want to send another blueprint over our way. In that case, if we
+; did enter idle mode, the timer would've stopped, de-synchronizing things
+
+end:
+{timer.set(0.0)}
+; The timer should be reset when the compactor enters idle mode
+; 
+idle:
+{caller.set("idle mode")}

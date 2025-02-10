@@ -1,91 +1,79 @@
+:import Editor_actions lib
 :import Devbuild Spell Compactor resources
-:name devbuild Spell Cmp Util
+:name devbuild Spell Comp lib
 
-#package(name) {spell_compactor_package({name})}
+; Editor_actions lib lets me create actions; that the editor can parse
+; in a lua macro
+; 
+; The main goal is to extract all the data of a spell into its components
+; The spell data is compacted as follows
+; 
+; loop_sign bit
+; sync bit
+; space
+; timer
+; coord_x coord_y
+; name
+{lua(\
+  local pointer = [[pointer]];\
+  local actives = [[compactor]]\
+  \
+  local function s2i(compactor)\
+    return Editor_convertStringToInt(compactor, -1);\
+  end\
+  local function s2d(compactor)\
+    return Editor_convertStringToDouble(compactor, -1.0);\
+  end\
+  \
+  local offset = [[pointer + 2]];\
+  local index = "";\
+  local size = "";\
+  local separator = Editor_stringify_value("|");\
+  \
+  local compactor_vals = table.pack(\
+    "space",\
+    "timer",\
+    "coord_x", "coord_y",\
+    "name"\
+  );\
+  Compactor = {};\
+  \
+  for i, value in ipairs(compactor_vals) do\
+    index = Editor_index(actives, separator, offset);\
+    size = Editor_encase_value(offset);\
+    size = Editor_math(index, "-", size);\
+    Compactor[value] = Editor_sub(actives, offset, size);\
+    local val = string.format("%s_value", value);\
+    if i == 1 then\
+      Compactor[val] = s2i(Compactor[value]);\
+    elseif i < #compactor_vals then\
+      Compactor[val] = s2d(Compactor[value]);\
+    end\
+    offset = Editor_math(index, "+", 1);\
+  end\
+)}
 
 ; 
 ; guide for size
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 
 
-; 
-; This is the stand-alone spell compactor
-; importing this should be the first action
-; performed if you're using the compactor
-; 
+:local int pointer
+:local string compactor
 
-#identifier "Spell Compactor"
+:local double clock
+:local string spell_ID
 
-#internal_pointer "<size=0>" . {identifier} . "internal" . "pointer"
-#internal_pointer.get global.int.get({internal_pointer})
-#internal_pointer.set(value) global.int.set({internal_pointer}, {value})
-#pointer.increment {internal_pointer.set(\
-  ({internal_pointer.get} + 1) % {spells_count.get}\
-)}
+#get_bits sub(compactor, pointer, 2)
+#get_space {lua(return Compactor.space_value)}
+#get_timer {lua(return Compactor.timer_value)}
+#get_coord_x {lua(return Compactor.coord_x_value)}
+#get_coord_y {lua(return Compactor.coord_y_value)}
+#get_pos vec({get_coord_x}, {get_coord_y})
+#get_name {lua(return Compactor.name)}
 
-; 
-; spells_count        = precision_count
-; spell_size          = spells_size
-; sync_precision      = precision_sync
-; time_precision      = precision_timer
-; placement_precision = precision_placement
-; text_end_character  = text_ending_character
-; actives             = active_spells
-; 
-
-#spells_count "iternal" . "count_precision" . {identifier}
-#spells_count.get global.int.get({spells_count})
-#spells_count.set(value) global.int.set({spells_count}, {value})
-
-#spell_size "internal" . "spells_size" . {identifier}
-#spell_size.get global.int.get({spell_size})
-#spell_size.set(value) global.int.set({spell_size}, {value})
-
-#sync_precision "internal" . "precision_sync" . {identifier}
-#sync_precision.get global.int.get({sync_precision})
-#sync_precision.set(value) global.int.set({sync_precision}, {value})
-
-#time_precision "internal" . "precision_time" . {identifier}
-#time_precision.get global.int.get({time_precision})
-#time_precision.set(value) global.int.set({time_precision}, {value})
-
-#placement_precision "internal" . "precision_placement" . {identifier}
-#placement_precision.get global.int.get({placement_precision})
-#placement_precision.set(value) global.int.set(\
-  {placement_precision}, \
-  {value}\
+#pointer.increment pointer = if(\
+  contains({get_bits}, "#"),\
+  0, \
+  pointer + {get_space}\
 )
-
-
-#text_end_character "internal" . "text_ending_character" . {identifier}
-#text_end_character.get global.string.get({text_end_character})
-#text_end_character.set(value) global.string.set(\
-  {text_end_character}, \
-  {value}\
-)
-
-#actives "internal" . "active_spells" . {identifier}
-#actives.get global.string.get({actives})
-#actives.set(value) global.string.set(\
-  {actives},\
-  ({value}) . {hider.close}\
-)
-
-
-#actives.displace(sync, timer, positions) position + (\
-  {sync} * {sync_precision.get} + \
-  {timer} * {time_precision.get} + \
-  {positions} * {placement_precision.get}\
-)
-
-#actives.substring(sync, timer, positions, length) sub(\
-  {actives.get},\
-  {actives.displace({sync}, {timer}, {positions})},\
-  {length}\
-)
-
-#actives.index(sync, timer, positions) index(\
-  {actives.get},\
-  {text_end_character.get},\
-  {actives.displace({sync}, {timer}, {positions})}\
-) - ({actives.displace({sync}, {timer}, {positions})})

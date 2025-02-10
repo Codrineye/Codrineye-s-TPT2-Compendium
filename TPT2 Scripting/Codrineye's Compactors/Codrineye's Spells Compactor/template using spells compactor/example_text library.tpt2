@@ -3,7 +3,7 @@
 
 ; 
 ; A blueprint AI most of the time
-; has a library just for convenience
+; has a library for convenience
 ; 
 ; Here, we import the Spell Config you just made
 ; and Spell Compactor resources
@@ -34,11 +34,6 @@
 ; when making a source project
 ; 
 
-; 
-; The following two macros are dependencies
-; added by importing Spell Compactor resources
-; 
-
 #identifier "example_text"
 
 ; 
@@ -47,23 +42,5 @@
 ; is unique to your AI
 ; 
 ; This identifier should preferably
-; be the package name, as the stand-alone compactor
-; will retrieve the data you sent by breaking
-; off the package name from the caller scripts name
-; 
-
-#compactor_type "external"
-
-; 
-; this dependency makes it possible for you
-; follow the naming scheme required when communicating
-; with the stand-alone compactor
-; 
-; by this being a macro, you can also
-; use the naming format to communicate with
-; another script, if you know the compactor_type
-; 
-; For this library, "external" is used
-; as that's the type it's reading from
-; 
-
+; be the package name to ensure you're
+; the only one who can access it

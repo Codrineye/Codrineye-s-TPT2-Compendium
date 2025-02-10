@@ -53,10 +53,6 @@
 ; they all require the spell ID, which you can obtain
 ; by importing a script that uses the modules you want
 ; 
-; These functions also return a const int spell_<spell_number>
-; holding the current ammount of space in your recording after
-; the addition of the new spell
-; 
 ; add_spell.instant(spell_name, timer)
 ; spell_name is the active modules ID.
 ; timer is the time at which you'd like the spell to be used
@@ -78,53 +74,48 @@
 ; -------------------------> START RECORDING <------------------------- ; 
 ; ===================================================================== ; 
 
-
+{synchronize(2)}
 {add_spell.instant(barrier.temporal, 0.0)}
-; adds the instant spell `temporal barrier` to be used when t >= 0.0
+{add_spell.instant(spell.floof, 0.0)}
 
-{add_spell.grounded(spell.void, 0.0, 0.0, 0.0)}
-; adds the grounded spell `void` to be used
-; at position 0.0, 0.0 on the map when t >= 0.0
+{add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
 
-{recorded_blueprint(start, false)}
-; defines the blueprint called "blueprint_start" that doesn't loop
-; the spell activation sequence when it executes the last spell
+{synchronize(4)}
+{add_spell.instant(spell.snapOfDestiny, 1.0)}
+{add_spell.instant(spell.recharge, 1.0)}
+{add_spell.instant(spell.cooling, 1.0)}
+{add_spell.grounded(spell.something, 1.0, 5.0, 15.0)}
 
 {synchronize(2)}
-; makes the next 2 recordings happen on the same game_tick
+{add_spell.instant(spell.response.neutral, 2.0)}
+{add_spell.grounded(spell.void, 2.0, 0.0, 0.0)}
 
-{add_spell.instant(spell.response.neutral, 0.0)}
-; adds the instant spell `neutral response` to be used when t >= 0.0
-{add_spell.grounded(spell.void, 10.0, 0.0, 0.0)}
-; adds the grounded spell `void` to be used
-; at position 0.0, 0.0 on the map when t is a multiple of 10.0
+{add_spell.instant(spell.snapOfDestiny, 3.0)}
 
-{recorded_blueprint(loop, true)}
-; defines the blueprint called "blueprint_loop" that loops
-
+{synchronize(6)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
-; adds the instant spell `snap of destiny` to be used
-; when t is a multiple of 28.0
+{add_spell.instant(spell.refresh, 28.0)}
+{add_spell.instant(spell.recharge, 28.0)}
+{add_spell.instant(barrier.temporal, 28.0)}
+{add_spell.instant(spell.floof, 28.0)}
+{add_spell.instant(spell.snapOfDestiny, 28.0)}
+{add_spell.instant(spell.cooling, 28.0)}
+{add_spell.instant(spell.recharge, 28.0)}
 
-; 
-; If you just sent the sequence `recorded_actives` to the compactor
-; you'd execute
-; temporal barier, void, neutral response, void
-; and loop back to using temporal barrier
-; 
-; Notice that, since blueprint_loop has the loop property
-; snap of destiny will never be executed
+{add_spell.grounded(spell.void, 30.0, 0.0, 0.0)}
 
-; 
-; To execute just blueprint_start, you can cut that sequence
-; by using sub(recorded_actives, 0, blueprint_start)
-; 
-; If you want to isolate blueprint_loop, you cut it using
-; sub(recorded_actives, blueprint_start, blueprint_loop - blueprint_start)
-; 
-; and if you want to use snap of destiny every 28 seconds you use
-; sub(recored_actives, blueprint_loop, recording_size)
-; The last spell always gets the looping tag
+{add_spell.grounded(spell.something, 30.5, 12.0, 10.0)}
+
+{synchronize(5)}
+{add_spell.instant(spell.snapOfDestiny, 31.0)}
+{add_spell.instant(spell.recharge, 31.0)}
+{add_spell.instant(spell.refresh, 31.0)}
+{add_spell.instant(barrier.temporal, 31.0)}
+{add_spell.grounded(spell.something, 31.0, 5.0, 15.0)}
+
+{add_spell.instant(spell.snapOfDestiny, 33.0)}
+
+{add_spell.instant(spell.snapOfDestiny, 57.0)}
 
 ; ===================================================================== ; 
 ; ----------------------------END RECORDING---------------------------- ;

@@ -1,0 +1,17 @@
+:import winAI_lib
+:name {package(init)}
+
+game.newround()
+
+useinstant(active.index("barrier.temporal"))
+
+{pointer.set(0)}
+{compactor.set(recorded_actives)}
+execute("{spell_compactor}")
+
+execute("{package(disables)}")
+waituntil(health(false) <= 0.0)
+
+stop("{package(disables)}")
+stop("{spell_compactor}")
+{timer.set(0.0)}

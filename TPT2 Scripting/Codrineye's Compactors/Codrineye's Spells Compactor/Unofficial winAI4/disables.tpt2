@@ -1,0 +1,49 @@
+:import winAI_lib
+:name {package(disables)}
+
+:budget_cap 200
+game.newround()
+
+:local bool disabled_era
+
+{set_priority(light)}
+{set_priority(darkness)}
+{set_priority(nature)}
+{set_priority(electricity)}
+{set_priority(universal)}
+{set_priority(fire)}
+{set_priority(neutral)}
+{set_priority(water)}
+{set_priority(earth)}
+
+gotoif(spam3, contains(impulse(), "{package(init)}"))
+
+era:
+disable.era({disable.era})
+disabled_era = {disabled_era}
+
+divider:
+upgrade.era("health", 42069)
+
+gotoif(era, xp() < disable.inf.cost())
+
+disable.inf("aura.death")
+disable.inf("reflect.wince")
+disable.inf("reflect.captain")
+disable.inf("barrier.temporal")
+disable.inf("spell.void")
+disable.inf("spell.snapOfDestiny")
+disable.inf("spell.response.neutral")
+
+goto(if(disabled_era, divider, era))
+
+spam3:
+
+useinstant(active.index("crate.rex"))
+
+waituntil({timer.get} >= 2.0)
+
+spam:
+wait(0.2)
+useinstant(active.index("spell.response.neutral"))
+goto(spam)

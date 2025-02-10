@@ -36,7 +36,7 @@ Editor.format_error_message = false;
 Editor.error_msg_spacing = 0;
 
 -- Internal variable for debugging, logs the function components
-local logging = true;
+local logging = false;
 
 local function failed_field_error(line, name, params, output)
   local err_msg = "Failed to load all parameters\n";
@@ -72,7 +72,7 @@ local function create_Editor_functions(actions_string)
     local params = line:match("%b()"):sub(2, -2);
     --[[/*
         * :sub(2, -2) removes the (parenthesies)
-        * string.sub("(test)", 2, -2) turns "(test)" into "test"
+        * string.sub("(test)", 2, -2) turns (test) into test
        */]]
     local user_params = params:gsub(", spaces", ""):gsub("spaces, ", "");
     user_params = user_params:gsub(", parens", ""):gsub("parens, ", "");
