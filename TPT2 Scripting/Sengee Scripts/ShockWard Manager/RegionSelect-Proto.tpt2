@@ -1,0 +1,70 @@
+:name RegionSelect-Proto
+:budget_cap max
+
+:global int Region
+
+:local int i
+:local int inc_ID
+:local int inc_NM
+
+wakeup()
+; Sets up the window
+
+key.z()
+key.x()
+; Up/Down
+:const string impulse.filler "wakeup|key.z|key.x"
+:const string impulse.neutral "wakeup"
+
+key.c()
+; Kill script
+
+:const string RegionID "forest|desert|winter|underground|volcano|highmountain|\
+jungle|metallicruins|beach|ocean|neutral|darkrealm|heaven|universe|chaos|"
+; 
+:const string RegionName "Forest|Desert|Winter|Underground|Volcano|High Mountain|\
+Jungle|Metallic Ruins|Beach|Ocean|Neutral|Dark Realm|Heaven|Universe|Chaos|"
+; 
+; Start Script
+; 
+visibility.set("RegionSelect", contains(impulse.filler, impulse()))
+goto(if(\
+  visibility.get("RegionSelect"),\
+  initialized,\
+  if(contains(impulse(), "key.c"), 99, create)\
+))
+create:
+create("RegionSelect", "Proto-Region")
+
+initialized:
+
+Region = if(\
+  contains(impulse.neutral, impulse()), \
+  max(1, Region),\
+  if(\
+    contains(impulse(), "key.z"),\
+    (Region % 15) + 1,\
+    if(Region == 1, 15, Region - 1)\
+  )\
+)
+
+loop:
+; 
+inc_ID = (index(RegionID, "|", inc_ID) + 1) * min(1, i)
+inc_NM = (index(RegionName, "|", inc_NM) + 1) * min(1, i)
+i = (i + 1) % Region
+gotoif(loop, i > 0)
+
+#id_idx index(RegionID, "|", inc_ID) - inc_ID
+sprite.set(\
+  "RegionSelect", \
+  "Preview", \
+  "region." . sub(RegionID, inc_ID, {id_idx}) . ".preview"\
+)
+
+#name_idx index(RegionName, "|", inc_NM) - inc_NM
+text.set(\
+  "RegionSelect", \
+  "Name", \
+  sub(RegionName, inc_NM, {name_idx})\
+)

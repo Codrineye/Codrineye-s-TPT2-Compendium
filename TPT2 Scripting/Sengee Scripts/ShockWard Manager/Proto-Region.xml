@@ -1,0 +1,14 @@
+<h content-size-fitter="true" padding="5">
+  <img sprite="region.forest.preview" id="Preview">
+    <v content-size-fitter="true" background-color="#0000">
+      <text>Selected Region:</text>
+      <text id="Name">Region</text>
+      <text size=" 40"/>
+      <h background-color="#0000" spacing="20">
+        <text>Z: Previous</text>
+        <text>X: Next</text>
+      </h>
+      <text>C: Confirm</text>
+    </v>
+  </img>
+</h>

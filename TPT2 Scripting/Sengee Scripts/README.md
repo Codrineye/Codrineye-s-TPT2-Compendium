@@ -1,0 +1,1 @@
+Scripts made for the discord user Sengee, making this folder so I can help them with their scripts even when I'm on my laptop

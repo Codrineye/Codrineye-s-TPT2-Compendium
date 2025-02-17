@@ -18,6 +18,7 @@
   --[[Table that has spell_compactor data]]\
   Spell.comp = {};\
   Spell.comp.active = {};\
+  Spell.comp.blueprint = {};\
 )}
 
 ; macros for communicating with the compactors debugging system
@@ -67,10 +68,18 @@
           * easily check it with a contains of the full spell\
          */]]\
     end\
-    local bp_name = name:match('%b""'):sub(2, -2);\
-    bp_name = string.format("blueprint_%s", bp_name);\
-    \
     local space = Spell.active.space;\
+    --[[Get the ammount of space we've currently used up]]\
+    local bp_name = name:match('%b""'):sub(2, -2);\
+    --[[removes the quote marks from the match operation]]\
+    Spell.comp.blueprint[bp_name] = space;\
+    --[[/*\
+        * And create a blueprint that stores\
+        * How much space we've used up thus far\
+       */]]\
+    \
+    bp_name = string.format("blueprint_%s", bp_name);\
+    --[[change the bp_name so we can output it as a const int]]\
     return string.format(":const int %s %s", bp_name, space)\
   end\
   function Spell.comp.sync(spell_ammount)\
@@ -211,8 +220,18 @@
     local actives_count = #actives;\
     --[[nr of recordings]]\
     \
-    actives[actives_count].loop_sign = "#";\
-    --[[Set the last sign to # to enable sequence looping]]\
+    do\
+      local identifier = [["Spell.comp.Define_entire_blueprint"]]\
+      Spell.comp.recorded_blueprint(identifier, true);\
+    end\
+    --[[/*\
+        * Set the last sign to # to enable sequence looping and\
+        * add the final blueprint to Spell.comp.blueprint so\
+        * that it can be used when calculating the ending sequence\
+        * \
+        * I'm doing this in a do...end block so that the identifier\
+        * doesn't linger in the rest of the code\
+       */]]\
     \
     local concat_debug = {};\
     concat_debug.format = "";\

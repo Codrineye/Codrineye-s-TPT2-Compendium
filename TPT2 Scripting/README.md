@@ -6,8 +6,8 @@
 
 [Version 2.0.0](./Codrineye's%20TowerTesting/README.md)
 
-This package handles all movement needed to enter dificulties and regions for TowerTesting.<br>
-Please keep in mind that the script does not know what region or difficulty you're on, nor does it try to interact with blueprint. This is purely for movement automation, not for entire TowerTesting automation.<br>
+This package handles all movement needed to enter dificulties and regions for TowerTesting in Endless mode.<br>
+Please keep in mind that the script does not know what region or difficulty you're on, nor does it try to interact with blueprints. This is purely for movement automation, not for entire TowerTesting automation.<br>
 For script comments and easier script customization, import the scripts [source code](./Codrineye's%20TowerTesting/README.md).
 
 ```
@@ -15,6 +15,7 @@ For script comments and easier script customization, import the scripts [source 
 ```
 
 ## Requirements
+
 - 6 impulses
 - 2 condition
 - 31 actions
@@ -24,7 +25,7 @@ For script comments and easier script customization, import the scripts [source 
 
 The script runs 2 instances of itself. One TowerTesting manager and one Movement manager.
 
-The TowerTesting manager ensures you exit TowerTesting as soon as your goal in `additional_cond` is reached, your towers health reaches 0 or if you manually exit TowerTesting.
+The TowerTesting manager ensures you exit TowerTesting as soon as your goal in `additional_cond` is reached, your tower health reaches 0 or if you manually exit TowerTesting. As there are game-modes such as `challenges` or `normal mode` where your run can end without your tower dying, this AI cannot cycle through them as it'll cause.
 
 `additional_cond` is an additional condition to the exit condition. This is used to exit your run early if you want multiple difficulties and regions to be at equal wave-goals.
 
@@ -42,16 +43,18 @@ You have 6 impulses that let you interract with the script.
 
 Three of them control the scripts global variables.<br>
 These variables are hidden until you press either of them.
+
 - `status(X)` is the scripts status. You press `x` to activate or deactivate the script. The variables will hide themselves when you deactivate the script.
 - `Region Cycling(W)` determines if the script is allowed to change regions or not
 - `Curent Mode(Q)` shows the scripts mode. There are 2 modes the script can be in:
-- * `Difficulty>Region` means that the script will cycle through every difficulty before changing region
-- * `Region>Difficulty` means that the script will cycle through every region before changing difficulty
+- - `Difficulty>Region` means that the script will cycle through every difficulty before changing region
+- - `Region>Difficulty` means that the script will cycle through every region before changing difficulty
 
 The key inbetween `(parenthesies)` is the key you press to change the value. This value is calculated within the source, so changing the impulse key macros will automatically change what's displayed
 
 The other three impulses are for Quality Of Life (QOL) features.<br>
 The values outlined here are from the default version, they do not apply to any version with customized impulses.
+
 - `e` to exit TowerTesting
 - `r` to restart TowerTesting
 - `t` to open up the stats menu and open the Wave tab. This impulse assumes that your ingame hotkey to open the stats menu is `t`.
@@ -64,7 +67,6 @@ The script has always true conditions, the first one contains the strings reprez
 
 The scripts budget is set to -1 by default, this is because the AI uses that extra speed to ensure you do not enter another building while it's trying to perform the actions needed to cycle. You can savely remove its budget, if you're setting it to idle for you, as it can run perfectly fine without it.
 
-
 # Universal Challenge Solver
 
 [version 1.0.0](/TPT2%20Scripting/Universal%20Challenge%20Solver/README.md)
@@ -76,14 +78,16 @@ All this to say that this is a prototypical build.
 ## AI Import
 
 REQUIREMENTS:
+
 - impulse count: 2
 - conditions count: 0
 - actions count: 13
 
 To use this AI, you will need to:
+
 - position your region on forest, as the AI cycles through regions assuming it starts on Forest
 - enable Hard Mode if desired
-- ***NOT USE DYNAMIC UI SCALING*** as the relative clicks are likely to break due to an ingame bug
+- **_NOT USE DYNAMIC UI SCALING_** as the relative clicks are likely to break due to an ingame bug
 
 ```
 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
@@ -101,6 +105,7 @@ It uses a hidden string to determine the scripts status, `WSFrag is running` mea
 ```
 
 ## Script Requirements
+
 - 2 impulse
 - 0 conditions
 - 21 max actions
@@ -113,6 +118,7 @@ The script is within a WS.Fragzilla package for the script color.
 This script is toggled on/off with the key "f", the script will quit execution if this action is performed outside of town.<br>
 Its status has 3 modes, `hidden`, `script on` and `script off`. `script on/off` can be triggered by "f", `hidden` is triggered by "h"<br>
 At the top of the script you have 2 local variables:
+
 - cooldown is a double that informs the script for how much it should wait in the idle screen
 - hammer_count is an int that indicates how many times you will hammer the nodes before returning to the idle screen
 

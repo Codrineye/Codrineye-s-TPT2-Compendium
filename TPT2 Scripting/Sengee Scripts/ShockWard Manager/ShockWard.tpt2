@@ -1,0 +1,105 @@
+:name ShockWard
+
+:global vector Ward1
+:global vector Ward2
+:global int Region
+
+:local vector Ward
+:local double LastWave
+:local int i
+
+game.newround()
+key.c()
+
+gotoif(ward_config, contains(impulse(), "key.c"))
+LastWave = max(wave(), 2.0)
+
+loop:
+Ward = if(i == 0, Ward1, Ward2)
+i = (i + 1) % 2
+useposition(active.index("spell.ward.shocking"), Ward)
+; We wait for the shockward cooldown to expire
+; Chainging it to a waitwhile here also removes the need to negate
+; the value of isTowerTesting
+; 
+waitwhile(cooldown(active.index("spell.ward.shocking")) > 0.0 && isTowerTesting())
+goto(if(isTowerTesting() && LastWave <= wave(), loop, end))
+
+:import Editor_actions lib
+; importing this library lets me use lua to create the ternary vec2
+; sequence, so it's easier to make modifications to it
+
+{lua(\
+  local vec = Editor_vec;\
+  local ward1 = table.pack(\
+    --[[positions 1 to 4]]\
+    vec(-3.0, 3.0), vec(-3.0, 3.0), vec(-5.0, -3.0), vec(-3.0, 3.0),\
+    --[[positions 5 to 8]]\
+    vec(-1.0, 4.0), vec(-6.0, 0.0), vec(-4.0, -2.0), vec(-2.0, 3.0),\
+    --[[positions 9 to 12]]\
+    vec(-7.0, 3.0), vec(-1.0, 6.0), vec(-3.0, 3.0), vec(4.0, 1.0),\
+    --[[positions 13 to 15]]\
+    vec(-6.0, 0.0), vec(-4.0, 2.0), vec(-3.0, 1.0)\
+  );\
+  local ward2 = table.pack(\
+    --[[positions 1 to 4]]\
+    vec(3.0, -3.0), vec(3.0, -3.0), vec(7.0, 0.0), vec(3.0, -3.0),\
+    --[[positions 5 to 8]]\
+    vec(4.0, -1.0), vec(0.0, -6.0), vec(5.0, -1.0), vec(3.0, -2.0),\
+    --[[positions 9 to 12]]\
+    vec(-5.0, -7.0), vec(1.0, -5.0), vec(3.0, -2.0), vec(3.0, -3.0),\
+    --[[positions 13 to 15]]\
+    vec(8.0, 1.0), vec(4.0, -2.0), vec(3.0, -1.0)\
+  );\
+  --[[/*\
+      * Start nesting, the default value is vec(0.0, 0.0) that can\
+      * only be reached if Region has an invalid number\
+      * \
+      * region contains the string "Region", which translates to\
+      * the lable Region when returned into the editor\
+     */]]\
+  local region = [[Region]];\
+  Ward1_nest = vec(0.0, 0.0);\
+  Ward2_nest = vec(0.0, 0.0);\
+  --[[/*\
+      * We will be working backwards, from region 15 to region 1\
+      * \
+      * The condition is the same for both ternaries, so all\
+      * that differs are the true and false cases\
+      * \
+      * Since lua is a language indexed by 1,\
+      * region 1 means i = 1\
+     */]]\
+  for i = 15, 1, -1 do\
+    local cond = Editor_math(region, "==", i);\
+    --[[We index the table ward1 by i]]\
+    local case_true = ward1[i];\
+    Ward1_nest = Editor_if(cond, case_true, Ward1_nest);\
+    \
+    --[[We index the table ward2 by i]]\
+    case_true = ward2[i];\
+    Ward2_nest = Editor_if(cond, case_true, Ward2_nest);\
+  end\
+)}
+
+; 
+; Ward1
+; 1             |2             |3              |4             |5            |
+; vec(-3.0, 3.0)|vec(-3.0, 3.0)|vec(-5.0, -3.0)|vec(-3.0, 3.0)|vec(-1.0|4.0)|
+; 6             |7              |8             |9             |10            |
+; vec(-6.0, 0.0)|vec(-4.0, -2.0)|vec(-2.0, 3.0)|vec(-7.0, 3.0)|vec(-1.0, 6.0)|
+; 11            |12           |13            |14            |15
+; vec(-3.0, 3.0)|vec(4.0, 1.0)|vec(-6.0, 0.0)|vec(-4.0, 2.0)|vec(-3.0, 1.0)
+
+; Ward2
+; 1             |2             |3            |4             |5             |
+; vec(3.0, -3.0)|vec(3.0, -3.0)|vec(7.0, 0.0)|vec(3.0, -3.0)|vec(4.0, -1.0)|
+; 6             |7             |8             |9              |10            |
+; vec(0.0, -6.0)|vec(5.0, -1.0)|vec(3.0, -2.0)|vec(-5.0, -7.0)|vec(1.0, -5.0)|
+; 11            |12            |13           |14            |15            |
+; vec(3.0, -2.0)|vec(3.0, -3.0)|vec(8.0, 1.0)|vec(4.0, -2.0)|vec(3.0, -1.0)|
+ward_config:
+Ward1 = {lua(return Ward1_nest)}
+Ward2 = {lua(return Ward2_nest)}
+
+end:
