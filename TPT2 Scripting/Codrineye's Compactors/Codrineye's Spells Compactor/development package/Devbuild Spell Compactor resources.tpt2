@@ -3,28 +3,45 @@
 ; This is a library that declairs the naming scheme
 ; needed to use the spell compactor
 ; 
-
 #spell_compactor Spell Compactor
-
-#hider.start <size=0><line-height=0%>
-#hider.close </line-height></size>
-
+#identifier Spell Compactor
+; 
+#hider.start <size=0>
+#hider.close </size>
+; 
 :const string hider.start "{hider.start}"
 :const string hider.close "{hider.close}"
-
-:const string pointer_var "{hider.start}Spell Compactor Pointer"
+; 
+:const string pointer_var "{hider.start}{identifier} Pointer"
 #pointer.get global.int.get(pointer_var)
 #pointer.set(value) global.int.set(pointer_var, {value})
-
-:const string compactor_string "Spell Compactor access string"
-#compactor.get global.string.get(compactor_string)
-#compactor.set(string) global.string.set(compactor_string, {string})
-
-:const string caller_ID "{hider.close}Spell Comp caller"
+; 
+:const string compactor_actives "{identifier}access string"
+#comp_active.get global.string.get(compactor_actives)
+#comp_active.set(str) global.string.set(compactor_actives, {str})
+; 
+:const string compactor_secures "{identifier}access secures"
+#comp_secure.get global.string.get(compactor_secures)
+#comp_secure.set(str) global.string.set(compactor_actives, {str})
+; 
+:const string caller_ID "{spell_compactor} caller"
 #caller.get global.string.get(caller_ID)
 #caller.set(caller_ID) global.string.set(caller_ID, {caller_ID})
-
+; 
 :const string timer_var "t"
 #timer.get global.double.get(timer_var)
 #timer.set(value) global.double.set(timer_var, {value})
 #timer.add(value) {timer.set(({value}) + {timer.get})}
+; 
+:const string got_timer_base "{identifier}loopable blueprint"
+#timer_baseCheck.get global.bool.get(got_timer_base)
+#timer_baseCheck.set(value) global.bool.set(got_timer_base, {value})
+; 
+:const string timer_base_var "timer_base"
+#timer_base.get global.double.get(timer_base_var)
+#timer_base.set(value) global.double.set(timer_base_var, {value})
+; 
+:const string timer_mod_var "tm"
+#timer_mod.get global.double.get(timer_mod_var)
+#timer_mod.set(value) global.double.set(timer_mod_var, {value})
+; 

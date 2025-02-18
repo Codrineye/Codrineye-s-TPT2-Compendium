@@ -1,7 +1,36 @@
-:import Editor_actions lib
 :import Devbuild Spell Compactor resources
 :name devbuild Spell Comp lib
 
+; The Devbuild Compactor uses verbose names.
+; Normal compactor uses shortened names to
+; minimize the size of the import code
+
+:local int pointer
+:local string actives
+:local string secures
+; 
+:local bool det_timer_base
+:local double timer_base
+:local double clock
+; 
+:local string spell_ID
+; 
+
+:const string script_signaler "{identifier}signal manager"
+#signal.get global.string.get(script_signaler)
+#signal.set(signal) global.string.set(\
+  script_signaler, \
+  {signal} . "{hider.close}"\
+)
+; the signaler determines what purpose the compactor instance serves
+; It's also used to stop the block hider
+:const string all_signals "compactor|timer|secures"
+:const string dead_signals "compactor"
+:const string allowed_signals "timer|secures"
+; 
+#contains.signal(signal) contains({signal.get}, "{signal}")
+
+:import Editor_actions lib
 ; Editor_actions lib lets me create actions; that the editor can parse
 ; in a lua macro
 ; 
@@ -10,13 +39,15 @@
 ; 
 ; loop_sign bit
 ; sync bit
+; timer_base
+; 
 ; space
 ; timer
 ; coord_x coord_y
 ; name
 {lua(\
   local pointer = [[pointer]];\
-  local actives = [[compactor]]\
+  local actives = [[actives]]\
   \
   local function s2i(compactor)\
     return Editor_convertStringToInt(compactor, -1);\
@@ -31,8 +62,7 @@
   local separator = Editor_stringify_value("|");\
   \
   local compactor_vals = table.pack(\
-    "space",\
-    "timer",\
+    "timer_base", "space", "timer",\
     "coord_x", "coord_y",\
     "name"\
   );\
@@ -44,7 +74,7 @@
     size = Editor_math(index, "-", size);\
     Compactor[value] = Editor_sub(actives, offset, size);\
     local val = string.format("%s_value", value);\
-    if i == 1 then\
+    if i == 2 then\
       Compactor[val] = s2i(Compactor[value]);\
     elseif i < #compactor_vals then\
       Compactor[val] = s2d(Compactor[value]);\
@@ -57,23 +87,24 @@
 ; guide for size
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 
-
-:local int pointer
-:local string compactor
-
-:local double clock
-:local string spell_ID
-
-#get_bits sub(compactor, pointer, 2)
+#get_bits sub(actives, pointer, 2)
+#get_base s2d({lua(return Compactor.timer_base)}, utcnow())
+; 
 #get_space {lua(return Compactor.space_value)}
+; 
 #get_timer {lua(return Compactor.timer_value)}
+; 
 #get_coord_x {lua(return Compactor.coord_x_value)}
 #get_coord_y {lua(return Compactor.coord_y_value)}
 #get_pos vec({get_coord_x}, {get_coord_y})
+; 
 #get_name {lua(return Compactor.name)}
 
 #pointer.increment pointer = if(\
-  contains({get_bits}, "#"),\
+  {timer_baseCheck.get}, \
   0, \
   pointer + {get_space}\
 )
+
+; 
+#timer.modulo {timer.get} % timer_base

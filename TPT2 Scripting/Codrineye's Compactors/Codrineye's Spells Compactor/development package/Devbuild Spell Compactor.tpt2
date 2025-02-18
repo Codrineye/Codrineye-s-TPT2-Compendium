@@ -19,6 +19,7 @@
   --[[Table that has spell_compactor data]]\
   Spell.comp = {};\
   Spell.comp.active = {};\
+  Spell.comp.blueprint = {};\
 )}
 
 ; macros for communicating with the compactors debugging system
@@ -68,12 +69,37 @@
           * easily check it with a contains of the full spell\
          */]]\
     end\
-    local bp_name = name:match('%b""'):sub(2, -2);\
-    bp_name = string.format("blueprint_%s", bp_name);\
-    \
     local space = Spell.active.space;\
+    --[[Get the ammount of space we've currently used up]]\
+    local bp_name = name:match('%b""'):sub(2, -2);\
+    --[[removes the quote marks from the match operation]]\
+    Spell.comp.blueprint[bp_name] = space;\
+    --[[/*\
+        * And create a blueprint that stores\
+        * How much space we've used up thus far\
+       */]]\
+    bp_name = string.format("blueprint_%s", bp_name);\
+    --[[change the bp_name so we can output it as a const int]]\
     return string.format(":const int %s %s", bp_name, space)\
   end\
+  function Spell.comp.blueprint_base(defined_base)\
+    --[[/*\
+        * Defines the base at which a loopable blueprint\
+        * uses the timer. This is used to calculate `tm` such that\
+        * the active timer is compared to tm, which makes\
+        * spell activation more precise\
+       */]]\
+    local spell = Spell.comp.active[#Spell.comp.active];\
+    assert(\
+      spell.timer_base, \
+      "Trying to add a timer_base without any recorded spells"\
+    );\
+    spell.timer_base = string.format("%s|", defined_base);\
+    local space = tonumber(spell.space:sub(1, -2));\
+    space = space + #spell.timer_base;\
+    spell.space = string.format("%s|", space);\
+  end\
+  \
   function Spell.comp.sync(spell_ammount)\
     --[[/*\
         * The synchronization system prevents the\
@@ -125,13 +151,13 @@
         * to loop our sequence\
        */]]\
     new_spell.sync = "/";\
-    \
-    local used_space = 2;\
+    new_spell.timer_base = "|";\
+    local used_space = 3;\
     --[[/*\
         * Recordings take up space, we keep track\
         * of how much space has been used with used_space\
-        * used_space is currently 2 because, sync and loop_sign\
-        * are length-1 signals\
+        * used_space is currently 3 because, sync and loop_sign\
+        * are length-1 signals and the timer_base is empty by default\
        */]]\
     local sync = Spell.active.sync_ammount;\
     if sync > 0 then\
@@ -212,22 +238,31 @@
     local actives_count = #actives;\
     --[[nr of recordings]]\
     \
-    actives[actives_count].loop_sign = "#";\
-    --[[Set the last sign to # to enable sequence looping]]\
+    do\
+      local identifier = [["Spell.comp.Define_entire_blueprint"]]\
+      Spell.comp.recorded_blueprint(identifier, false);\
+    end\
+    --[[/*\
+        * Record the final blueprint to the Spell.comp.Blueprint table\
+        * without forcing the blueprint to be in a loop\
+        * \
+        * I'm doing this in a do...end block so that the identifier\
+        * doesn't linger in the rest of the code\
+       */]]\
     \
     local concat_debug = {};\
     concat_debug.format = "";\
     concat_debug.separation = "";\
-    concat_debug.bit_format = "";\
+    concat_debug.bit_format = "%s";\
     concat_debug.spell_data = "%s";\
-    concat_debug.chunk_end = "";\
+    concat_debug.chunk_end = "End of recording %s";\
     \
     if dbug.can_display then\
-      concat_debug.format = dbug.concat_format;\
+      local fmt = dbug.concat_format;\
+      concat_debug.format = fmt;\
       concat_debug.separation = " ";\
-      concat_debug.bit_format = dbug.concat_format .. "Bit signal %s = ";\
-      concat_debug.spell_data = dbug.concat_format .. "%s  %s";\
-      concat_debug.chunk_end = "End of recording %s";\
+      concat_debug.bit_format = fmt .. "Bit signal %s = '%s'";\
+      concat_debug.spell_data = fmt .. "%s %s size %s";\
     end\
     \
     for i = 1, actives_count do\
@@ -236,33 +271,87 @@
           * \
           * loop_sign\
           * sync signal\
+          * timer_base\
           * space\
           * timer\
           * coord_x coord_y\
           * name\
          */]]\
-      local active_data = actives[i];\
+      local data_pack = {};\
+      do\
+        local data = actives[i];\
+        if dbug.can_display then\
+          data_pack.loop_bit = table.pack("loop", data.loop_sign);\
+          data_pack.sync_bit = table.pack("sync", data.sync);\
+          \
+          data_pack.base = table.pack(\
+            data.timer_base, "timer_base",\
+            #data.timer_base\
+          );\
+          data_pack.space = table.pack(\
+            data.space, "space",\
+            #data.space\
+          );\
+          data_pack.timer = table.pack(\
+            data.timer, "timer",\
+            #data.timer\
+          );\
+          \
+          data_pack.coord_x = table.pack(\
+            data.coord_x, "coord_x",\
+            #data.coord_x\
+          );\
+          data_pack.coord_y = table.pack(\
+            data.coord_y, "coord_y",\
+            #data.coord_y\
+          );\
+          \
+          data_pack.name = table.pack(\
+            data.name, "name",\
+            #data.name\
+          );\
+          data_pack.chunk_end = concat_debug.chunk_end:format(i);\
+        else\
+          data_pack.loop_bit = table.pack(data.loop_sign);\
+          data_pack.sync_bit = table.pack(data.sync);\
+          \
+          data_pack.base = table.pack(data.timer_base);\
+          \
+          data_pack.space = table.pack(data.space);\
+          data_pack.timer = table.pack(data.timer);\
+          \
+          data_pack.coord_x = table.pack(data.coord_x);\
+          data_pack.coord_y = table.pack(data.coord_y);\
+          \
+          data_pack.name = table.pack(data.name);\
+          data_pack.chunk_end = "";\
+        end\
+      end\
+      \
       local spell_data = table.pack(\
         concat_debug.format,\
         \
-        concat_debug.bit_format:format("loop"), active_data.loop_sign,\
+        concat_debug.bit_format:format(table.unpack(data_pack.loop_bit)),\
         --[[Adds the loop_sign bit]]\
         \
-        concat_debug.bit_format:format("sync"), active_data.sync,\
+        concat_debug.bit_format:format(table.unpack(data_pack.sync_bit)),\
         --[[adds the sync signal bit]]\
+        concat_debug.spell_data:format(table.unpack(data_pack.base)),\
         \
-        concat_debug.spell_data:format(active_data.space, #active_data.space),\
+        concat_debug.spell_data:format(table.unpack(data_pack.space)),\
         --[[Adds the space we take up]]\
-        concat_debug.spell_data:format(active_data.timer, #active_data.timer),\
+        concat_debug.spell_data:format(table.unpack(data_pack.timer)),\
         --[[Adds the spell timer]]\
-        concat_debug.spell_data:format(active_data.coord_x, #active_data.coord_x),\
+        \
+        concat_debug.spell_data:format(table.unpack(data_pack.coord_x)),\
         --[[Adds the spells x coord]]\
-        concat_debug.spell_data:format(active_data.coord_y, #active_data.coord_y),\
+        concat_debug.spell_data:format(table.unpack(data_pack.coord_y)),\
         --[[Adds the spells y coord]]\
-        concat_debug.spell_data:format(active_data.name, #active_data.name),\
+        \
+        concat_debug.spell_data:format(table.unpack(data_pack.name)),\
         --[[Adds the spells name]]\
         \
-        concat_debug.format, concat_debug.chunk_end:format(i)\
+        concat_debug.format, data_pack.chunk_end\
       );\
       \
       for _, data in ipairs(spell_data) do\
@@ -352,7 +441,6 @@
     if not should_halt then return end\
     --[[We return if we shouldn't halt]]\
     \
-    local compactor = Spell.comp;\
     local halt_text = table.pack(\
       "\n", \
       "Compilation stopped, debug mode enabled\n", \
@@ -376,15 +464,15 @@
         "with the string inputed in ",\
         "spell_debug.display_format\n", \
         "Retrieving output showing ",\
-        #compactor.active,\
+        #Spell.comp.active,\
         " "\
       );\
-      if #compactor.active == 1 then\
+      if #Spell.comp.active == 1 then\
         halt_display[9] = "recording";\
       else\
         halt_display[9] = "recordings";\
       end\
-      halt_display[10] = compactor.concat_actives();\
+      halt_display[10] = Spell.comp.concat_actives();\
       for _, text in ipairs(halt_display) do\
         halt_text[1 + #halt_text] = text;\
       end\
@@ -401,10 +489,13 @@
 #recorded_blueprint(name, can_loop) {lua(\
   return Spell.comp.recorded_blueprint([["{name}"]], {can_loop});\
 )}
-
+; 
+; 
+#timer_modulo(modulo) {lua(Spell.comp.blueprint_base([[{modulo}]]))}
+; 
 ; Synchronize spell_count ammount of spell activations
 #synchronize(spell_count) {lua(Spell.comp.sync({spell_count}))}
-
+; 
 ; general add_spell lua function call
 #add_spell(name, timer, coord_x, coord_y) {lua(\
   return Spell.comp.add_spell(\

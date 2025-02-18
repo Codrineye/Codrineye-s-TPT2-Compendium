@@ -17,7 +17,7 @@
 ; before the recording system halts.
 ; It does nothing if can_halt is false 
 ; 
-{spell_debug.display_spells(false)}
+{spell_debug.display_spells(true)}
 ; Set to true if you want to display your spells
 ; You will see them as an error message to the right
 ; 
@@ -99,7 +99,7 @@
 {add_spell.grounded(spell.void, 10.0, 0.0, 0.0)}
 ; adds the grounded spell `void` to be used
 ; at position 0.0, 0.0 on the map when t is a multiple of 10.0
-
+{timer_modulo(0.0)}
 {recorded_blueprint(loop, true)}
 ; defines the blueprint called "blueprint_loop" that loops
 
