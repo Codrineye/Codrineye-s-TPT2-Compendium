@@ -1,10 +1,11 @@
-:import Devbuild Spell Compactor lib
+:import Devbuild Blueprint Compactor lib
 :name {spell_compactor}
 ; 
 ; This script is a version of the ordinairy compactor, and as such
 ; is intended to make every script that uses the compactor think
 ; this is their target. This way, you don't have to change much
 ; of your blueprint AI
+; 
 
 ; 
 ; The debugger adds a layer of complexity to the compactor
@@ -83,6 +84,7 @@ start_timer:
 timer:
 waitframe()
 {timer.add(time.delta())}
+{timer_mod.update}
 goto(if(contains({caller.get}, "idle mode"), end, timer))
 ; The timer will always run, even if the compactor shuts down
 ; the only way to stop the timer is by calling the compactor, again
@@ -90,8 +92,8 @@ goto(if(contains({caller.get}, "idle mode"), end, timer))
 
 assign_base:
 timer_base = {timer_base.get}
-{timer_baseCheck.set(contains({get_bits}, "#"))}
-det_timer_base = {timer_baseCheck.get}
+det_timer_base = {timer_baseCheck.get} \
+  || pointer + 3 == index(actives, "|", pointer)
 
 loop:
 ; Since getting the timer and spell_ID are resource intensive operations

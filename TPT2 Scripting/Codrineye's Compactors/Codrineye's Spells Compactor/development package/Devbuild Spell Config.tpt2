@@ -1,9 +1,12 @@
-:import Devbuild Spell Compactor
+:import Devbuild Blueprint Compactor
 :name devbuild Spell Config
 ; 
 ; Welcome to the configuration
 ; This script has macros that allow you to
 ; communicate with the compactor and its debugger
+; 
+; Please read the compactor manual on the repo for a better
+; understanding of how to use it
 ; 
 {spell_debug.log(false)}
 ; Set to true if you want to get a log of your recording
@@ -17,7 +20,7 @@
 ; before the recording system halts.
 ; It does nothing if can_halt is false 
 ; 
-{spell_debug.display_spells(true)}
+{spell_debug.display_spells(false)}
 ; Set to true if you want to display your spells
 ; You will see them as an error message to the right
 ; 
@@ -135,7 +138,7 @@
 
 ; 
 ; String holding the recorded spell data
-:const string recorded_actives {lua(return Spell.comp.concat_actives())}
+:const string recorded_actives {lua(return BP.comp.concat_actives())}
 
 ; 
 ; Int holding the size of the recorded string
@@ -143,4 +146,4 @@
 ; the function version runs the function one more time, which
 ; can get very slow if you have a big recording sequence
 
-:const int recoring_size {lua(return Spell.active.space)}
+:const int recoring_size {lua(return BP.misc.space.active)}

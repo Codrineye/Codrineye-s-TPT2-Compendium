@@ -1,5 +1,5 @@
-:import Devbuild Spell Compactor resources
-:name devbuild Spell Comp lib
+:import Devbuild Blueprint Compactor resources
+:name devbuild Bluep Comp lib
 
 ; The Devbuild Compactor uses verbose names.
 ; Normal compactor uses shortened names to
@@ -107,4 +107,4 @@
 )
 
 ; 
-#timer.modulo {timer.get} % timer_base
+#timer_mod.update {timer_mod.set({timer.get} % timer_base)}

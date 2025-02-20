@@ -1,10 +1,10 @@
-:name devbuild Spell Cmp Res
+:name devbuild Bluep Comp Res
 ; 
 ; This is a library that declairs the naming scheme
 ; needed to use the spell compactor
 ; 
-#spell_compactor Spell Compactor
-#identifier Spell Compactor
+#spell_compactor Blueprint Compactor
+#identifier Blueprint Compactor
 ; 
 #hider.start <size=0>
 #hider.close </size>

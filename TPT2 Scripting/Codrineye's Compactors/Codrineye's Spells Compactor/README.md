@@ -1,6 +1,6 @@
 # Codrineye's Spell Compactor
 
-The spell compactor is system for recordings spells that creates a string of spell contents and constant variables which can be sent to the stand-alone spell-compactor to handle spell activation.
+The spell compactor is system for recordings spells that creates a string of spell contents and constant variables which can be sent to the ingame compactor to handle spell activation.
 
 ## The import packages
 
