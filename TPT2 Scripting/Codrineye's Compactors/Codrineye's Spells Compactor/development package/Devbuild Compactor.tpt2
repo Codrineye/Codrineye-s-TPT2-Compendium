@@ -1,5 +1,5 @@
 :import Devbuild Blueprint Compactor lib
-:name {spell_compactor}
+:name {blueprint_compactor}
 ; 
 ; This script is a version of the ordinairy compactor, and as such
 ; is intended to make every script that uses the compactor think
@@ -42,13 +42,13 @@ debugging = true
 ; debugging if you don't want it
 gotoif(\
   if(debugging, debug, if(\
-    contains(dead_signals, {signal.get}), \
-    end_instance,\
-    if({contains.signal(timer)}, start_timer, start_secures)\
+    {timer.get} == 0.0, \
+    start_timer, \
+    start_secures\
   )), \
-  contains(all_signals, {signal.get}) ||\
-  contains(impulse(), "key.x") || debugging\
+  contains(impulse(), "{blueprint_compactor}") || debugging\
 )
+
 pointer = {pointer.get}
 actives = {comp_active.get}
 ; We use local variables to prevent a messy interface
@@ -56,17 +56,14 @@ actives = {comp_active.get}
 ; of the compactor running at the same time
 
 {timer_baseCheck.set({timer_baseCheck.get})}
-{signal.set(if({timer.get} == 0.0, "idle", if(\
-  contains("", secures), \
-  if(contains("", actives), "idle", "compactor"), \
-  "secures"\
-)))}
 
 {caller.set(if(\
   contains(impulse(), ":"), \
   sub(impulse(), 0, index(impulse(), ":", 0)),\
   impulse()\
 ))}
+
+execute("{blueprint_compactor}")
 ; We also set the caller so that the user knows
 ; how the compactor got accessed
 ; 
@@ -74,21 +71,6 @@ actives = {comp_active.get}
 ; it has a name that you don't expect, it should tell the
 ; user that there's another script that uses the compactor
 ; which they might want to shut down
-
-goto(assign_base)
-
-start_timer:
-{timer.set(time.delta() * 2.0)}
-{signal.set("idle")}
-
-timer:
-waitframe()
-{timer.add(time.delta())}
-{timer_mod.update}
-goto(if(contains({caller.get}, "idle mode"), end, timer))
-; The timer will always run, even if the compactor shuts down
-; the only way to stop the timer is by calling the compactor, again
-; outside of towertesting or by stopping all instances of the compactor
 
 assign_base:
 timer_base = {timer_base.get}
@@ -102,7 +84,7 @@ spell_ID = {get_name}
 clock = {get_timer}
 
 ; 
-waituntil({timer_mod.get} <= clock)
+waituntil({modulo_timer} <= clock)
 ; 
 ; We use both instant and grounded spells here because we
 ; don't actually know what spell we're casting, just that we
@@ -129,7 +111,7 @@ no_frame:
 ; of size 1 so it can only return true if we truely are at the end
 ; of our string
 
-goto(if({end_of_compactor}, 99, if(\
+goto(if({end_of_compactor}, end_instance, if(\
   health(false) <= 0.0, \
   idle,\
   if(det_timer_base, loop, assign_base)\
@@ -139,9 +121,38 @@ goto(if({end_of_compactor}, 99, if(\
 ; want to send another blueprint over our way. In that case, if we
 ; did enter idle mode, the timer would've stopped, de-synchronizing things
 
-start_secures:
+start_timer:
+{timer.set(time.delta() * 2.0)}
+execute("{blueprint_compactor}")
+
+timer:
+waitframe()
+{timer.add(time.delta())}
+goto(if(contains({caller.get}, "idle mode"), end, timer))
+; The timer will always run, even if the compactor shuts down
+; the only way to stop the timer is by calling the compactor, again
+; outside of towertesting or by stopping all instances of the compactor
 
 ; This is the only addition of the debugger
+
+start_secures:
+:local double i
+i = 1.0
+secures = {comp_secure.get}
+
+loop_secures:
+disable.inf(sub(secures, pointer, index(secures, "|", pointer) - pointer))
+pointer = if(\
+  disable.inf.cost() > 1000.0 ^ i, \
+  1 + index(secures, "|", pointer), \
+  pointer\
+)
+i = if(disable.inf.cost() > 1000.0 ^ i, i + 1.0, i)
+goto(if(\
+  contains({caller.get}, "idle") || -1 == index(secures, "|", pointer), \
+  end_instance, \
+  loop_secures\
+))
 
 debug:
 ; It sets the caller to "debugging" so that when you

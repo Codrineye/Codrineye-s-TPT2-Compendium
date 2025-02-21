@@ -1,4 +1,3 @@
-:name devbuild Bluep Compactor
 
 {lua(\
   BP = {};\
@@ -26,6 +25,7 @@
   BP.comp.software = {}\
   --[[Store the module secures]]\
   BP.comp.secure = {};\
+  BP.comp.defined_secures = {};\
   \
   --[[Blueprint activation]]\
   BP.comp.active = {};\
@@ -137,6 +137,7 @@
       "adding a module to secure"\
     );\
     local space = BP.misc.space.secure;\
+    BP.comp.defined_secures[blueprint_name] = space;\
     local const = [[:const int secures_%s %s]];\
     return const:format(blueprint_name, space);\
   end\

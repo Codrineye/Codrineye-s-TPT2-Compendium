@@ -1,6 +1,20 @@
 :import Editor_actions lib
-:import Spell Compactor resources
+:import Blueprint Compactor resources
 
+; The Devbuild Compactor uses verbose names.
+; Normal compactor uses shortened names to
+; minimize the size of the import code
+
+:const string pointer_var_str "p"
+:const string actives "a"
+:const string secures "s"
+
+:const string timer_base_detector "dtb"
+:const string timer_base "tb"
+:const string clock "c"
+:const string spell_ID "SI"
+
+:import Editor_actions lib
 ; Editor_actions lib lets me create actions; that the editor can parse
 ; in a lua macro
 ; 
@@ -9,13 +23,15 @@
 ; 
 ; loop_sign bit
 ; sync bit
+; timer_base
+; 
 ; space
 ; timer
 ; coord_x coord_y
 ; name
 {lua(\
-  local pointer = [[pointer]];\
-  local actives = [[compactor]]\
+  local pointer = [[local.int.get(pointer_var_str)]];\
+  local actives = [[local.string.get(actives)]]\
   \
   local function s2i(compactor)\
     return Editor_convertStringToInt(compactor, -1);\
@@ -24,14 +40,13 @@
     return Editor_convertStringToDouble(compactor, -1.0);\
   end\
   \
-  local offset = [[pointer + 2]];\
+  local offset = Editor_math(pointer, "+", 2);\
   local index = "";\
   local size = "";\
   local separator = Editor_stringify_value("|");\
   \
   local compactor_vals = table.pack(\
-    "space",\
-    "timer",\
+    "timer_base", "space", "timer",\
     "coord_x", "coord_y",\
     "name"\
   );\
@@ -43,7 +58,7 @@
     size = Editor_math(index, "-", size);\
     Compactor[value] = Editor_sub(actives, offset, size);\
     local val = string.format("%s_value", value);\
-    if i == 1 then\
+    if i == 2 then\
       Compactor[val] = s2i(Compactor[value]);\
     elseif i < #compactor_vals then\
       Compactor[val] = s2d(Compactor[value]);\
@@ -56,23 +71,24 @@
 ; guide for size
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 
-
-:local int pointer
-:local string compactor
-
-:local double clock
-:local string spell_ID
-
-#get_bits sub(compactor, pointer, 2)
+#get_bits sub(actives, local.int.get(pointer_var_str), 2)
+#get_base s2d({lua(return Compactor.timer_base)}, utcnow())
+; 
 #get_space {lua(return Compactor.space_value)}
+; 
 #get_timer {lua(return Compactor.timer_value)}
+; 
 #get_coord_x {lua(return Compactor.coord_x_value)}
 #get_coord_y {lua(return Compactor.coord_y_value)}
 #get_pos vec({get_coord_x}, {get_coord_y})
+; 
 #get_name {lua(return Compactor.name)}
 
-#pointer.increment pointer = if(\
+#pointer.increment local.int.set(pointer_var_str, if(\
   contains({get_bits}, "#"),\
-  0, \
-  pointer + {get_space}\
-)
+  0,\
+  local.int.get(pointer_var_str) + {get_space}\
+))
+
+; 
+#modulo_timer {timer.get} % local.double.get(timer_base)

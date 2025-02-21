@@ -18,17 +18,6 @@
 
 :const string script_signaler "{identifier}signal manager"
 #signal.get global.string.get(script_signaler)
-#signal.set(signal) global.string.set(\
-  script_signaler, \
-  {signal} . "{hider.close}"\
-)
-; the signaler determines what purpose the compactor instance serves
-; It's also used to stop the block hider
-:const string all_signals "compactor|timer|secures"
-:const string dead_signals "compactor"
-:const string allowed_signals "timer|secures"
-; 
-#contains.signal(signal) contains({signal.get}, "{signal}")
 
 :import Editor_actions lib
 ; Editor_actions lib lets me create actions; that the editor can parse
@@ -107,4 +96,4 @@
 )
 
 ; 
-#timer_mod.update {timer_mod.set({timer.get} % timer_base)}
+#modulo_timer {timer.get} % timer_base

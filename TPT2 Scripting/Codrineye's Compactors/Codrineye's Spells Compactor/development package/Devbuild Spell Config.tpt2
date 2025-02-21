@@ -137,7 +137,7 @@
 {spell_debug}
 
 ; 
-; String holding the recorded spell data
+; String holding the recorded spell data"
 :const string recorded_actives {lua(return BP.comp.concat_actives())}
 
 ; 

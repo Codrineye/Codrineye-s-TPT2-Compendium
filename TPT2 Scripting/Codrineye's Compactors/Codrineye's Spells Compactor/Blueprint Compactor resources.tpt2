@@ -1,10 +1,10 @@
-:name devbuild Bluep Comp Res
+
 ; 
 ; This is a library that declairs the naming scheme
 ; needed to use the spell compactor
 ; 
 #blueprint_compactor Blueprint Compactor
-#identifier Blueprint Compactor
+#bp_res_idtfier B#C|
 ; 
 #hider.start <size=0>
 #hider.close </size>
@@ -12,15 +12,15 @@
 :const string hider.start "{hider.start}"
 :const string hider.close "{hider.close}"
 ; 
-:const string pointer_var "{hider.start}{identifier} Pointer"
+:const string pointer_var "{hider.start}{bp_res_idtfier}I"
 #pointer.get global.int.get(pointer_var)
 #pointer.set(value) global.int.set(pointer_var, {value})
 ; 
-:const string compactor_actives "{identifier}access string"
+:const string compactor_actives "{bp_res_idtfier}AAstr"
 #comp_active.get global.string.get(compactor_actives)
 #comp_active.set(str) global.string.set(compactor_actives, {str})
 ; 
-:const string compactor_secures "{identifier}access secures"
+:const string compactor_secures "{bp_res_idtfier}ASstr"
 #comp_secure.get global.string.get(compactor_secures)
 #comp_secure.set(str) global.string.set(compactor_actives, {str})
 ; 
@@ -32,18 +32,6 @@
 #timer.get global.double.get(timer_var)
 #timer.set(value) global.double.set(timer_var, {value})
 #timer.add(value) {timer.set(({value}) + {timer.get})}
-; 
-:const string got_timer_base "{identifier}loopable blueprint"
-#timer_baseCheck.get global.bool.get(got_timer_base)
-#timer_baseCheck.set(value) global.bool.set(got_timer_base, {value})
-; 
-:const string timer_base_var "timer_base"
-#timer_base.get global.double.get(timer_base_var)
-#timer_base.set(value) global.double.set(timer_base_var, {value})
-; 
-:const string timer_mod_var "tm"
-#timer_mod.get global.double.get(timer_mod_var)
-#timer_mod.set(value) global.double.set(timer_mod_var, {value})
 ; 
 
 ; 

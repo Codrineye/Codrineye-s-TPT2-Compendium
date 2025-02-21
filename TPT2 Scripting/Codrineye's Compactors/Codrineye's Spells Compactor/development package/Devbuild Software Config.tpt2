@@ -49,7 +49,7 @@
 
 :const string Wcat "w#|"
 
-#watercat_line1 \
+#watercat_line1(secure_level) \
 software_toggle_loop:\
 software.toggle(\
   sub(\
@@ -57,7 +57,7 @@ software.toggle(\
     lig(Wcat), \
     index(software_list, "|", lig(Wcat)) - lig(Wcat)\
   ),\
-  security_level == s2i(\
+  {secure_level} == s2i(\
     sub(\
       software_secure, \
       lig(Wcat), \

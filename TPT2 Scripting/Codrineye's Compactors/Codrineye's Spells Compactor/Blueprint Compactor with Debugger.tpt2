@@ -1,21 +1,24 @@
-:import Spell Compactor lib
-:name {spell_compactor}
+:import Blueprint Compactor lib
+:name {blueprint_compactor}
 ; 
 ; This script is a version of the ordinairy compactor, and as such
 ; is intended to make every script that uses the compactor think
 ; this is their target. This way, you don't have to change much
 ; of your blueprint AI
+; 
 
 ; 
 ; The debugger adds a layer of complexity to the compactor
 ; and makes everything a little bit more computationally intense
-; (so your game will likely be laggier when you run the compactor like this)
+; (so your game will likely be laggier when you
+; run the compactor like this)
 ; 
 ; This is used to tell you what the compactor sees at any 1 time
 ; if durring run-time you get undesirable spell execution
 ; 
 ; While the primary goal here is to diagnose issues,
-; you can also use this as a spell compactor to test any changes you've made.
+; you can also use this as a spell compactor to test
+; any changes you've made.
 ; This debugger isn't just for uncovering bugs in the compactor
 ; —though if you find any, please let me know!
 ; Instead, it's meant to help you, the end user, understand:
@@ -37,22 +40,17 @@ debugging = true
 ; 
 ; By default I've set this to true so you have to manually disable
 ; debugging if you don't want it
-goto(if(\
-  contains(impulse(), "{spell_compactor}"),\
-  timer,\
-  if(\
-    contains(impulse(), "key.x") || debugging, \
-    debug, \
-    start\
-  )\
-))
+gotoif(\
+  if(debugging, debug, if(\
+    {timer.get} == 0.0, \
+    start_timer, \
+    start_secures\
+  )), \
+  contains(impulse(), "{blueprint_compactor}") || debugging\
+)
 
-start:
-; The compactor calls itself only when it needs to start the 
-
-pointer = {pointer.get}
-compactor = {compactor.get}
-
+local.int.set(pointer_var_str, {pointer.get})
+local.string.set(actives, {comp_active.get})
 ; We use local variables to prevent a messy interface
 ; And to let the user have more instances
 ; of the compactor running at the same time
@@ -62,6 +60,8 @@ compactor = {compactor.get}
   sub(impulse(), 0, index(impulse(), ":", 0)),\
   impulse()\
 ))}
+
+execute("{blueprint_compactor}")
 ; We also set the caller so that the user knows
 ; how the compactor got accessed
 ; 
@@ -70,41 +70,27 @@ compactor = {compactor.get}
 ; user that there's another script that uses the compactor
 ; which they might want to shut down
 
-gotoif(loop, {timer.get} != 0.0)
-; We skip setting the timer if it was already run
-
-{timer.set(time.delta() * 2.0)}
-execute("{spell_compactor}")
-; If the timer hasn't been run yet, we do the
-; normal winemast initialization, setting a ticker
-; and going into our loop
-goto(loop)
-
-timer:
-waitframe()
-{timer.add(time.delta())}
-goto(if(contains({caller.get}, "idle mode"), end, loop))
-
-; The timer will always run, even if the compactor shuts down
-; the only way to stop the timer is by calling the compactor, again
-; outside of towertesting or by stopping all instances of the compactor
+assign_base:
+local.double.set(timer_base, {get_base})
+local.bool.set(\
+  timer_base_detector,\
+  index(local.string.get(actives), "|", local.int.get(pointer_var_str))\
+  == local.int.get(pointer_var) + 3\
+)
 
 loop:
 ; Since getting the timer and spell_ID are resource intensive operations
 ; whose values are called more than once, we calculate then here
-spell_ID = {get_name}
-clock = {get_timer}
-
-; 0.05 is a timer buffer aka the minimum ammount of deviation
-; the timer allows
+local.string.set(spell_ID, {get_name})
+local.double.set(clock, {get_timer})
 ; 
-waituntil({timer.get} % clock < 0.5 && {timer.get} >= clock)
+waituntil({modulo_timer} <= local.double.get(clock))
 ; 
 ; We use both instant and grounded spells here because we
 ; don't actually know what spell we're casting, just that we
 ; have to cast one with the given parameters
-useinstant(active.index(spell_ID))
-useposition(active.index(spell_ID), {get_pos})
+useinstant(active.index(local.string.get(spell_ID)))
+useposition(active.index(local.string.get(spell_ID)), {get_pos})
 
 ; If we're activating multiple spells through synchronization
 ; this checks if we skip refreshing the budget (signaled with an `s`)
@@ -112,51 +98,110 @@ gotoif(no_frame, contains({get_bits}, "s"))
 waitframe()
 
 no_frame:
+
 {pointer.increment}
 ; We add to our pointer the size of our spell
 
-#end_of_compactor contains("", sub(compactor, pointer, 10))
+#end_of_compactor contains(\
+  "", \
+  sub(\
+    local.string.get(actives),\
+    local.int.get(pointer_var_str),\
+    10\
+  )\
+)
+
 ; when we initialize our compactor, we add the ending bit "e" as the
 ; last character in our string. This e is used to check
 ; if we've ended our string (aka, haven't looped)
 ; 
-; We also take a substring of size 10 and compare it with a string of size 1
-; so it can only return true if we truely are at the end of our string
+; We also take a substring of size 10 and compare it with a string
+; of size 1 so it can only return true if we truely are at the end
+; of our string
 
-goto(if(\
-  {end_of_compactor}, \
-  99, \
-  if(isTowerTesting(), loop, idle)\
-))
+goto(if({end_of_compactor}, end_instance, if(\
+  health(false) <= 0.0, \
+  idle,\
+  if(lbg(timer_base_detector), loop, assign_base)\
+)))
 ; We terminate the program if we reach the end of the string
 ; This doesn't enter idle mode, as it's possible that the user might
 ; want to send another blueprint over our way. In that case, if we
 ; did enter idle mode, the timer would've stopped, de-synchronizing things
 
-; This is the only addition of the debugger
-debug:
-compactor = {compactor.get}
-pointer = global.int.get("next pointer")
-{caller.set("debugging")}
+start_timer:
+{timer.set(time.delta() * 2.0)}
+execute("{blueprint_compactor}")
 
+timer:
+waitframe()
+{timer.add(time.delta())}
+goto(if(contains({caller.get}, "idle mode"), end, timer))
+; The timer will always run, even if the compactor shuts down
+; the only way to stop the timer is by calling the compactor, again
+; outside of towertesting or by stopping all instances of the compactor
+
+start_secures:
+:local double i
+i = 1.0
+local.string.set(secures, {comp_secure.get})
+
+loop_secures:
+disable.inf(sub(\
+  local.string.get(secures), \
+  local.int.get(pointer_var_str), \
+  index(\
+    local.string.get(secures), \
+    "|", \
+    local.int.get(pointer_var_str)\
+  ) - local.int.get(pointer_var_str)\
+))
+waitframe()
+local.int.set(pointer_var_str, if(\
+  disable.inf.cost() <= 1e3 ^ i, \
+  local.int.get(pointer_var_str), \
+  index(\
+    local.string.get(secures), \
+    "|", \
+    local.int.get(pointer_var_str)\
+  )\
+))
+i = if(disable.inf.cost() > 1000.0 ^ i, i + 1.0, i)
+goto(if(\
+  contains({caller.get}, "idle") || index(\
+    local.string.get(secures), \
+    "|", \
+    local.int.get(pointer_var_str)\
+  ) == -1, \
+  end_instance, \
+  loop_secures\
+))
+
+debug:
 ; It sets the caller to "debugging" so that when you
 ; force your blueprint AI to send the string over, there's
 ; a concrete spot that tells it that it can shut down
 ; 
+
+local.int.set(pointer_var_str, {pointer.get})
+local.string.set(actives, {comp_active.get})
+
 global.string.set("spell_chunk", sub(\
-  compactor,\
-  pointer,\
+  local.string.get(actives),\
+  local.int.get(pointer_var_str),\
   {get_space}\
 ))
 ; The chunk shows you how the spell is stored
 ; the order is as shown bellow:
 ; * `loop_signal bit` that is / to move to the next spell and # to loop
-; * `sync bit` that is / to refresh budget and `s` to skip refreshing budget
+; * `sync bit` that is / to refresh budget and `s`
+;    to skip refreshing budget
 
-global.int.set("pointer", pointer)
+global.int.set("pointer", local.int.get(pointer_var_str))
 ; We also have a pointer and next_pointer that shows what value
 ; this pointer has at that state
 
+global.string.set("timer_base", {lua(return Compactor.timer_base)})
 global.string.set("spell space", {lua(return Compactor.space)})
 ; space value which is the ammount of space
 ; the spell takes up in the recording
@@ -175,11 +220,12 @@ global.string.set("coord_y", {lua(return Compactor.coord_y)})
 ; as add_spell.grounded with 0, 0 as coordinates
 ; 
 global.string.set("spell_name", {get_name})
-; name which is the spells identifier so we can take an active index of it
+; name which is the spells identifier so we can
+; take an active index of it
 
 {pointer.increment}
 ; We finally increment our pointer and add the next pointer state
-global.int.set("next pointer", pointer)
+global.int.set("next pointer", local.int.get(pointer_var_str))
 
 waitframe()
 ; 
@@ -198,3 +244,5 @@ end:
 ; 
 idle:
 {caller.set("idle mode")}
+
+end_instance:
