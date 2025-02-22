@@ -16,9 +16,11 @@ When you import the Blueprint Compactor resources, you gain access to 3 macros t
 - `disable.era` is a macro you use in the function `disable.era()`. 
 - `disabled_era` is a macro you use to detect if all elements you wanted to disable are disabled.
 
+You can see how it works by looking at [The blueprint handler](./template%20using%20blueprint%20compactor/blueprint%20handler.tpt2).
+
 # Using WaterCat
 
-You will have to copy the [Software Config]() file to use watercat.<br>
+You will have to copy the [Software Config](./template%20using%20blueprint%20compactor/Software%20Config_template.tpt2) file to use watercat.<br>
 You set the security level for your software. You do this by changing the parameter inside of the macro with the software name.
 
 To use watercat, you'll need to use the macros watercat_line1, _line2 and _line3.<br>
@@ -27,12 +29,14 @@ This parameter is used to determine the security level. If you have a known secu
 - `line2` is the line that updates the index.
 - `line3` is a gotoif that loops through all the software until you've gone through them all.
 
+An example using watercat with a static security level can be seen in [The blueprint handler](./template%20using%20blueprint%20compactor/blueprint%20handler.tpt2) and with a dynamic security level, see [The dynamic version](./template%20using%20blueprint%20compactor/watercat%20with%20dynamic%20security.tpt2).
+
 # Using the Spell Compactor
 
 This tool lets you record multiple spell activation sequence of multiple blueprints.<br>
 For the purposes of this manual, an activation sequence is called a `recording`.
 
-To make a recording of your blueprint, I recommend you copy over the `Config` file from [the pre-made template](./template%20using%20spells%20compactor/Spell%20Config_template.tpt2) into the editor.
+To make a recording of your blueprint, I recommend you copy over the `Config` file from [the pre-made template](./template%20using%20blueprint%20compactor/Spell%20Config_template.tpt2) into the editor.
 
 Now that you have a configuration file, follow the instructions outlined in the config file.
 
@@ -58,13 +62,15 @@ The recording macros are used to let you communicate with the compactor.
 * `timer_modulo` takes in a double value that's used to determine the base used for the defined blueprint. The base means the largest value the timer can have before it should be considered 0.0 again.
 
 Please note that, since these are macros, commenting them does not prevent the action from being taken.<br>
-If you want to comment out a spell or a synchronization, you should make a comment that contains the macros inputs but that ***`DOES NOT CALL THE MACRO`***.
+If you want to comment out a spell or a synchronization, you should make a comment that contains the macros inputs but that ***`DOES NOT CALL THE MACRO ITSELF`***.
 
 add_spell.`spell_type` returns a const int, irelevant of the spell type. Similar to recorded_blueprint, this variable contains the space in the recording _after_ adding the spell. The difference being that this constant is called spell_`spell_number`.
 
 recorded_blueprint tells the compactor that the recording it has made is a blueprint. This macro returns a const int value that holds the current ammount of space in the recording. This variable is called blueprint_`value within blueprint_name`, so that you can cut up the recorded string.
 
-timer_modulo is best used after calling recorded_blueprint for clarity.
+timer_modulo is best used before calling recorded_blueprint for clarity.<br>
+Adding a modulo adds extra space to the recording, making the value in spell_`spell_number` of the previous add_spell no longer be accurate.<br>
+recorded_blueprint sends the accurate space ammount.
 
 Your recording gets compacted and stored in the string `recorded_actives` and, in addition, your recordings size is stored in the integer `recording_size`.
 
@@ -75,7 +81,7 @@ For an example of how these functions can be interacted with, please look at the
 ## Using the spells recording
 
 Now that you've got the recording, you're going to have to send it over to the compactor.<br>
-Luckily, the way to do this is already explained in the [template caller script](./template%20using%20spells%20compactor/blueprint%20AI%20caller.tpt2).
+Luckily, the way to do this is already explained in the [template caller script](./template%20using%20blueprint%20compactor/blueprint%20AI%20caller.tpt2).
 
 You will need to use `{pointer.set}` and `{comp_actives.set}` in this exact order.<br>
 Setting the pointer starts a block hider that hides all global variables that get defined ofter it.<br>

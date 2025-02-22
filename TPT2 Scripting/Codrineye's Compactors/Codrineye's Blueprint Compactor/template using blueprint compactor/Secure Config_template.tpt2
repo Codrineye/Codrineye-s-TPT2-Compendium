@@ -1,5 +1,5 @@
-:import Devbuild Blueprint Compactor
-:name devbuild Security Config
+:import Cods Blueprint Compactor
+:name Security Config
 
 ; 
 ; Welcome to security config, where you define
@@ -41,4 +41,4 @@
 :const string recorded_secures "{lua(\
   return table.concat(BP.comp.secure);\
 )}"
-:const int secures_space {lua(return BP.misc.space.secure)}
+:const int secures_space {lua(return BP.used_space.secure)}

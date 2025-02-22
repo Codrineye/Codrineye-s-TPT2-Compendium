@@ -1,0 +1,153 @@
+:import Blueprint Compactor lib
+:name {blueprint_compactor}
+
+:budget_cap max
+
+gotoif(\
+  if({timer.get} == 0.0, start_timer, start_secures), \
+  contains(impulse(), "{blueprint_compactor}")\
+)
+; The compactor will have at most 3 instances running at once
+; The first instance will be in charge of executing actives.
+; It also executes a second instance of itself.
+; If the timer is set to 0, this second instance will be the timer.
+; If this second instance is the timer, it will create a third instance.
+; 
+; This third instance will always be in charge of securing modules.
+; 
+; If the timer is not set to 0 when the second instance is created, this
+; means that there's already an instance that's running the timer, so
+; this second instance becomes in charge of securing modules
+
+pointer = {pointer.get}
+actives = {comp_active.get}
+; We use local variables to prevent a messy interface
+; And to let the user have more instances
+; of the compactor running at the same time
+
+{caller.set(if(\
+  contains(impulse(), ":"), \
+  sub(impulse(), 0, index(impulse(), ":", 0)),\
+  impulse()\
+))}
+; We also set the caller so that the user knows
+; how the compactor got accessed
+; 
+; This will typically only have 1 value, but if
+; it has a name that you don't expect, it should tell the
+; user that there's another script that uses the compactor
+; which they might want to shut down
+
+execute("{blueprint_compactor}")
+; We now make a copy of ourselves.
+
+assign_base:
+; We try to assign a base to ourselves.
+; Since the user could have set the base at any point
+; in the recording process it's not enough to try to assign a base
+; once the pointer is set to 0
+; 
+timer_base = {get_base}
+; 
+; get_base returns utcnow() if s2d fails.
+; since we're doing this check in the same frame thanks to the budget
+; the value returned by the utcnow() function does not update
+det_timer_base = timer_base != utcnow()
+
+loop:
+; If we must loop over, we'll have to wait until our modulo_timer is
+; of value 0
+clock = if(pointer == 0 && det_timer_base, 0.0, {timer.get})
+waituntil({modulo_timer} <= clock)
+
+; Since getting the timer and spell_ID are resource intensive operations
+; whose values are called more than once, we calculate then here
+spell_ID = {get_name}
+clock = {get_timer}
+
+waituntil(clock <= {modulo_timer} || contains({caller.get}, idle_mode))
+
+; 
+; We use both instant and grounded spells here because we
+; don't actually know what spell we're casting, just that we
+; have to cast one with the given parameters
+useinstant(active.index(spell_ID))
+useposition(active.index(spell_ID), {get_pos})
+
+; If we're activating multiple spells through synchronization
+; this checks if we skip refreshing the budget (signaled with an `s`)
+gotoif(no_frame, contains({get_bits}, "s"))
+waitframe()
+
+no_frame:
+{pointer.increment}
+; We add to our pointer the size of our spell
+
+#end_of_compactor contains("", sub(actives, pointer, 10))
+; when we initialize our compactor, we add the ending bit "e" as the
+; last character in our string. This e is used to check
+; if we've ended our string (aka, haven't looped)
+; 
+; We also take a substring of size 10 and compare it with a string
+; of size 1 so it can only return true if we truely are at the end
+; of our string
+
+goto(if({end_of_compactor}, end_instance, if(\
+  health(false) <= 0.0, \
+  idle,\
+  if(det_timer_base, loop, assign_base)\
+)))
+; We terminate the program if we reach the end of the string
+; This doesn't enter idle mode, as it's possible that the user might
+; want to send another blueprint over our way. In that case, if we
+; did enter idle mode, the timer would stop, de-synchronizing things
+
+start_secures:
+:local double i
+i = 1.0
+secures = {comp_secure.get}
+
+loop_secures:
+disable.inf(sub(secures, pointer, index(secures, "|", pointer) - pointer))
+
+; Skip waiting a frame if we have enough xp to secure another module
+gotoif(secures_no_frame, disable.inf.cost() <= xp())
+waitframe()
+
+secures_no_frame:
+pointer = if(\
+  disable.inf.cost() > 1000.0 ^ i, \
+  1 + index(secures, "|", pointer), \
+  pointer\
+)
+i = if(disable.inf.cost() > 1000.0 ^ i, i + 1.0, i)
+
+goto(if(\
+  contains({caller.get}, idle_mode) \
+  || index(secures, "|", pointer) == -1, \
+  end_instance, \
+  loop_secures\
+))
+; We end the instance if we've secured all the modules we had to
+
+start_timer:
+{timer.set(time.delta() * 2.0)}
+execute("{blueprint_compactor}")
+
+timer:
+waitframe()
+{timer.add(time.delta())}
+gotoif(timer, {caller.get} != idle_mode)
+; The timer will be incremented until one of these actions are performed
+; - call the compactor outside of towertesting
+; - stop all instances of the compactor
+; - set the caller_ID to the string called idle_mode
+
+end:
+{timer.set(0.0)}
+; The timer should be reset when the compactor enters idle mode
+; 
+idle:
+{caller.set(idle_mode)}
+
+end_instance:

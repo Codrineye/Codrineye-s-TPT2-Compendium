@@ -57,11 +57,11 @@ software.toggle(\
     lig(Wcat), \
     index(software_list, "|", lig(Wcat)) - lig(Wcat)\
   ),\
-  {secure_level} == s2i(\
+  {secure_level} <= s2i(\
     sub(\
       software_secure, \
       lig(Wcat), \
-      index(software_secure, "|", lig(Wcat)) - Wcat\
+      index(software_secure, "|", lig(Wcat)) - lig(Wcat)\
     ),\
     0\
   )\
@@ -80,10 +80,12 @@ software.toggle(\
 ; 
 ; 2 + 12 + 18 = 32
 
-#watercat_line2 lis(Wcat, 1 + index(security_list, "|", lig(Wcat)))
+#watercat_line2 lis(Wcat, 1 + index(software_list, "|", lig(Wcat)))
 ; lis + c.i + index + lig = 2 + 3 + 3 + 1 = 9
 
 #watercat_line3 gotoif(software_toggle_loop, lig(Wcat) < software_len)
 ; gotoif + c.i + lig = 2 + 3 + 1 = 6
 ; 
 ; 31 + 9 + 6 = 46
+
+#watercat_index_reset lis(Wcat, 0)

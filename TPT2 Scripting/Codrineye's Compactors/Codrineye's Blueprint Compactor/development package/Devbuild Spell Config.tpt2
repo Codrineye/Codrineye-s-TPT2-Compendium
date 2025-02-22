@@ -1,8 +1,12 @@
-:import Cods Spell Compactor
+:import Devbuild Blueprint Compactor
+:name devbuild Spell Config
 ; 
 ; Welcome to the configuration
 ; This script has macros that allow you to
 ; communicate with the compactor and its debugger
+; 
+; Please read the compactor manual on the repo for a better
+; understanding of how to use it
 ; 
 {spell_debug.log(false)}
 ; Set to true if you want to get a log of your recording
@@ -44,6 +48,12 @@
 ; blueprint_name is just any string. You do not include the double quotes
 ; loopable_blueprint is a true/false value
 ; if true, it makes the compactor execute the recording sequence on loop
+; 
+; timer_modulo(modulo)
+; Should be used before you use recorded_blueprint to define a
+; blueprint that can loop
+; 
+; this modulo value is used to 
 ; 
 ; synchronize(spell_ammount) 
 ; it makes the following spell_ammount recordings
@@ -98,7 +108,7 @@
 {add_spell.grounded(spell.void, 10.0, 0.0, 0.0)}
 ; adds the grounded spell `void` to be used
 ; at position 0.0, 0.0 on the map when t is a multiple of 10.0
-
+{timer_modulo(0.0)}
 {recorded_blueprint(loop, true)}
 ; defines the blueprint called "blueprint_loop" that loops
 
@@ -133,8 +143,8 @@
 {spell_debug}
 
 ; 
-; String holding the recorded spell data
-:const string recorded_actives {lua(return Spell.comp.concat_actives())}
+; String holding the recorded spell data"
+:const string recorded_actives {lua(return BP.comp.concat_actives())}
 
 ; 
 ; Int holding the size of the recorded string
@@ -142,4 +152,4 @@
 ; the function version runs the function one more time, which
 ; can get very slow if you have a big recording sequence
 
-:const int recoring_size {lua(return Spell.active.space)}
+:const int recoring_size {lua(return BP.used_space.active)}

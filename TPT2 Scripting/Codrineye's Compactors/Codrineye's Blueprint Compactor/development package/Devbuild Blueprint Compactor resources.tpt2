@@ -1,10 +1,10 @@
 :name devbuild Bluep Comp Res
+
 ; 
 ; This is a library that declairs the naming scheme
 ; needed to use the spell compactor
 ; 
 #blueprint_compactor Blueprint Compactor
-#identifier Blueprint Compactor
 ; 
 #hider.start <size=0>
 #hider.close </size>
@@ -12,38 +12,35 @@
 :const string hider.start "{hider.start}"
 :const string hider.close "{hider.close}"
 ; 
-:const string pointer_var "{hider.start}{identifier} Pointer"
+:const string pointer_var "{hider.start}{blueprint_compactor} Pointer"
 #pointer.get global.int.get(pointer_var)
 #pointer.set(value) global.int.set(pointer_var, {value})
 ; 
-:const string compactor_actives "{identifier}access string"
+:const string compactor_actives "{blueprint_compactor}access actives str"
 #comp_active.get global.string.get(compactor_actives)
 #comp_active.set(str) global.string.set(compactor_actives, {str})
 ; 
-:const string compactor_secures "{identifier}access secures"
+:const string compactor_secures "{blueprint_compactor}access secures str"
 #comp_secure.get global.string.get(compactor_secures)
 #comp_secure.set(str) global.string.set(compactor_actives, {str})
 ; 
-:const string caller_ID "</size>{blueprint_compactor} caller"
+:const string caller_ID "{hider.close}{blueprint_compactor} caller"
 #caller.get global.string.get(caller_ID)
 #caller.set(caller_ID) global.string.set(caller_ID, {caller_ID})
+
+#idle_mode_str {hider.start}{blueprint_compactor}{hider.close}
+; 
+; this is a special string that makes it highly unlikely
+; that the caller_ID has this value naturally.
+; 
+:const string idle_mode "{idle_mode_str}idle mode"
+; 
+; This string is used by the compactor to detect if entered idle mode
 ; 
 :const string timer_var "t"
 #timer.get global.double.get(timer_var)
 #timer.set(value) global.double.set(timer_var, {value})
 #timer.add(value) {timer.set(({value}) + {timer.get})}
-; 
-:const string got_timer_base "{identifier}loopable blueprint"
-#timer_baseCheck.get global.bool.get(got_timer_base)
-#timer_baseCheck.set(value) global.bool.set(got_timer_base, {value})
-; 
-:const string timer_base_var "timer_base"
-#timer_base.get global.double.get(timer_base_var)
-#timer_base.set(value) global.double.set(timer_base_var, {value})
-; 
-:const string timer_mod_var "tm"
-#timer_mod.get global.double.get(timer_mod_var)
-#timer_mod.set(value) global.double.set(timer_mod_var, {value})
 ; 
 
 ; 
@@ -92,7 +89,7 @@
 ; if(disable.cost("element"), "element", "last_element")
 #disable.era {lua(\
   local elems = Era.elements;\
-  local elem_costs = Era.elenent_cost;\
+  local elem_costs = Era.element_cost;\
   \
   local condition_fmt = [[%s != -1]]\
   local if_fmt = [[if(%s, %s, %s)]];\
@@ -102,7 +99,7 @@
     local cost = elem_costs[i];\
     local condition = condition_fmt:format(cost);\
     local caseTrue = elems[i];\
-    last_element = if_fmt:format(condition, case_true, last_element);\
+    last_element = if_fmt:format(condition, caseTrue, last_element);\
   end\
   return last_element;\
 )}

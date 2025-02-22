@@ -1,3 +1,4 @@
+:name devbuild Bluep Compactor
 
 {lua(\
   BP = {};\
@@ -11,11 +12,11 @@
   BP.debug.concat_format = "";\
   \
   --[[Table that has data needed in compacting data]]\
-  BP.misc = {};\
-  BP.misc.space = {};\
-  BP.misc.space.secure = 0;\
-  BP.misc.space.active = 0;\
-  BP.misc.sync_ammount = 0;\
+  BP.used_space = {};\
+  BP.used_space.secure = 0;\
+  BP.used_space.active = 0;\
+  \
+  BP.sync_ammount = 0;\
   \
   --[[Table that has compactor specific data]]\
   BP.comp = {};\
@@ -25,7 +26,6 @@
   BP.comp.software = {}\
   --[[Store the module secures]]\
   BP.comp.secure = {};\
-  BP.comp.defined_secures = {};\
   \
   --[[Blueprint activation]]\
   BP.comp.active = {};\
@@ -73,59 +73,58 @@
   end\
   \
   function BP.comp.add_software(software, level)\
-    assert(\
-      BP.comp.software[software],\
-      "Attempt to assign a security level to an unrecognized software\n"\
-      .. "If this is a new software, add it to the software_list"\
-    ); --[[triggers an error if software_name isn't in software_list]]\
-    assert(\
-      BP.comp.software[software] == -50,\
-      "Trying to assign a security level to an already set software"\
-    ); \
-    --[[/*\
-        * lowest security level I've seen yet is -1\
-        * thus, a security level of -50 is the default value\
-       */]]\
-    local secure_level = level:match([[%b""]]):sub(2, -2):gsub(" ", "");\
-    assert(\
-      tonumber(secure_level), \
-      "Trying to assign an empty security level"\
-    );\
-    --[[Assert will trigger an error if tonumber() returns nil]]\
+    local err_msg;\
+    local soft = BP.comp.software;\
+    local sec = level:match([[%b""]]):sub(2, -2):gsub(" ", "");\
+    if soft[software] == nil then\
+      err_msg = "Attempt to assign a security level to an "\
+        .. "unrecognized software\n" .. "If this is a new "\
+        .. "software, an update to the compactor should "\
+        .. "be released soon";\
+    elseif soft[software] ~= -50 then\
+      err_msg = "Trying to assign a security level to "\
+        .. "an already set software";\
+      --[[/*\
+          * Smallest security level I've seen is -1, \
+          * so -50 should never be assigned naturally\
+         */]]\
+    elseif tonumber(sec) == nil then\
+      err_msg = "Trying to assing an empty security level";\
+    elseif math.type(tonumber(sec)) ~= "integer" then\
+      err_msg = "Trying to assign a non-integer security level";\
+    end\
+    \
+    --[[Throw an error if we have an error message]]\
+    if err_msg then error(err_msg, 0) end\
     \
     local software_name = string.format("software.%s", software);\
-    local lvl = string.rep(" ", #software_name - #secure_level);\
-    secure_level = string.format("%s%s", secure_level, lvl);\
-    BP.comp.software[software] = secure_level;\
+    local lvl = string.rep(" ", #software_name - #sec);\
+    sec = string.format("%s%s", sec, lvl);\
+    BP.comp.software[software] = sec;\
   end\
   \
   function BP.comp.concat_software(concat_mode)\
-    do\
-      local modes = {};\
-      modes.software_list = 0;\
-      modes.software_secure = 1;\
-      assert(\
-        modes[concat_mode],\
-        "Invalid concat_mode.\n"\
-        .. "If you're seeing this, you're either a user that messed "\
-        .. "with something you shouldn't have, or I messed up"\
-      );\
-    end\
-    --[[using a do-end block to prevent lingering local values]]\
+    local modes = {};\
+    modes.software_list = true;\
+    modes.software_secure = true;\
+    assert(\
+      modes[concat_mode],\
+      "Invalid concat_mode.\n"\
+      .. "If you're seeing this, you're either a user that messed "\
+      .. "with something you shouldn't have, or I messed up"\
+    );\
     local software = "";\
     \
-    if concat_mode == [[software_list]] then\
-      local software_fmt = "software.%s|";\
-      for _, soft in ipairs(software_list) do\
-        local software_name = software_fmt:format(soft);\
-        software = software .. software_name;\
+    local secure_fmt = "%s%s|";\
+    local software_fmt = "software.%s";\
+    for _, soft in ipairs(software_list) do\
+      local concat_val = "";\
+      if concat_mode == [[software_list]] then\
+        concat_val = software_fmt:format(soft);\
+      else\
+        concat_val = BP.comp.software[soft];\
       end\
-    else\
-      local secure_fmt = "%s%s|";\
-      for _, soft in ipairs(software_list) do\
-        local software_val = BP.comp.software[soft];\
-        software = secure_fmt:format(software, software_val);\
-      end\
+      software = secure_fmt:format(software, concat_val);\
     end\
     return string.format([["%s"]], software);\
   end\
@@ -136,8 +135,7 @@
       "Attempt to define a security recording before " ..\
       "adding a module to secure"\
     );\
-    local space = BP.misc.space.secure;\
-    BP.comp.defined_secures[blueprint_name] = space;\
+    local space = BP.used_space.secure;\
     local const = [[:const int secures_%s %s]];\
     return const:format(blueprint_name, space);\
   end\
@@ -145,10 +143,7 @@
     local secures_idx = 1 + #BP.comp.secure;\
     local secure_name = string.format("%s|", module_name:gsub(" ",  ""));\
     BP.comp.secure[secures_idx] = secure_name;\
-    BP.misc.space.secure = #secure_name + BP.misc.space.secure;\
-  end\
-  function BP.comp.concat_secures()\
-    return table.concat(BP.comp.secure);\
+    BP.used_space.secure = #secure_name + BP.used_space.secure;\
   end\
   \
   function BP.comp.recorded_blueprint(name, loopable)\
@@ -173,7 +168,7 @@
          */]]\
     end\
     \
-    local space = BP.misc.space.active;\
+    local space = BP.used_space.active;\
     --[[Get the ammount of space we've currently used up]]\
     local bp_name = name:match([[%b""]]):sub(2, -2);\
     --[[removes the quote marks from the match operation]]\
@@ -186,6 +181,7 @@
     --[[change the bp_name so we can output it as a const int]]\
     return string.format(":const int %s %s", bp_name, space)\
   end\
+  \
   function BP.comp.blueprint_base(defined_base)\
     --[[/*\
         * Defines the base at which a loopable blueprint\
@@ -193,16 +189,38 @@
         * the active timer is compared to tm, which makes\
         * spell activation more precise\
        */]]\
+    local err_msg = "";\
     local spell = BP.comp.active[#BP.comp.active];\
-    assert(\
-      spell.timer_base, \
-      "Trying to add a timer_base without any recorded spells"\
-    );\
-    spell.timer_base = string.format("%s|", defined_base);\
+    if spell == nil then\
+      err_msg = "Trying to add a timer_base without any recorded spells";\
+    elseif tonumber(defined_base) == nil then\
+      err_msg = "Trying to define a timer_base as a non number";\
+    elseif math.type(tonumber(defined_base)) ~= "float" then\
+      err_msg = "Trying to define a timer_base as a non double";\
+    end\
+    if err_msg ~= "" then error(err_msg, 0) end\
+    \
+    local spell_fmt = "%s|"\
+    spell.timer_base = spell_fmt:format(defined_base);\
     local space = tonumber(spell.space:sub(1, -2));\
-    space = space + #spell.timer_base;\
-    spell.space = string.format("%s|", space);\
-    --[[We're adding to the recording, we update the recording space]]\
+    BP.used_space.active = BP.used_space.active - space;\
+    --[[We also have to update the total ammount of space being used]]\
+    \
+    space = -1 + space + #spell.timer_base;\
+    --[[/*\
+        * We substract by 1 since the space variable already has\
+        * the space of 1 from the default state of `|`\
+       */]]\
+    local used_space = space;\
+    local prev_space = -1;\
+    while used_space ~= prev_space do\
+      prev_space = used_space;\
+      spell.space = spell_fmt:format(used_space);\
+      used_space = space + #spell.space;\
+      --[[We loop until we're not adding any extra space]]\
+    end\
+    --[[And we can end by adding the new used space to the total]]\
+    BP.used_space.active = BP.used_space.active + used_space;\
   end\
   \
   function BP.comp.sync(spell_ammount)\
@@ -223,7 +241,7 @@
         * \
         * Sync_ammount always gets overwritten\
        */]]\
-    BP.misc.sync_ammount = sync;\
+    BP.sync_ammount = sync;\
   end\
   \
   function BP.comp.add_spell(name, timer, coord_x, coord_y)\
@@ -241,8 +259,7 @@
       BP.debug.halt();\
     end\
     \
-    local match_string = [[%b""]];\
-    local active_name = name:match(match_string):sub(2, -2);\
+    local active_name = name:match([[%b""]]):sub(2, -2);\
     \
     local actives_index = 1 + #BP.comp.active;\
     local new_spell = {};\
@@ -264,10 +281,10 @@
         * used_space is currently 3 because, sync and loop_sign\
         * are length-1 signals and the timer_base is empty by default\
        */]]\
-    local sync = BP.misc.sync_ammount;\
+    local sync = BP.sync_ammount;\
     if sync > 0 then\
       new_spell.sync = "s";\
-      BP.misc.sync_ammount = sync - 1;\
+      BP.sync_ammount = sync - 1;\
     end\
     --[["s" means that the script skips refreshing the budget.]]\
     new_spell.name = active_name;\
@@ -312,7 +329,7 @@
        */]]\
     \
     BP.comp.active[actives_index] = new_spell;\
-    BP.misc.space.active = BP.misc.space.active + used_space;\
+    BP.used_space.active = BP.used_space.active + used_space;\
     \
     local logging_check = dbug.can_halt or dbug.can_log;\
     if logging_check then BP.debug.log() end\
@@ -329,7 +346,7 @@
        */]]\
     local spell_number = string.format("spell_%s", actives_index);\
     local const_txt = ":const int %s %s";\
-    return const_txt:format(spell_number, BP.misc.space.active);\
+    return const_txt:format(spell_number, BP.used_space.active);\
   end\
   \
   function BP.comp.concat_actives()\
@@ -512,7 +529,7 @@
       text = logging_text[1];\
       local spell_value = spell[value] or "nil";\
       --[[/*\
-          * Gets our logging_value\
+          * Gets our spell_value\
           * If its respecitve value exists then \
           * * spell_value = spell[value]\
           * else\
@@ -521,10 +538,10 @@
           * \
         */]]\
       \
-      local fmt = table.pack(log, value, logging_value);\
+      local fmt = table.pack(log, value, spell_value);\
       if i == values_index_for_space then\
         text = "%s| Summing up to a total space of %s\n"\
-        fmt = table.pack(log, logging_value);\
+        fmt = table.pack(log, spell_value);\
       end\
       log = text:format(table.unpack(fmt));\
     end\

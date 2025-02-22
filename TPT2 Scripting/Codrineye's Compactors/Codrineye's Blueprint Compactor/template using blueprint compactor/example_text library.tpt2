@@ -1,15 +1,16 @@
+:import Secure Config_blueprint AI using the compactor
 :import Spell Config_blueprint AI using the compactor
-:import Spell Compactor resources
+:import Blueprint Compactor resources
 
 ; 
 ; A blueprint AI most of the time
 ; has a library for convenience
 ; 
-; Here, we import the Spell Config you just made
-; and Spell Compactor resources
+; Here, we import the Spell and Secure Configs you just made
+; and the Blueprint Compactor resources
 ; 
 ; if you get an error saying
-; 'Import failed: Script "Spell Compactor resources" does not exist!'
+; 'Import failed: Script "Blueprint Compactor resources" does not exist!'
 ; Please make sure you have Codrineye's Spell Compactor imported
 ; 
 

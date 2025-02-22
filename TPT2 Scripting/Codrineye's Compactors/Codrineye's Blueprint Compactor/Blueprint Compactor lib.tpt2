@@ -1,9 +1,4 @@
-:import Devbuild Blueprint Compactor resources
-:name devbuild Bluep Comp lib
-
-; The Devbuild Compactor uses verbose names.
-; Normal compactor uses shortened names to
-; minimize the size of the import code
+:import Blueprint Compactor resources
 
 :local int pointer
 :local string actives
@@ -15,9 +10,6 @@
 ; 
 :local string spell_ID
 ; 
-
-:const string script_signaler "{identifier}signal manager"
-#signal.get global.string.get(script_signaler)
 
 :import Editor_actions lib
 ; Editor_actions lib lets me create actions; that the editor can parse
@@ -90,7 +82,7 @@
 #get_name {lua(return Compactor.name)}
 
 #pointer.increment pointer = if(\
-  {timer_baseCheck.get}, \
+  contains({get_bits}, "#"), \
   0, \
   pointer + {get_space}\
 )

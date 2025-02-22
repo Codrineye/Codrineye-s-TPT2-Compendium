@@ -4,7 +4,6 @@
 ; needed to use the spell compactor
 ; 
 #blueprint_compactor Blueprint Compactor
-#bp_res_idtfier B#C|
 ; 
 #hider.start <size=0>
 #hider.close </size>
@@ -12,21 +11,30 @@
 :const string hider.start "{hider.start}"
 :const string hider.close "{hider.close}"
 ; 
-:const string pointer_var "{hider.start}{bp_res_idtfier}I"
+:const string pointer_var "{hider.start}{blueprint_compactor} Pointer"
 #pointer.get global.int.get(pointer_var)
 #pointer.set(value) global.int.set(pointer_var, {value})
 ; 
-:const string compactor_actives "{bp_res_idtfier}AAstr"
+:const string compactor_actives "{blueprint_compactor}access actives str"
 #comp_active.get global.string.get(compactor_actives)
 #comp_active.set(str) global.string.set(compactor_actives, {str})
 ; 
-:const string compactor_secures "{bp_res_idtfier}ASstr"
+:const string compactor_secures "{blueprint_compactor}access secures str"
 #comp_secure.get global.string.get(compactor_secures)
 #comp_secure.set(str) global.string.set(compactor_actives, {str})
 ; 
-:const string caller_ID "</size>{blueprint_compactor} caller"
+:const string caller_ID "{hider.close}{blueprint_compactor} caller"
 #caller.get global.string.get(caller_ID)
 #caller.set(caller_ID) global.string.set(caller_ID, {caller_ID})
+
+#idle_mode_str {hider.start}{blueprint_compactor}{hider.close}
+; 
+; this is a special string that makes it highly unlikely
+; that the caller_ID has this value naturally.
+; 
+:const string idle_mode "{idle_mode_str}idle mode"
+; 
+; This string is used by the compactor to detect if entered idle mode
 ; 
 :const string timer_var "t"
 #timer.get global.double.get(timer_var)
@@ -65,7 +73,7 @@
   local index = 1 + #elems;\
   elems[index] = name;\
   \
-  local disable_era = [["disable.era(%s)"]]\
+  local disable_era = [[disable.cost(%s)]]\
   Era.element_cost[index] = disable_era:format(elems[index]);\
   elems[name] = index;\
 )}
@@ -80,9 +88,9 @@
 ; if(disable.cost("element"), "element", "last_element")
 #disable.era {lua(\
   local elems = Era.elements;\
-  local elem_costs = Era.elenent_cost;\
+  local elem_costs = Era.element_cost;\
   \
-  local condition_fmt = [[%s != -1]]\
+  local condition_fmt = [[%s != -1.0]]\
   local if_fmt = [[if(%s, %s, %s)]];\
   \
   local last_element = elems[#elems];\
@@ -90,7 +98,7 @@
     local cost = elem_costs[i];\
     local condition = condition_fmt:format(cost);\
     local caseTrue = elems[i];\
-    last_element = if_fmt:format(condition, case_true, last_element);\
+    last_element = if_fmt:format(condition, caseTrue, last_element);\
   end\
   return last_element;\
 )}
@@ -104,7 +112,7 @@
   local sum_fmt = [[%s + %s]];\
   \
   local last_cost = elem_costs[#elems];\
-  for i = #elements - 1, 1, -1 do\
+  for i = #elems - 1, 1, -1 do\
     last_cost = sum_fmt:format(last_cost, elem_costs[i]);\
   end\
   local negative_costs = 0.0 - #elems;\

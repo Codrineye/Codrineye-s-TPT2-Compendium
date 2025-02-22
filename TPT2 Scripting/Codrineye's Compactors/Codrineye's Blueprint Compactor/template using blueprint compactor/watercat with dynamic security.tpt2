@@ -1,0 +1,30 @@
+:import Software Config_blueprint AI using the compactor
+:import example_text library
+; We don't need anything from our library, but it's good practice
+; to include it in your scripts for naming
+
+:local int security
+; this is how we set the security level
+
+security = 1
+{watercat_line1(security)}
+; makes our security level directly linked to the security variable
+{watercat_line2}
+{watercat_line3}
+
+gotoif(99, security == 2)
+; just to prevent this from being an infinite loop,
+; we have an exit condition
+
+wait(5.0)
+; after 5.0 seconds have passed, we reset our index
+{watercat_index_reset}
+
+; then, we set our security to 2
+security = 2
+
+; and we use line3 again to return to line1
+{watercat_line3}
+
+; alternatively, we can also use
+goto(software_toggle_loop)

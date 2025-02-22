@@ -1,0 +1,58 @@
+:import example_text library
+:name {package(blueprint AI caller)}
+
+; 
+; this is a caller script, it
+; can be integrated into any
+; part of your script, but
+; so that you don't have to read
+; a novel, and so I don't have to write a novel
+; this is what you have to do for your blueprint
+; to be executed by the blueprint compactor
+; 
+; the macro names you see here have been declaired inside
+; of Blueprint Compactor Resources, which you imported in your library
+; 
+
+{pointer.set(0)}
+; 
+; Set a hiding block for your script, this prevents
+; the recording string from being shown on the user interface
+; as this string is usually rather large
+; 
+; You can also use the pointer to start your actives string at an offset
+; since every add_spell macro returns a spell.<number> constant
+; with the ammount of space in your recording. To start at the second
+; spell, you can set the pointer to spell_2
+
+; 
+; To ensure that the compactor starts up the timer, you should unset
+; the global variable
+global.unset(timer_var)
+
+{comp_active.set(recorded_actives)}
+; this sends the entirety of your recorded_actives to the compactor
+; if you want to isolate a blueprint, you will have to use a substring
+; of the recorded_actives to successfully isolate it
+; 
+; If you add an offset to your pointer, this is the value
+; your offset will be used on
+
+{comp_secure.set(recorded_secures)}
+; this sends the compactor a list of the modules you want to secure
+; the compactor will try to secure the module as soon as possible
+; 
+
+; For the compactor to interract with your game, you'll have to execute it
+execute("{blueprint_compactor}")
+; This is the name for the compactor. It's going to stop the hiding blocker
+; by initializing the variable called caller_ID
+; 
+; Once you run the compactor, it will start up a timer
+; if the value of {timer.get} is 0
+; 
+; If you want the compactor to shut down, you can either use
+stop("{blueprint_compactor}")
+; for an immediate stop, or you can use
+{caller.set(idle_mode)}
+; which is the internal flag to stop execution

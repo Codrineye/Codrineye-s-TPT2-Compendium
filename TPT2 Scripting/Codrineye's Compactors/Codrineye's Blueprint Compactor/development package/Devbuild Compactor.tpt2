@@ -1,4 +1,4 @@
-:import Blueprint Compactor lib
+:import Devbuild Blueprint Compactor lib
 :name {blueprint_compactor}
 ; 
 ; This script is a version of the ordinairy compactor, and as such
@@ -49,8 +49,8 @@ gotoif(\
   contains(impulse(), "{blueprint_compactor}") || debugging\
 )
 
-local.int.set(pointer_var_str, {pointer.get})
-local.string.set(actives, {comp_active.get})
+pointer = {pointer.get}
+actives = {comp_active.get}
 ; We use local variables to prevent a messy interface
 ; And to let the user have more instances
 ; of the compactor running at the same time
@@ -60,8 +60,6 @@ local.string.set(actives, {comp_active.get})
   sub(impulse(), 0, index(impulse(), ":", 0)),\
   impulse()\
 ))}
-
-execute("{blueprint_compactor}")
 ; We also set the caller so that the user knows
 ; how the compactor got accessed
 ; 
@@ -70,27 +68,41 @@ execute("{blueprint_compactor}")
 ; user that there's another script that uses the compactor
 ; which they might want to shut down
 
+execute("{blueprint_compactor}")
+; We now make a copy of ourselves.
+
 assign_base:
-local.double.set(timer_base, {get_base})
-local.bool.set(\
-  timer_base_detector,\
-  index(local.string.get(actives), "|", local.int.get(pointer_var_str))\
-  == local.int.get(pointer_var) + 3\
-)
+; We try to assign a base to ourselves.
+; Since the user could have set the base at any point
+; in the recording process it's not enough to try to assign a base
+; once the pointer is set to 0
+; 
+timer_base = {get_base}
+; 
+; get_base returns utcnow() if s2d fails.
+; since we're doing this check in the same frame thanks to the budget
+; the value returned by the utcnow() function does not update
+det_timer_base = timer_base != utcnow()
 
 loop:
+; If we must loop over, we'll have to wait until our modulo_timer is
+; of value 0
+clock = if(pointer == 0, 0.0, {timer.get})
+waituntil({modulo_timer} <= clock)
+
 ; Since getting the timer and spell_ID are resource intensive operations
 ; whose values are called more than once, we calculate then here
-local.string.set(spell_ID, {get_name})
-local.double.set(clock, {get_timer})
-; 
-waituntil({modulo_timer} <= local.double.get(clock))
+spell_ID = {get_name}
+clock = {get_timer}
+
+waituntil({modulo_timer} <= clock)
+
 ; 
 ; We use both instant and grounded spells here because we
 ; don't actually know what spell we're casting, just that we
 ; have to cast one with the given parameters
-useinstant(active.index(local.string.get(spell_ID)))
-useposition(active.index(local.string.get(spell_ID)), {get_pos})
+useinstant(active.index(spell_ID))
+useposition(active.index(spell_ID), {get_pos})
 
 ; If we're activating multiple spells through synchronization
 ; this checks if we skip refreshing the budget (signaled with an `s`)
@@ -98,19 +110,11 @@ gotoif(no_frame, contains({get_bits}, "s"))
 waitframe()
 
 no_frame:
-
 {pointer.increment}
-; We add to our pointer the size of our spell
+; We add to our pointer the size of our spell or set it to 0 if
+; we must loop over
 
-#end_of_compactor contains(\
-  "", \
-  sub(\
-    local.string.get(actives),\
-    local.int.get(pointer_var_str),\
-    10\
-  )\
-)
-
+#end_of_compactor contains("", sub(actives, pointer, 10))
 ; when we initialize our compactor, we add the ending bit "e" as the
 ; last character in our string. This e is used to check
 ; if we've ended our string (aka, haven't looped)
@@ -122,12 +126,42 @@ no_frame:
 goto(if({end_of_compactor}, end_instance, if(\
   health(false) <= 0.0, \
   idle,\
-  if(lbg(timer_base_detector), loop, assign_base)\
+  if(det_timer_base, loop, assign_base)\
 )))
 ; We terminate the program if we reach the end of the string
 ; This doesn't enter idle mode, as it's possible that the user might
 ; want to send another blueprint over our way. In that case, if we
-; did enter idle mode, the timer would've stopped, de-synchronizing things
+; did enter idle mode, the timer would stop, de-synchronizing things
+
+start_secures:
+:local double i
+i = 1.0
+secures = {comp_secure.get}
+
+loop_secures:
+disable.inf(sub(secures, pointer, index(secures, "|", pointer) - pointer))
+
+; Skip waiting a frame if we've successfully secured a module
+; this is done in hopes that, maybe, we have enough xp to disable
+; the next module as well
+gotoif(secures_no_frame, disable.inf.cost() <= xp())
+waitframe()
+
+secures_no_frame:
+pointer = if(\
+  disable.inf.cost() > 1000.0 ^ i, \
+  1 + index(secures, "|", pointer), \
+  pointer\
+)
+i = if(disable.inf.cost() > 1000.0 ^ i, i + 1.0, i)
+
+goto(if(\
+  contains({caller.get}, idle_mode) \
+  || index(secures, "|", pointer) == -1, \
+  end_instance, \
+  loop_secures\
+))
+; We end the instance if we've secured all the modules we had to
 
 start_timer:
 {timer.set(time.delta() * 2.0)}
@@ -136,59 +170,24 @@ execute("{blueprint_compactor}")
 timer:
 waitframe()
 {timer.add(time.delta())}
-goto(if(contains({caller.get}, "idle mode"), end, timer))
-; The timer will always run, even if the compactor shuts down
-; the only way to stop the timer is by calling the compactor, again
-; outside of towertesting or by stopping all instances of the compactor
-
-start_secures:
-:local double i
-i = 1.0
-local.string.set(secures, {comp_secure.get})
-
-loop_secures:
-disable.inf(sub(\
-  local.string.get(secures), \
-  local.int.get(pointer_var_str), \
-  index(\
-    local.string.get(secures), \
-    "|", \
-    local.int.get(pointer_var_str)\
-  ) - local.int.get(pointer_var_str)\
-))
-waitframe()
-local.int.set(pointer_var_str, if(\
-  disable.inf.cost() <= 1e3 ^ i, \
-  local.int.get(pointer_var_str), \
-  index(\
-    local.string.get(secures), \
-    "|", \
-    local.int.get(pointer_var_str)\
-  )\
-))
-i = if(disable.inf.cost() > 1000.0 ^ i, i + 1.0, i)
-goto(if(\
-  contains({caller.get}, "idle") || index(\
-    local.string.get(secures), \
-    "|", \
-    local.int.get(pointer_var_str)\
-  ) == -1, \
-  end_instance, \
-  loop_secures\
-))
+goto(if(contains({caller.get}, idle_mode), end, end_instance))
+; The timer will be incremented until any of these actions are performed
+; - call the compactor outside of towertesting
+; - stop all instances of the compactor
+; - set the caller_ID to the string called idle_mode
 
 debug:
-; It sets the caller to "debugging" so that when you
+; It sets the caller to idle_mode so that when you
 ; force your blueprint AI to send the string over, there's
 ; a concrete spot that tells it that it can shut down
 ; 
 
-local.int.set(pointer_var_str, {pointer.get})
-local.string.set(actives, {comp_active.get})
+pointer = {pointer.get}
+actives = {comp_active.get}
 
 global.string.set("spell_chunk", sub(\
-  local.string.get(actives),\
-  local.int.get(pointer_var_str),\
+  actives,\
+  pointer,\
   {get_space}\
 ))
 ; The chunk shows you how the spell is stored
@@ -197,7 +196,7 @@ global.string.set("spell_chunk", sub(\
 ; * `sync bit` that is / to refresh budget and `s`
 ;    to skip refreshing budget
 
-global.int.set("pointer", local.int.get(pointer_var_str))
+global.int.set("pointer", pointer)
 ; We also have a pointer and next_pointer that shows what value
 ; this pointer has at that state
 
@@ -225,24 +224,13 @@ global.string.set("spell_name", {get_name})
 
 {pointer.increment}
 ; We finally increment our pointer and add the next pointer state
-global.int.set("next pointer", local.int.get(pointer_var_str))
-
-waitframe()
-; 
-; To prevent debugging from being executed when
-; shutting down, and to avoid adding another action
-; debugging also sets the caller to "idle mode" when it's done
-; 
-; This should be a useless addition however, as setting this should
-; have given your blueprint AI enough time to top itself
-; But just to be safe, the waitframe() should guarantee that your
-; AI has self-terminated successfully
+global.int.set("next pointer", pointer)
 
 end:
 {timer.set(0.0)}
 ; The timer should be reset when the compactor enters idle mode
 ; 
 idle:
-{caller.set("idle mode")}
+{caller.set(idle_mode)}
 
 end_instance:

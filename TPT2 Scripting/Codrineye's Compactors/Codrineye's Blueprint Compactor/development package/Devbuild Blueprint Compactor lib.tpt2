@@ -1,18 +1,16 @@
-:import Editor_actions lib
-:import Blueprint Compactor resources
+:import Devbuild Blueprint Compactor resources
+:name devbuild Bluep Comp lib
 
-; The Devbuild Compactor uses verbose names.
-; Normal compactor uses shortened names to
-; minimize the size of the import code
-
-:const string pointer_var_str "p"
-:const string actives "a"
-:const string secures "s"
-
-:const string timer_base_detector "dtb"
-:const string timer_base "tb"
-:const string clock "c"
-:const string spell_ID "SI"
+:local int pointer
+:local string actives
+:local string secures
+; 
+:local bool det_timer_base
+:local double timer_base
+:local double clock
+; 
+:local string spell_ID
+; 
 
 :import Editor_actions lib
 ; Editor_actions lib lets me create actions; that the editor can parse
@@ -30,8 +28,8 @@
 ; coord_x coord_y
 ; name
 {lua(\
-  local pointer = [[local.int.get(pointer_var_str)]];\
-  local actives = [[local.string.get(actives)]]\
+  local pointer = [[pointer]];\
+  local actives = [[actives]]\
   \
   local function s2i(compactor)\
     return Editor_convertStringToInt(compactor, -1);\
@@ -40,7 +38,7 @@
     return Editor_convertStringToDouble(compactor, -1.0);\
   end\
   \
-  local offset = Editor_math(pointer, "+", 2);\
+  local offset = [[pointer + 2]];\
   local index = "";\
   local size = "";\
   local separator = Editor_stringify_value("|");\
@@ -71,7 +69,7 @@
 ; guide for size
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 
-#get_bits sub(actives, local.int.get(pointer_var_str), 2)
+#get_bits sub(actives, pointer, 2)
 #get_base s2d({lua(return Compactor.timer_base)}, utcnow())
 ; 
 #get_space {lua(return Compactor.space_value)}
@@ -84,11 +82,11 @@
 ; 
 #get_name {lua(return Compactor.name)}
 
-#pointer.increment local.int.set(pointer_var_str, if(\
-  contains({get_bits}, "#"),\
-  0,\
-  local.int.get(pointer_var_str) + {get_space}\
-))
+#pointer.increment pointer = if(\
+  contains({get_bits}, "#"), \
+  0, \
+  pointer + {get_space}\
+)
 
 ; 
-#modulo_timer {timer.get} % local.double.get(timer_base)
+#modulo_timer {timer.get} % timer_base

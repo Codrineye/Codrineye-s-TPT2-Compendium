@@ -1,0 +1,37 @@
+:import Software Config_blueprint AI using the compactor
+:import example_text library
+
+; This is how to use easy_era cat
+
+; We set a priority system
+; We will secure the elements fire, water, earth, air
+; and so on until neutral, in this exact order
+{set_priority(fire)}
+{set_priority(water)}
+{set_priority(earth)}
+{set_priority(air)}
+{set_priority(nature)}
+{set_priority(light)}
+{set_priority(darkness)}
+{set_priority(electricity)}
+{set_priority(universal)}
+{set_priority(neutral)}
+
+; This macro creates the ternary string that ensures the elements
+; get disabled in the specified order
+disable.era({disable.era})
+
+; This macro is a condition that's true as long as
+; we haven't disabled all our elements
+gotoif(0, {disabled_era})
+
+; Time to use watercat with a static security
+
+{watercat_line1(1)}
+; Only secures the softwares that have a security level of 1 or higher
+
+{watercat_line2}
+; makes our index point to the next software
+
+{watercat_line3}
+; makes us go back to watercat_line1 until we've set all our software
