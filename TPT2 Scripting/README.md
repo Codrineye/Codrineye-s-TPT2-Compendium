@@ -1,5 +1,6 @@
 [Codrineye's TowerTesting](#codrineyes-towertesting)<br>
 [WS.Fragzilla](#wsfragzilla)<br>
+[The Blueprint Compactor](#the-blueprint-compactor)<br>
 [Universal Challenge Solver](#universal-challenge-solver)
 
 # Codrineye's TowerTesting
@@ -67,31 +68,6 @@ The script has always true conditions, the first one contains the strings reprez
 
 The scripts budget is set to -1 by default, this is because the AI uses that extra speed to ensure you do not enter another building while it's trying to perform the actions needed to cycle. You can savely remove its budget, if you're setting it to idle for you, as it can run perfectly fine without it.
 
-# Universal Challenge Solver
-
-[version 1.0.0](/TPT2%20Scripting/Universal%20Challenge%20Solver/README.md)
-
-This set of scripts manages to enter the inputed challenge once prompted to.<br>
-Tho the task is simple, this package provides the building blocks of a system which can perform a large majority of tasks needed to complete a challenge.<br>
-All this to say that this is a prototypical build.
-
-## AI Import
-
-REQUIREMENTS:
-
-- impulse count: 2
-- conditions count: 0
-- actions count: 13
-
-To use this AI, you will need to:
-
-- position your region on forest, as the AI cycles through regions assuming it starts on Forest
-- enable Hard Mode if desired
-- **_NOT USE DYNAMIC UI SCALING_** as the relative clicks are likely to break due to an ingame bug
-
-```
-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
-```
 
 # WS.Fragzilla
 
@@ -123,3 +99,49 @@ At the top of the script you have 2 local variables:
 - hammer_count is an int that indicates how many times you will hammer the nodes before returning to the idle screen
 
 To use this script, you must turn off dynamic UI scaling, as it breaks relative vectors
+
+# The Blueprint Compactor
+
+[Version 2.7.4](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md)
+
+This package is an addition to your blueprint AI that handles spell activations and module secures.<br>
+To make a blueprint AI that can talk to the compactor, please head over to its [source code](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md) readme to understand how to use it.
+
+## Script Requirements
+
+- 0 impulses
+- 0 conditions
+- 33 max actions
+- 1 script
+
+```
+7Vxdbts4EL6Ko2L7sHG0ktM2QWC3QduXfdq+r4OAomiHKCUKJFWnf2fYq/QGBdqLLWRKjSyRDmnL9R8RQIhpDb/h8JvhiNbws8chw5ng3tW/nz0ABaZp8b83zoMgQFOUIoahP6WC4sm8LRKIpYB99HEqioYwhDTJAMOcpn5M84gg2TwlNAKkbPKnSIwjSFMugJQLns2vobp5MBo12s/n18Diuig/mGsVGd6nQ5twwXA69SFNBcApl2aSNvRxkuWEI9WAwvPXJEcZw6novSnsBQVlXt8bM0IhIIUxfa4x0UVGcSoQK6dEmrUQUNj0yZDjT2gUvFTA9d7JfgrYQqVAQpcj0qIXpPiA+MKkljIKBf5QAAMIEee9sqMeF79UaPSn0OFk+FcxIuV4ICCkMkvFStnTWnMVhFdjwfOo1tVyqcFSIqJSDZzG6P6fiY0WdjALXZYWDiaVC6N7BHNhR84aS0o3VrEkFThB7DYCHElP5YO4YcAG13TBoM61AAGGxV2CBIbzWFPzFK185SlKe54q7amzahNeM5W2I1Nq9mXbA1aKn21bq7l5C3JxAZLMzwVM6awiNpJ6RJQSbexCMRK3i+zULVeLNFeNrE5z5ZJ1MlqqsYEnFdfnkFD4fjGoPegZTGrqF2OXN9Yau5ij9uqrjz1K+adPW3OkU6Q5Ryus+j+/vRpbpRwPy08ZHGcAi9kdJmtSpDZ/SuCh7L7mUZ0lTOcJje2JbJ4KRDxDhNz+/XYDkf33h1aHeBiI214i1eKhE29dt88Vh+gQXZQ5MnH1M8wxkNYhulBwpOIrP3BvaOfKOcYBOcZumPsYEI+GUi5zcfNuvNX54/tqu5c7tOu4bHPUZpO1MsSFoDPE/ITGOUF+zhF+EAgvpyBB1XeSjZLHhiz+tfFZoV020TLKcfG7ebdw0jU+IOhPGE3eUMpimV24JGWPEI80lrmsyiE6H+hC/HjTQEfU/SCqcd4q73bZi0N0LujSLYd4MIjOaV1+6BCdZx2IuO1GbKtMRgEb6lbhVpHCernx6oSxZAZX7kJPGEjQKmUtzaqivbXLE6W4jkYb8PdcPmThg3jI2p/4txv2cjO0p+nTvppx8PO7/CuC/qS+DhqGdZU2wRaDffr4kKHG/U0qYyfyx8M7BIi4a3QcLpmgwbDzetgTw2F0UMUzGBvW3QYv2vfZvc0V4tWyuVeWVbEcwZx1URVbdlSvih3Uf0OW36/oEZWWNh6xgYBYqaEJiGsHvzObLmyy9ks1YXTvWFy0J86HlGtK3IejscgI+IiYf59tNp3uROHw5VjzIomVx13/+O9a2f95RmcKT9e+koKVVF3zkXF3mG5PafMQOR9lu7r0cGmie/3JuA+jrMmqWtUU2jSzUhUGq45AMFiuDA5daEicLjl3ouwMxwT1Ehprqqe/lIlxo5R5d/xRqXW7ULpKiE2yRtWS87x9X/O0jMf8W+gYP38Hz48REUAt+efqSeZ1ZydOqJfA32OAUxXOo4XkRrlErLbcQsytZXib8FKpzUmTs1beaz8Xaz63dHpWzDoDv+l7kKYxrs5Iuul75WEr5ae0oOqVp6Z2BuB7MC2+9/pelMdTJLyrs7Dv5Ry9Lj8KlqOvN1//Bw==
+```
+
+If you are confused about something that the compactor is doing, you should use its [Debugger Version](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md).
+
+# Universal Challenge Solver
+
+[version 1.0.0](/TPT2%20Scripting/Universal%20Challenge%20Solver/README.md)
+
+This set of scripts manages to enter the inputed challenge once prompted to.<br>
+Tho the task is simple, this package provides the building blocks of a system which can perform a large majority of tasks needed to complete a challenge.<br>
+All this to say that this is a prototypical build.
+
+## AI Import
+
+REQUIREMENTS:
+
+- impulse count: 2
+- conditions count: 0
+- actions count: 13
+
+To use this AI, you will need to:
+
+- position your region on forest, as the AI cycles through regions assuming it starts on Forest
+- enable Hard Mode if desired
+- **_NOT USE DYNAMIC UI SCALING_** as the relative clicks are likely to break due to an ingame bug
+
+```
+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
+```

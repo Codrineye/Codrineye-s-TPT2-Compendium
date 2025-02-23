@@ -16,34 +16,11 @@ game.newround()
 {set_priority(water)}
 {set_priority(earth)}
 
-gotoif(spam3, contains(impulse(), "{package(init)}"))
-
 era:
 disable.era({disable.era})
 disabled_era = {disabled_era}
 
 divider:
-upgrade.era("health", 42069)
+upgrade.era("health", 25)
 
-gotoif(era, xp() < disable.inf.cost())
-
-disable.inf("aura.death")
-disable.inf("reflect.wince")
-disable.inf("reflect.captain")
-disable.inf("barrier.temporal")
-disable.inf("spell.void")
-disable.inf("spell.snapOfDestiny")
-disable.inf("spell.response.neutral")
-
-goto(if(disabled_era, divider, era))
-
-spam3:
-
-useinstant(active.index("crate.rex"))
-
-waituntil({timer.get} >= 2.0)
-
-spam:
-wait(0.2)
-useinstant(active.index("spell.response.neutral"))
-goto(spam)
+goto(if(disabled_era, era, divider))

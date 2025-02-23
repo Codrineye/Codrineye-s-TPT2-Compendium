@@ -1,17 +1,16 @@
 :import winAI_lib
 :name {package(init)}
-
+:budget_cap 301
 game.newround()
 
-useinstant(active.index("barrier.temporal"))
+global.unset(timer_var)
 
 {pointer.set(0)}
-{compactor.set(recorded_actives)}
-execute("{spell_compactor}")
+{comp_active.set(recorded_actives)}
+{comp_secure.set(recorded_secures)}
+execute("{blueprint_compactor}")
 
-execute("{package(disables)}")
 waituntil(health(false) <= 0.0)
 
 stop("{package(disables)}")
-stop("{spell_compactor}")
-{timer.set(0.0)}
+stop("{blueprint_compactor}")

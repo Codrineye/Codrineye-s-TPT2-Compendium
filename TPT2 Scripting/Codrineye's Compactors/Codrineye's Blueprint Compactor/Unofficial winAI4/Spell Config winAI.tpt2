@@ -1,8 +1,11 @@
-:import Cods Spell Compactor
+:import Cods Blueprint Compactor
 ; 
 ; Welcome to the configuration
 ; This script has macros that allow you to
 ; communicate with the compactor and its debugger
+; 
+; Please read the compactor manual on the repo for a better
+; understanding of how to use it
 ; 
 {spell_debug.log(false)}
 ; Set to true if you want to get a log of your recording
@@ -45,6 +48,12 @@
 ; loopable_blueprint is a true/false value
 ; if true, it makes the compactor execute the recording sequence on loop
 ; 
+; timer_modulo(modulo)
+; Should be used before you use recorded_blueprint to define a
+; blueprint that can loop
+; 
+; this modulo value is used to 
+; 
 ; synchronize(spell_ammount) 
 ; it makes the following spell_ammount recordings
 ; get used on the same gametick
@@ -52,6 +61,10 @@
 ; onto the add_spell.<spell_type> functions
 ; they all require the spell ID, which you can obtain
 ; by importing a script that uses the modules you want
+; 
+; These functions also return a const int spell_<spell_number>
+; holding the current ammount of space in your recording after
+; the addition of the new spell
 ; 
 ; add_spell.instant(spell_name, timer)
 ; spell_name is the active modules ID.
@@ -77,10 +90,10 @@
 {synchronize(2)}
 {add_spell.instant(barrier.temporal, 0.0)}
 {add_spell.instant(spell.floof, 0.0)}
+{add_spell.instant(crate.rex, 0.0)}
 
 {add_spell.grounded(spell.something, 0.5, 12.0, 10.0)}
 
-{synchronize(4)}
 {add_spell.instant(spell.snapOfDestiny, 1.0)}
 {add_spell.instant(spell.recharge, 1.0)}
 {add_spell.instant(spell.cooling, 1.0)}
@@ -90,32 +103,60 @@
 {add_spell.instant(spell.response.neutral, 2.0)}
 {add_spell.grounded(spell.void, 2.0, 0.0, 0.0)}
 
+; Because woot activates a spamming script that executes
+; spell.response.neutral every 0.2 seconds, I will write a reusable
+; lua macro here that does this exact thing
+#spam_SRN(start, end) {lua(\
+  for i = {start} + 0.2, {end}, 0.2 do\
+    BP.sync_ammount = 1;\
+    BP.comp.add_spell([["spell.response.neutral"]], i, 0.0, 0.0);\
+  end\
+)}
+
+{spam_SRN(2.0, 3.0)}
+
 {add_spell.instant(spell.snapOfDestiny, 3.0)}
 
-{synchronize(6)}
+{spam_SRN(3.0, 28.0)}
+
+{synchronize(2)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 {add_spell.instant(spell.refresh, 28.0)}
+
 {add_spell.instant(spell.recharge, 28.0)}
+
+{synchronize(3)}
 {add_spell.instant(barrier.temporal, 28.0)}
 {add_spell.instant(spell.floof, 28.0)}
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
+
 {add_spell.instant(spell.cooling, 28.0)}
 {add_spell.instant(spell.recharge, 28.0)}
 
+{spam_SRN(28.0, 30.0)}
 {add_spell.grounded(spell.void, 30.0, 0.0, 0.0)}
 
+{spam_SRN(30.0, 30.5)}
 {add_spell.grounded(spell.something, 30.5, 12.0, 10.0)}
 
-{synchronize(5)}
+{spam_SRN(30.4, 31.0)}
+{synchronize(2)}
 {add_spell.instant(spell.snapOfDestiny, 31.0)}
 {add_spell.instant(spell.recharge, 31.0)}
+
 {add_spell.instant(spell.refresh, 31.0)}
+
+{synchronize(2)}
 {add_spell.instant(barrier.temporal, 31.0)}
 {add_spell.grounded(spell.something, 31.0, 5.0, 15.0)}
 
+{spam_SRN(31.0, 33.0)}
 {add_spell.instant(spell.snapOfDestiny, 33.0)}
 
+{spam_SRN(33.0, 57.0)}
 {add_spell.instant(spell.snapOfDestiny, 57.0)}
+
+{spam_SRN(57.0, 60.0)}
 
 ; ===================================================================== ; 
 ; ----------------------------END RECORDING---------------------------- ;
@@ -125,12 +166,12 @@
 
 ; 
 ; String holding the recorded spell data
-:const string recorded_actives {lua(return Spell.comp.concat_actives())}
+:const string recorded_actives {lua(return BP.comp.concat_actives())}
 
 ; 
 ; Int holding the size of the recorded string
 ; value is the same as return #Spell.comp.concat_actives() but
-; the function version runs the function one more time, which
-; can get very slow if you have a big recording sequence
+; the function version runs the concat operation one more time, which
+; can get very expensive if you have a big recording sequence
 
-:const int recoring_size {lua(return Spell.active.space)}
+:const int recoring_size {lua(return BP.used_space.active)}

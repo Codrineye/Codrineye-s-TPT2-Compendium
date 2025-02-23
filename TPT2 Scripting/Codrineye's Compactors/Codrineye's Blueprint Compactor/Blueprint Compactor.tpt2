@@ -55,17 +55,18 @@ timer_base = {get_base}
 det_timer_base = timer_base != utcnow()
 
 loop:
-; If we must loop over, we'll have to wait until our modulo_timer is
-; of value 0
-clock = if(pointer == 0 && det_timer_base, 0.0, {timer.get})
-waituntil({modulo_timer} <= clock)
+; If we start to execute a recording sequence or we're looping over
+; we have to make sure that execution is done starting from tm = 0.0
+
+clock = if(pointer == 0 && det_timer_base, 1.0, {timer.get})
+waitwhile(clock < {modulo_timer})
 
 ; Since getting the timer and spell_ID are resource intensive operations
 ; whose values are called more than once, we calculate then here
 spell_ID = {get_name}
 clock = {get_timer}
 
-waituntil(clock <= {modulo_timer} || contains({caller.get}, idle_mode))
+waitwhile({modulo_timer} < clock)
 
 ; 
 ; We use both instant and grounded spells here because we
@@ -81,7 +82,8 @@ waitframe()
 
 no_frame:
 {pointer.increment}
-; We add to our pointer the size of our spell
+; We add to our pointer the size of our spell or set it to 0 if
+; we must loop over. 
 
 #end_of_compactor contains("", sub(actives, pointer, 10))
 ; when we initialize our compactor, we add the ending bit "e" as the

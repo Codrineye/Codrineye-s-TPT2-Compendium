@@ -1,0 +1,36 @@
+:import Cods Blueprint Compactor
+
+; 
+; Welcome to security config, where you define
+; what modules you want to secure and in what order
+; 
+; Since securing isn't very complicated, logging and halting
+; has not been added, as there's not much for you to keep track of
+; 
+; You have 2 macros at your disposal
+; add_secure(secure_name) is the name ID that you want to be secured
+; recorded_secures(secures_name) will return a const int called
+; secures_<secures_name> which holds the ammount of space your secures
+; have taken up
+; 
+; your compacted secures are in the const string recorded_secures
+; and the total size of your recorded_secures is in the
+; const int secures_space
+
+; ===================================================================== ; 
+; -------------------------> START RECORDING <------------------------- ; 
+; ===================================================================== ; 
+
+{add_secure(barrier.temporal)}
+{add_secure(spell.void)}
+{add_secure(spell.snapOfDestiny)}
+{add_secure(spell.response.neutral)}
+
+; ===================================================================== ; 
+; ----------------------------END RECORDING---------------------------- ;
+; ===================================================================== ; 
+
+:const string recorded_secures "{lua(\
+  return table.concat(BP.comp.secure);\
+)}"
+:const int secures_space {lua(return BP.used_space.secure)}
