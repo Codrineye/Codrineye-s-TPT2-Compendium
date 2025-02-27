@@ -1,0 +1,159 @@
+:import Cods Blueprint Compactor
+; 
+; Welcome to the configuration
+; This script has macros that allow you to
+; communicate with the compactor and its debugger
+; 
+{spell_debug.log(false)}
+; Set to true if you want to get a log of your recording
+; 
+{spell_debug.can_halt(false)}
+; Set to true if you want to create a 'breakpoint'
+; Setting it to true also enables logging implicitly
+; 
+{spell_debug.recordings_before_halt(2)}
+; Set the number of spells you can record
+; before the recording system halts.
+; It does nothing if can_halt is false 
+; 
+{spell_debug.display_spells(false)}
+; Set to true if you want to display your spells
+; You will see them as an error message to the right
+; 
+{spell_debug.display_format('\n|')}
+; Set the string that'll be used to format your spells
+; This is only used if display_spells is set to true
+; 
+; Lastly <spell_debug.add_breakpoint>
+; as its name implies, you use it to add a breakpoint
+; it sets display_spells to true and halts the program at that point
+; so that you can see the current state of the script
+
+; 
+; For recording a blueprint, you have the following
+; 4 macros
+; 
+; recorded_blueprint(blueprint_name, loopable_blueprint)
+; Is used after a recording sequence to define a blueprint
+; 
+; It returns a const int variable
+; called "blueprint_<blueprint_name>"
+; that holds an index for you to use in a substring to extract
+; the desired blueprint
+; 
+; blueprint_name is just any string. You do not include the double quotes
+; loopable_blueprint is a true/false value
+; if true, it makes the compactor execute the recording sequence on loop
+; 
+; synchronize(spell_ammount) 
+; it makes the following spell_ammount recordings
+; get used on the same gametick
+; 
+; onto the add_spell.<spell_type> functions
+; they all require the spell ID, which you can obtain
+; by importing a script that uses the modules you want
+; 
+; These functions also return a const int spell_<spell_number>
+; holding the current ammount of space in your recording after
+; the addition of the new spell
+; 
+; add_spell.instant(spell_name, timer)
+; spell_name is the active modules ID.
+; timer is the time at which you'd like the spell to be used
+; 
+; add_spell.grounded(spell_name, timer, coord_x, coord_y);
+; Same as add_spell.instant but you now define the x/y coordinates
+; you want the spell to be cast at
+; 
+; There's a little wrinkle with add_spell.instant
+; that treates instant spells as grounded spells
+; that are placed at position 0.0 0.0
+; 
+
+; All recorded spells get concatenated into the const string
+; `recorded_actives` with its length being stored in the const int
+; `recording_size`
+
+; ===================================================================== ; 
+; -------------------------> START RECORDING <------------------------- ; 
+; ===================================================================== ; 
+
+; This is the blue frags blueprint
+{synchronize(3)}
+{add_spell.instant(spell.glacier.spikes, 0.0)}
+{add_spell.instant(spell.cooling, 0.0)}
+{add_spell.instant(spell.glacier.spikes, 0.0)}
+
+{synchronize(3)}
+{add_spell.instant(spell.glacier.spikes, 19.99)}
+{add_spell.instant(spell.refresh, 0.0)}
+{add_spell.instant(spell.glacier.spikes, 0.0)}
+
+{synchronize(3)}
+{add_spell.instant(spell.glacier.spikes, 39.89)}
+{add_spell.instant(spell.cooling, 0.0)}
+{add_spell.instant(spell.glacier.spikes, 0.0)}
+
+{add_spell.instant(spell.glacier.spikes, 59.0)}
+{recorded_blueprint(blue, false)}
+; 432
+
+; This is the red frags blueprint
+{synchronize(3)}
+{add_spell.instant(google.influence, 0.0)}
+{add_spell.instant(boost.shoreline, 0.0)}
+{add_spell.instant(sacrifice.dark, 0.0)}
+; 
+{add_spell.instant(focus.nature, 14.99)}
+{add_spell.instant(focus.light, 59.99)}
+; 
+{add_spell.instant(focus.nature, 104.99)}
+{add_spell.instant(focus.light, 149.99)}
+{recorded_blueprint(red, false)}
+; 659
+
+; This is the purple frags blueprint
+{synchronize(3)}
+{add_spell.instant(air.hurricate, 0.0)}
+{add_spell.instant(tower.super.1, 0.0)}
+{add_spell.instant(tower.super.2, 0.0)}
+; 
+{add_spell.instant(spell.radar, 19.99)}
+{add_spell.instant(spell.radar, 39.99)}
+; 
+{add_spell.instant(air.hurricane, 49.99)}
+{recorded_blueprint(purple, false)}
+; 847
+
+; Notice how all the inner synchronizations
+; have a timer of 0.0 This is to ensure that they all
+; get executed simultaneously. Even tho the timer doesn't get
+; updated while synchronization takes place. This is an extra
+; safety procedure
+
+; This is the yellow frags blueprint
+{synchronize(3)}
+{add_spell.instant(spell.awareness, 0.0)}
+{add_spell.instant(spell.floof, 0.0)}
+{add_spell.instant(spell.refresh, 0.0)}
+{timer_modulo(1.1)}
+{recorded_blueprint(yellow, true)}
+; 940
+
+; ===================================================================== ; 
+; ----------------------------END RECORDING---------------------------- ;
+; ===================================================================== ; 
+
+{spell_debug}
+
+; 
+; String holding the recorded spell data
+:const string recorded_actives {recorded_actives}
+
+; 
+; Int holding the size of the recorded string
+; value is the same as return #Spell.comp.concat_actives() but
+; the function version runs the function one more time, which
+; can get very slow if you have a big recording sequence
+; 
+:const int recoring_size {recording_size}

@@ -1,0 +1,101 @@
+:import Cods Blueprint Compactor
+:name Software Config
+
+; Modify the value sent to the macro
+; 
+; This is the ordinairy Watercat security system
+; it's just slightly easier to modify the security level
+; 
+; The macro prevents you from setting security values
+; to the same software more than once, if you think this is a limitation
+; please use the discord post/make a github issue and suggest the change
+; 
+
+{auto_skip(2)}
+{wave_streaming(2)}
+{wave_surge(2)}
+; 
+{critical_wave_jump(0)}
+{wave_momentum(0)}
+; 
+{wave_storm(1)}
+; 
+{wave_persistence(0)}
+{wave_instability(0)}
+; 
+{wave_vortex(1)}
+{wave_catalyst(2)}
+{wave_endurance(2)}
+{new_bounds(2)}
+{wave_marathon(1)}
+; 
+{wave_compression(0)}
+{era_surge(0)}
+{era_burst(0)}
+{era_swirl(0)}
+; 
+{wave_horizon(1)}
+{no_bounds(2)}
+; 
+{era_tunneling(0)}
+; 
+{wave_breach(1)}
+; 
+{wave_floor(0)}
+{era_floor(0)}
+{era_horizon(0)}
+; 
+{wave_restart(2)}
+{infinity_horizon(1)}
+
+; These constants are used to create the 2 lists used in watercat
+:const string software_list {software.concat(software_list)}
+:const string software_secure {software.concat(software_secure)}
+; 
+; and this is the length of both of the lists
+; this is done through adding whitespace to the security levels so that
+; index(software_list) is the same as index(software_secures)
+:const int software_len {software.concat(software_len)}
+
+:const string Wcat "w#|"
+
+#watercat_line1(secure_level) \
+software_toggle_loop:\
+software.toggle(\
+  sub(\
+    software_list, \
+    lig(Wcat), \
+    index(software_list, "|", lig(Wcat)) - lig(Wcat)\
+  ),\
+  {secure_level} <= s2i(\
+    sub(\
+      software_secure, \
+      lig(Wcat), \
+      index(software_secure, "|", lig(Wcat)) - lig(Wcat)\
+    ),\
+    0\
+  )\
+)
+; sub = 3
+; lig = 1
+; a.i = 3
+; index = 3
+; c.i = 3
+; s2i = 2
+; software.toggle = 2
+; sub + lig + a.i + index + lig + lig = 3 + 1 + 3 + 3 + 1 + 1 = 12
+; c.i + lig + s2i + sub + lig + a.i + index + lig + lig 
+; = 3 + 1 + 2 + 3 + 1 + 3 + 3 + 1 + 1
+; = 4 + 5 + 4 + 4 + 1 = 9 + 8 + 1 = 18
+; 
+; 2 + 12 + 18 = 32
+
+#watercat_line2 lis(Wcat, 1 + index(software_list, "|", lig(Wcat)))
+; lis + c.i + index + lig = 2 + 3 + 3 + 1 = 9
+
+#watercat_line3 gotoif(software_toggle_loop, lig(Wcat) < software_len)
+; gotoif + c.i + lig = 2 + 3 + 1 = 6
+; 
+; 31 + 9 + 6 = 46
+
+#watercat_index_reset lis(Wcat, 0)

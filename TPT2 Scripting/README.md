@@ -102,10 +102,10 @@ To use this script, you must turn off dynamic UI scaling, as it breaks relative 
 
 # The Blueprint Compactor
 
-[Version 2.7.4](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md)
+[Version 2.7.5](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md)
 
 This package is an addition to your blueprint AI that handles spell activations and module secures.<br>
-To make a blueprint AI that can talk to the compactor, please head over to its [source code](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md) readme to understand how to use it.
+To make a blueprint AI that can talk to the compactor, please head over to its [source code](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md) readme to understand how to use it internally.
 
 ## Script Requirements
 
@@ -119,6 +119,17 @@ To make a blueprint AI that can talk to the compactor, please head over to its [
 ```
 
 If you are confused about something that the compactor is doing, you should use its [Debugger Version](./Codrineye's%20Compactors/Codrineye's%20Blueprint%20Compactor/README.md).
+
+## The interface
+
+The compactor uses a global hiding blocker to hide the transfer of strigns. Once the compactor is running, this blocker will end and show the string `Blueprint Compactor Caller` with the name of the package/script that called it.<br>
+This information is given for you to see if there are any blueprint AI's that might interfere with your run.
+
+## Behaveour
+
+While the compactor is active, there will be at most 1 instance of it running. This is the instance that's updating the timer.
+
+It is made to handle as many instances of it you create as you want, as it cannot create a second timer. 
 
 # Universal Challenge Solver
 

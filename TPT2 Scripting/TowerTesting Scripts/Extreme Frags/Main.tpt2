@@ -1,0 +1,95 @@
+:import Extreme lib
+:name {package(Main)}
+:budget_cap -1
+
+:local double lag
+:local double clock
+
+:local int blueprint_offset
+:local int blueprint_size
+
+:local int secure_offset
+:local int secure_size
+
+:local string first_active
+
+:local string spells
+:local string secures
+
+game.newround()
+
+isTowerTesting()
+
+first_active = active.id(1)
+
+{timer.set(utcnow())}
+waitframe()
+
+; unsets the timer variable so that it's back to 0.0 without
+; pottentially messing up the UI interface
+global.unset(timer_var)
+
+{pointer.set(0)}
+{comp_active.set(recorded_actives)}
+{comp_secure.set("")}
+
+; Skip activating borf if we aren't using the yellow blueprint
+gotoif(no_borf, contains(non_borf_bp, first_active))
+
+execute("{package(Borf)}")
+waitframe()
+execute("{package(Borf)}")
+waitframe()
+execute("{package(Borf)}")
+no_borf:
+
+blueprint_offset = s2i(\
+  sub(offset_list, index(first_actives, first_active, 0), 3), \
+  0\
+)
+secure_offset = s2i(\
+  sub(offsets, index(first_actives, first_active, 0), 3),\
+  0\
+)
+
+blueprint_size = s2i(\
+  sub(size_list, index(first_actives, first_active, 0), 3),\
+  0\
+)
+secure_size = s2i(\
+  sub(sizes, index(first_actives, first_active, 0), 3),\
+  0\
+)
+
+spells = sub(\
+  recorded_actives, \
+  blueprint_offset, \
+  blueprint_size - blueprint_offset\
+)
+secures = sub(\
+  recorded_secures,\
+  secure_offset,\
+  secure_size - secure_offset\
+)
+{comp_active.set(spells)}
+{comp_secure.set(secures)}
+
+execute("{blueprint_compactor}")
+waitframe()
+clock = s2d(\
+  sub(end_times, index(first_actives, first_active, 0), 3),\
+  utcnow()\
+)
+
+waitwhile({timer.get} < clock && health(false) > 0.0)
+gotoif(if(clock > 80.0, end, restart), clock > 60.0)
+
+exit:
+exit()
+
+restart:
+restart()
+
+end:
+stop("{blueprint_compactor}")
+stop("{package(Borf)}")

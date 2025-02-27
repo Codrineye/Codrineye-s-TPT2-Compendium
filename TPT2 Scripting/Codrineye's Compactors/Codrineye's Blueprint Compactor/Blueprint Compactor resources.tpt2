@@ -21,7 +21,7 @@
 ; 
 :const string compactor_secures "{blueprint_compactor}access secures str"
 #comp_secure.get global.string.get(compactor_secures)
-#comp_secure.set(str) global.string.set(compactor_actives, {str})
+#comp_secure.set(str) global.string.set(compactor_secures, {str})
 ; 
 :const string caller_ID "{hider.close}{blueprint_compactor} caller"
 #caller.get global.string.get(caller_ID)
@@ -105,7 +105,7 @@
 
 ; Here we construct the condition for the bool ended_era
 ; ended_era = -<number_of_elements> == <sum_of_elements_cost>
-#disabled_era {lua(\
+#disable_era {lua(\
   local elems = Era.elements;\
   local elem_costs = Era.element_cost;\
   \

@@ -22,7 +22,7 @@
 ; 
 :const string compactor_secures "{blueprint_compactor}access secures str"
 #comp_secure.get global.string.get(compactor_secures)
-#comp_secure.set(str) global.string.set(compactor_actives, {str})
+#comp_secure.set(str) global.string.set(compactor_secures, {str})
 ; 
 :const string caller_ID "{hider.close}{blueprint_compactor} caller"
 #caller.get global.string.get(caller_ID)
@@ -74,7 +74,7 @@
   local index = 1 + #elems;\
   elems[index] = name;\
   \
-  local disable_era = [["disable.era(%s)"]]\
+  local disable_era = [[disable.cost(%s)]]\
   Era.element_cost[index] = disable_era:format(elems[index]);\
   elems[name] = index;\
 )}
@@ -91,7 +91,7 @@
   local elems = Era.elements;\
   local elem_costs = Era.element_cost;\
   \
-  local condition_fmt = [[%s != -1]]\
+  local condition_fmt = [[%s != -1.0]]\
   local if_fmt = [[if(%s, %s, %s)]];\
   \
   local last_element = elems[#elems];\
@@ -106,14 +106,14 @@
 
 ; Here we construct the condition for the bool ended_era
 ; ended_era = -<number_of_elements> == <sum_of_elements_cost>
-#disabled_era {lua(\
+#disable_era {lua(\
   local elems = Era.elements;\
   local elem_costs = Era.element_cost;\
   \
   local sum_fmt = [[%s + %s]];\
   \
   local last_cost = elem_costs[#elems];\
-  for i = #elements - 1, 1, -1 do\
+  for i = #elems - 1, 1, -1 do\
     last_cost = sum_fmt:format(last_cost, elem_costs[i]);\
   end\
   local negative_costs = 0.0 - #elems;\

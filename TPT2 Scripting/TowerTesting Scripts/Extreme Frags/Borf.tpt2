@@ -1,0 +1,7 @@
+:import Extreme lib
+
+:name {package(Borf)}
+
+useinstant(active.index("spell.multishot"))
+useinstant(active.index("spell.superbounce"))
+goto(0)

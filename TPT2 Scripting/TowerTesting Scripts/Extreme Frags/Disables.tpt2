@@ -1,0 +1,31 @@
+:import Extreme Software Config
+:import Extreme lib
+:name {package(Disables)}
+
+:local int secure
+
+wakeup()
+game.newround()
+
+secure = 1
+gotoif(software_toggle_loop, contains(impulse(), "wakeup"))
+stop(impulse())
+
+{set_priority(electricity)}
+{set_priority(light)}
+{set_priority(universal)}
+{set_priority(darkness)}
+{set_priority(earth)}
+{set_priority(neutral)}
+{set_priority(fire)}
+{set_priority(nature)}
+{set_priority(water)}
+{set_priority(air)}
+
+era:
+disable.era({disable.era})
+goto(if({disable_era}, era, 99))
+
+{watercat_line1(secure)}
+{watercat_line2}
+{watercat_line3}

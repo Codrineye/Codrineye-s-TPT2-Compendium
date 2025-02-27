@@ -85,17 +85,18 @@ timer_base = {get_base}
 det_timer_base = timer_base != utcnow()
 
 loop:
-; If we must loop over, we'll have to wait until our modulo_timer is
-; of value 0
-clock = if(pointer == 0, 0.0, {timer.get})
-waituntil({modulo_timer} <= clock)
+; If we start to execute a recording sequence or we're looping over
+; we have to make sure that execution is done starting from tm = 0.0
+
+clock = if(pointer == 0 && det_timer_base, 1.0, {timer.get})
+waitwhile(clock < {modulo_timer})
 
 ; Since getting the timer and spell_ID are resource intensive operations
 ; whose values are called more than once, we calculate then here
 spell_ID = {get_name}
 clock = {get_timer}
 
-waituntil({modulo_timer} <= clock)
+waitwhile({modulo_timer} < clock)
 
 ; 
 ; We use both instant and grounded spells here because we
@@ -112,7 +113,7 @@ waitframe()
 no_frame:
 {pointer.increment}
 ; We add to our pointer the size of our spell or set it to 0 if
-; we must loop over
+; we must loop over. 
 
 #end_of_compactor contains("", sub(actives, pointer, 10))
 ; when we initialize our compactor, we add the ending bit "e" as the
@@ -144,7 +145,7 @@ disable.inf(sub(secures, pointer, index(secures, "|", pointer) - pointer))
 ; Skip waiting a frame if we've successfully secured a module
 ; this is done in hopes that, maybe, we have enough xp to disable
 ; the next module as well
-gotoif(secures_no_frame, disable.inf.cost() <= xp())
+gotoif(secures_no_frame, disable.inf.cost() < xp())
 waitframe()
 
 secures_no_frame:
@@ -184,6 +185,7 @@ debug:
 
 pointer = {pointer.get}
 actives = {comp_active.get}
+{caller.set("debug")}
 
 global.string.set("spell_chunk", sub(\
   actives,\
@@ -224,7 +226,9 @@ global.string.set("spell_name", {get_name})
 
 {pointer.increment}
 ; We finally increment our pointer and add the next pointer state
-global.int.set("next pointer", pointer)
+{pointer.set(pointer)}
+
+goto(end_instance)
 
 end:
 {timer.set(0.0)}

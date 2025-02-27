@@ -1,0 +1,146 @@
+:import Extreme Secure Config
+:import Extreme Spell Config
+:import Blueprint Compactor resources
+
+; Here we import Blueprint Compactor resources so that
+; we can communicate with the compactor
+; 
+
+#package(name) ExtremeAI:{name}
+; Consistent naming for scripts
+; 
+
+#identifier Extreme Frags
+; A script identifier to create global variables that decreases
+; the likelyhood it gets modified by other scripts
+; 
+
+:const string script_signal "{identifier} Signal"
+#signal.get global.string.get(script_signal)
+#signal.set(value) global.string.set(script_signal, {value} . "</size>")
+
+{lua(\
+  BP.extreme = {};\
+  BP.extreme_actives = {};\
+  BP.extreme_sizes = {};\
+)}
+
+; Use this macro to give the lua macro the module active.id(1)
+#first_active(bp_name, active) {lua(\
+  local active = string.gsub("{active}", " ", "");\
+  local bp_name = "{bp_name}";\
+  if active == "" then\
+    error("Module ID cannot be empty");\
+  elseif BP.comp.blueprint[bp_name] == nil then\
+    error("Unrecognized blueprint name");\
+  elseif BP.extreme[active] then\
+    error("The first active of every blueprint should be unique");\
+  end\
+  BP.extreme_actives[1 + #BP.extreme_actives] = active;\
+  BP.extreme_sizes[1 + #BP.extreme_sizes] = BP.comp.blueprint[bp_name];\
+  BP.extreme[active] = bp_name;\
+)}
+
+{first_active(blue, google.influence)}
+
+{first_active(red, boost.shoreline)}
+{first_active(purple, tower.super.3)}
+{first_active(yellow, spell.superbounce)}
+
+; make a list of all our first actives
+:const string first_actives "{lua(return table.concat(BP.extreme_actives))}"
+
+; because yellow is the only borf blueprint, this const
+; will cycle through all non_borf blueprints
+:const string non_borf_bp {lua(\
+  local non_borf = "";\
+  for _, active in ipairs(BP.extreme_actives) do\
+    if BP.extreme[active] ~= "yellow" then\
+      non_borf = non_borf .. active;\
+    end\
+  end\
+  return string.format([["%s"]], non_borf)\
+)}
+
+; We make an offsets string such that we can use the first_active
+; as an index. We must add the same ammount of space as the module ID
+; takes up.
+:const string offset_list {lua(\
+  local offsets = "";\
+  local bps = {};\
+  bps[1] = "borf";\
+  for i = 1, #BP.extreme_actives - 1 do\
+    local active = BP.extreme_actives[i];\
+    bps[1 + #bps] = BP.extreme[active];\
+  end\
+  for i, active in ipairs(BP.extreme_actives) do\
+    local fmt = string.format("%%s%%-%ss", #active);\
+    local offset = tostring(BP.comp.blueprint[bps[i]]);\
+    offsets = fmt:format(offsets, offset);\
+  end\
+  return string.format([["%s"]], offsets);\
+)}
+
+:const string offsets {lua(\
+  local offsets = "";\
+  local sizes = {};\
+  for _, active in ipairs(BP.extreme_actives) do\
+    local name = BP.extreme[active];\
+    sizes[1 + #sizes] = tostring(BP.comp.secure[name]);\
+  end\
+  for i, actives in ipairs(BP.extreme_actives) do\
+    local fmt = string.format("%%s%%-%ss", #actives);\
+    local offset = sizes[i - 1] or "";\
+    offsets = fmt:format(offsets, offset);\
+  end\
+  return string.format([["%s"]], offsets)\
+)}
+
+; We make a sizes string, in the same idea as the offsets string
+:const string size_list {lua(\
+  local sizes = "";\
+  for i, active in ipairs(BP.extreme_actives) do\
+    local fmt = string.format("%%s%%-%ss", #active);\
+    local size = tostring(BP.extreme_sizes[i]);\
+    sizes = fmt:format(sizes, size);\
+  end\
+  return string.format([["%s"]], sizes);\
+)}
+
+:const string sizes {lua(\
+  local list = "";\
+  local sizes = BP.comp.secure;\
+  for i, actives in ipairs(BP.extreme_actives) do\
+    local fmt = string.format("%%s%%-%ss", #actives);\
+    local name = BP.extreme[actives];\
+    local size = tostring(sizes[name]);\
+    list = fmt:format(list, size);\
+  end\
+  return string.format([["%s"]], list)\
+)}
+
+:const string lagsaver_times {lua(\
+  local lag = "";\
+  for _, active in ipairs(BP.extreme_actives) do\
+    local fmt = string.format("%%s%%-%ss", #active);\
+    local time = ""\
+    if BP.extreme[active] == "yellow" then\
+      time = "55.0";\
+    else\
+      time = "120.0";\
+    end\
+    lag = fmt:format(lag, time);\
+  end\
+  return string.format([["%s"]], lag);\
+)}
+
+:const string end_times {lua(\
+  local end_time = "";\
+  local times = table.pack("60.0", "", "80.0", "")\
+  for i, active in ipairs(BP.extreme_actives) do\
+    local time = times[i];\
+    local fmt = string.format("%%s%%-%ss", #active)\
+    end_time = fmt:format(end_time, time);\
+  end\
+  return string.format([["%s"]], end_time);\
+)}

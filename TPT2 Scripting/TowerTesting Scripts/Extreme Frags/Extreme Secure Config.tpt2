@@ -1,0 +1,55 @@
+:import Cods Blueprint Compactor
+:name Security Config
+
+; 
+; Welcome to security config, where you define
+; what modules you want to secure and in what order
+; 
+; Since securing isn't very complicated, logging and halting
+; has not been added, as there's not much for you to keep track of
+; 
+; You have 2 macros at your disposal
+; add_secure(secure_name) is the name ID that you want to be secured
+; recorded_secures(secures_name) will return a const int called
+; secures_<secures_name> which holds the ammount of space your secures
+; have taken up
+; 
+; your compacted secures are in the const string recorded_secures
+; and the total size of your recorded_secures is in the
+; const int secures_space
+
+; ===================================================================== ; 
+; -------------------------> START RECORDING <------------------------- ; 
+; ===================================================================== ; 
+
+{add_secure(defense.bulwark)}
+{add_secure(spell.glacier.spikes)}
+{add_secure(impact.gravity)}
+{add_secure(gift.universe)}
+{recorded_security(blue)}
+
+{add_secure(shield.division)}
+{add_secure(infinity.range)}
+{add_secure(gift.universe)}
+{add_secure(multishot.focused)}
+{recorded_security(red)}
+
+{add_secure(energy.basic)}
+{add_secure(aura.checkerboard)}
+{add_secure(nature.daybloom)}
+{add_secure(synergy.void)}
+{recorded_security(purple)}
+
+{add_secure(defense.bulwark)}
+{add_secure(shield.division)}
+{add_secure(impact.gravity)}
+{add_secure(gift.universe)}
+{add_secure(synergy.void)}
+{recorded_security(yellow)}
+
+; ===================================================================== ; 
+; ----------------------------END RECORDING---------------------------- ;
+; ===================================================================== ; 
+
+:const string recorded_secures {recorded_secures}
+:const int secures_space {secures_space}
