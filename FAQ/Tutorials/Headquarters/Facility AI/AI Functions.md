@@ -24,10 +24,12 @@ There are 4 types of functions:
 - [Atomic functions](#atomic-functions)
 - [Fundemental functions](#fundemental-functions)
 
+This post is within its own subject on my [Compendium faq posts](AI%20Functions.md), where you can find the data types and functions in their own separate subjects.
+
 ## Impulse functions
 
-An impulse lets you activate your script by performing an action
-You cannot trigger an impulse if the AI Overlay is inactive
+An impulse lets you activate your script by performing an action.<br>
+You cannot trigger an impulse if the AI Overlay is inactive.
 
 wakeup() `[impulse wakeup]`<br>
 activate the script when the AI Overlay is activated.
@@ -59,16 +61,16 @@ activate the script when your middle mouse button is pressed down.
 mouse.2.up() `[impulse mouse: middle up]`<br>
 activate the script when your middle mouse button is no longer being pressed down.
 
-key.`digits`() `[impulse key: `digits`]`<br>
+key.*digits*() `[impulse key: `*digits*`]`<br>
 activate the script when you press the respective number key.
 
-key.`letters`() `[impulse key: `letters`]`<br>
+key.*letters*() `[impulse key: `*letters*`]`<br>
 activate the script when you press the respective letter key.
 
 ## Conditional functions
 
 A condition is computed by the script before executing any actions.<br>
-If any of the conditions returns false, the script will terminate without execution
+If any of the conditions returns false, the script will terminate without execution.
 
 There is a bug in how conditions handle script termination. If a script calls another script using [executesync()](#fundemental-functions), and the called script has a false condition, the called script will terminate itself. However, the calling script incorrectly continues to treat the called script as still running. 
 
@@ -95,9 +97,9 @@ There is a bug in how conditions handle script termination. If a script calls an
 
 ## Conditions
 
-comparison.`data_type`(`data_type`, "operator", `data_type`) 
-`[comparison: `data_type` type: `data_type`, type: string, type`data_type`]`<br>
-Compares two values of the same `data_type` (excluding vector) based on the selected operator.
+comparison.*data_type*(*data_type*, "operator", *data_type*) 
+`[comparison: `*data_type*` type: `*data_type*`, type: string, type`*data_type*`]`<br>
+Compares two values of the same *data_type* (excluding vector) based on the selected operator.
 
 global.bool.get("variable name") `[global: get (bool) type: string]`<br>
 Returns the value of the global bool variable with the coresponding name.
@@ -118,11 +120,16 @@ Returns true if a boss fight is currently active. Returns false otherwise.
 contains(string1, string2) `[string: contains type: string, type: string]`<br>
 Returns true if string1 contains the same character sequence of string2.
 
+```
 contains("foo", "oo") → true: "oo" is part of "foo".
 contains("foo", "foo") → true: "foo" matches "foo" entirely.
+contains("foo", "") → true: An empty string is considered part of a string.
 contains("foo", "fooo") → false: "fooo" exceeds the length of "foo".
 contains("foo", "a") → false: "a" is not part of "foo".
-contains("foo", "") → false: An empty string is not considered part of a string.
+contains("", "foo") → false: an empty string does not contain any characters.
+
+contains("", "") → true: an empty string contains an empty string
+```
 
 not(bool value) `[bool: not type: bool]`<br>
 Returns the opposite of the given bool value. not(true) = false; not(false) = true.
@@ -146,13 +153,13 @@ software.enabled("software name") `[software: is enabled type: string]`<br>
 Returns true if the software with id [software name](#fundemental-functions) has been enabled. Returns false if software is disabled or not installed.
 
 pause.get() `[game: is paused]`<br>
-Returns true if the game is currently paused during Tower Testing via the Pause button. Returns false if outside of towertesting
+Returns true if the game is currently paused during Tower Testing via the Pause button. Returns false if outside of towertesting or if the game of towertesting is unpaused.
 
 isopen("town window") `[town: window open type: string]`<br>
 Returns true if the inputed [town window](#fundemental-functions) is active and visible on the screen.
 
 anyopen() `[town: any window open]`<br>
-Returns true if any window in town is open.
+Returns true if any window or menu in town is open.
 
 worker.paused("worker name") `[worker: is paused type: string]`<br>
 Returns true if the first worker with the name `worker name` is paused or if no worker with the given name exists.
@@ -204,23 +211,27 @@ Any number bellow 1 is treated as 1, any number above your actions count will te
 gotoif(line number, condition) `[basic: goto-if type: int, type: bool]`<br>
 Same as a goto() but if your condition is false it continues to the next line instead of jumping to the line number.
 
-global.`data_type`.set("variable name", value) `[global: set (`data_type`) type: string, type: `data_type`]`<br>
+global.*data_type*.set("variable name", value) `[global: set (`*data_type*`) type: string, type: `*data_type*`]`<br>
 Assigns the inputed `value` inside the global variable `variable name`.
 
 global.unset("variable name") `[global: unset type: string]`<br>
-Deletes the global variable with the name `variable name`.
+Deletes the global variable with the name `variable name`. Note that unsetting a global variable will have strange side effects to the global values overlay.
 
-local.`data_type`.set("variable name", value) `[local: set (`data_type`) type: string, type: `data_type`]`<br>
+local.*data_type*.set("variable name", value) `[local: set (`*data_type*`) type: string, type: `*data_type*`]`<br>
 Assigns the inputed `valuse` inside of the local variable `variable name`.
 
 local.unset("variable name") `[local: unset type: string]`<br>
 Deletes the local variable with the name `variable name`.
 
-type: bool<br>
-look at the functions in conditions
+### type: bool
+All boolean values are [conditional functions](#conditional-functions).<br>
+Subject is isolated in the subject [D Data Type bool](./Data%20Types/Type%20Bool.md).
 
-type: double<br>
-arithmetic.double(value1, "operation", value2) `[arithmetic type:double, type:string, type:double]`<br>
+### type: double
+
+Subject is isolated in the subject [D Data Type double](./Data%20Types/Type%20Double.md).
+
+arithmetic.double(value1, "operation", value2) `[arithmetic type: double, type: string, type: double]`<br>
 Performs arithmetic on the inputed values.<br>
 Permited operations are:
 - `+` addition
@@ -230,7 +241,7 @@ Permited operations are:
 - `%` `mod` modulo
 - `^` `pow` power
 - `//` `log` logarithm<br>
-a // b = log base b of a
+  a // b = log base b of a
 
 const.e() `[constant: e]`<br>
 Returns the constant e = 2.7182818284590452.
@@ -254,19 +265,19 @@ machine.item.count("machine name") `[factory: machine input count type: string]`
 Returns the total amount of items currently inside of the factory machine with id `machine name`.
 
 era() `[game: era]`<br>
-Returns the current era during Tower Testing or 0 if Tower Testing is not active.
+Returns the current era count during Tower Testing or 0.0 if Tower Testing is inactive.
 
 fixedWavesPerInterval() `[game: fixed waves per interval]`<br>
 Returns the current amount of fixed waves per interval as seen in the stats menu during Tower Testing or 0 if Tower Testing is not active.
 
 infinity() `[game: infinity]`<br>
-Returns the current infinity during Tower Testing or 0 if Tower Testing is not active.
+Returns the current infinity count during Tower Testing or 0 if Tower Testing is not active.
 
 resource("resource name") `[game: resource type: string]`<br>
 Returns the amount of resources with id `resource name` you have. Returns 0 if `resource name` is not a valid id.
 
 wave() `[game: wave]`<br>
-Returns the current wave during Tower Testing or 0 if Tower Testing is not active.
+Returns the current wave count during Tower Testing or 0 if Tower Testing is not active.
 
 waveAcceleration() `[game: wave acceleration]`<br>
 Returns the current wave acceleration factor.
@@ -278,16 +289,16 @@ global.double.get("var name") `[global: get(double) type: string]`<br>
 Returns the value of the global variable `var name`.
 
 highscore.era("region", difficulty") `[highscore: era type: string, type: string]`<br>
-Returns the era record of region `region` on difficulty `difficulty`.
+Returns the era record of region with ID `region` on difficulty with ID `difficulty`.
 
 highscore.infinity("region", difficulty") `[highscore: infinity type: string, type: string]`<br>
-Returns the infinity record of region `region` on difficulty `difficulty`.
+Returns the infinity record of region with ID `region` on difficulty with ID `difficulty`.
 
 highscore.wave("region", difficulty") `[highscore: wave type: string, type: string]`<br>
-Returns the wave record of region `region` on difficulty `difficulty`.
+Returns the wave record of region with ID `region` on difficulty with ID `difficulty`.
 
 disable.inf.cost() `[infinity: secure module cost]`<br>
-Returns the amount of Tower Testing xp required in order to secure/disable a module during the infinity phase.
+Returns the amount of Tower Testing xp required in order to secure a module during the infinity phase.
 
 local.double.get("var name") `[local: get (double) type: string]`<br>
 Returns the value of the local variable `var name`.
@@ -322,7 +333,88 @@ Returns the sine of the number `val`.
 tan(val) `[math: tan type: double]`<br>
 Returns the tangent of the number `val`.
 
-max(val_1, val_2) `[max: double]`
+max(val_1, val_2) `[max: double type: double, type: double]`<br>
+Returns the maximum value between val_1 and val_2.
+
+min(val_1, val_2) `[min: double type: double, type: double]`<br>
+Returns the minimum value between val_1 and val_2.
+
+museum.timer() `[museum: market timer]`<br>
+Returns the current market time until the next refresh of the offshore marker in museum.
+
+rnd(min_val, max_val) `[random: double type: double type: double]`<br>
+Returns a random value between min_val and max_val, including min_val and max_val.<br>
+If max_val is smaller than min_val, min_val will always return.
+
+height.d() `[screen: height]`<br>
+Returns the height of the game window in pixels.
+
+width.d() `[screen: width]`<br>
+Returns the width of the game window in pixels.
+
+if(cond, true_val, false_val) `[ternary: double type: bool, type: double, type: double]`<br>
+Computes the condition inputed in `cond` and returns `true_val` if it's true and `false_val` if it's false.<br>
+The branch that doesn't return is not computed.
+
+time.delta() `[time: delta]`<br>
+Returns the total time in seconds between the current frame and the last frame. Pausing or accelerating the game affects this value.
+
+time.scale() `[time: scale]`<br>
+Returns the factor at which the time is currently accelerated.<br>
+- 0 if the game is paused
+- 1 if the game runs at normal speed
+- 2 if the game runs at 2x speed<br>
+  and so on
+
+time.unscaled() `[time: unscaled delta]`<br>
+Returns the total time in seconds between the current frame and the previous frame. This value is neither affected by pausing nor accelerating the game.
+
+now() `[timestamp: now]`<br>
+Returns the current local time in ticks representing the time from midnight, january 1st, 0001 up until now.
+
+utcnow() `[timestamp: utc now]`<br>
+Returns the current UTC time in ticks representing the time from midnight, january 1st, 0001 up until now.
+
+tower.range() `[tower: attack range]`<br>
+Returns the towers current attack range. Default attack range without any modules or buffs is 18. Returns 0.0 if in the statue of cubos boss `Dodecai`, in a game of `perfect space` or outside of Tower Testing.
+
+energy(percent) `[tower: energy type: bool]`<br>
+Returns the current energy of the tower or 0.0 if the tower does not exist. Value is returned as a percentage from 0.0 to 1.0 if the value in `percent` is true.
+
+energy.regen() `[tower: energy regeneration]`<br>
+Returns the current energy regeneration of the tower or 0.0 if the tower does not exist.
+
+health(percent) `[tower: health type: bool]`<br>
+Returns the current health of the tower or 0.0 if the tower does not exist. Value is returned as a percentage from 0.0 to 1.0 if the value in `percent` is true. The boss `Dodecai` always returns the value 0.0
+
+health.regen() `[tower: health regeneration]`<br>
+Returns the current health regeneration of the tower or 0.0 if the tower is either dead or does not exist.
+
+energy.max() `[tower: max. energy]`<br>
+Returns the maximum energy of the tower or 0.0 if the tower does not exist.
+
+health.max() `[tower: max. health]`<br>
+Returns the maximum hitpoints of the tower or 0 if the tower is either dead or does not exist.
+
+shield.max() `[tower: max. shield]`<br>
+Returns the maximum shieldpoints of the tower or 0 if the tower is either dead or does not exist.
+
+cooldown(skill) `[tower: module cooldown type: int]`<br>
+Returns the remaining cooldown of the active module at slot 1 in seconds. Slot 1 refers to the first module in the active modules list.<br>
+Returns -1 if the value of `skill` does not reprezent the index of a valid active module.
+
+shield(percent) `[tower: shield type: bool]`<br>
+Returns the current shieldpoints of the tower or 0 if the tower is dead or does not exist. Value is returned as a percentage from 0.0 to 1.0 if the value in `percent` is true.
+
+ui.size() `[ui: size]`<br>
+Returns the value of the UI size option from the options menu as a double value ranging from 0.5 (50%) to 1.0 (100%).<br>
+There is a bug that prevents this value from updating when the Dynamic UI Scaling option is on.
+
+x(vector value) `[vector2: x type: vector(2d)]`<br>
+Returns the x coordinate of the inputed `vector value`.
+
+y(vector value) `[vector2: y type: vector(2d)]`<br>
+Returns the y coordinate of the inputed `vector value`.
 
 ## Fundemental functions
 
