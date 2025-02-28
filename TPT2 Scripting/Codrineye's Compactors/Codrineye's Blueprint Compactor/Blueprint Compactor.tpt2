@@ -58,8 +58,13 @@ loop:
 ; If we start to execute a recording sequence or we're looping over
 ; we have to make sure that execution is done starting from tm = 0.0
 
-clock = if(pointer == 0 && det_timer_base, 1.0, {timer.get})
-waitwhile(clock < {modulo_timer})
+clock = if(\
+  pointer == 0 && det_timer_base, \
+  1.0 + floor({timer.get} / timer_base), \
+  0.0\
+)
+
+waitwhile(timer_base * clock > {timer.get})
 
 ; Since getting the timer and spell_ID are resource intensive operations
 ; whose values are called more than once, we calculate then here

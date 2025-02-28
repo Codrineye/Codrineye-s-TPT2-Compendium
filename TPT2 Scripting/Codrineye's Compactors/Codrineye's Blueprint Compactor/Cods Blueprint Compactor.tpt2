@@ -192,7 +192,7 @@
     \
     local space = BP.used_space.secure;\
     BP.comp.secure[blueprint_name] = space;\
-    --[[add an entry to this table so that the user can get the updated data]]\
+    --[[give the user access to the updated data]]\
     \
     local const = table.pack(\
       ":const int secures_",\
@@ -266,7 +266,8 @@
        */]]\
     local spell = BP.comp.spell[#BP.comp.spell];\
     if spell == nil then\
-      err_msg[1] = "Trying to add a timer_base without any recorded spells";\
+      err_msg[1] = table.pack("Trying to add a timer_base", \
+        "without any recorded spells");\
     elseif tonumber(defined_base) == nil then\
       err_msg[1] = "Trying to define a timer_base as a non number";\
     elseif math.type(tonumber(defined_base)) ~= "float" then\

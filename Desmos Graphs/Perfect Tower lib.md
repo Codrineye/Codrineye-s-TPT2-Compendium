@@ -19,8 +19,6 @@ The rulesets are as follows:
 
 ## Variables
 
-Once you import the library, you'll get access to many variables
-
 ### UI Colors
 
 C_{uiSliderColor} = rgb(3, 167, 254)<br>
