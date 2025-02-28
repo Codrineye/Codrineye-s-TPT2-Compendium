@@ -1,21 +1,21 @@
 # Laboratory Experiment Solutions
 This post contains the redirection to very experiment post and every resource relevant to the experiment in question<br>
-All of these posts will use the rules specified within `REDIRECT` [Root README](/README.md)<br>
+All of these posts will use the rules specified within `REDIRECT` [Root README](../Tutorial%20FAQ.md)<br>
 The TPT2 wiki has a section for every laboratory experiment, you can find it `DIRECT` [here](https://www.perfecttower2.com/wiki/Laboratory)
 
 # Fire
-Fire experiment has a `REDIRECT` [FAQ post(FIRE)](Experiments/Laboratory%20Experiment%20Fire.md)<br>
+Fire experiment has a `REDIRECT` [FAQ post(FIRE)](./Experiments/Laboratory%20Experiment%20Fire.md)<br>
 
 # Water
 Water experiment has no FAQ post, check out the `DIRECT` [water experiment on wiki](https://www.perfecttower2.com/wiki/Experiment:_Water)
 
 # Nature
-There is also an `REDIRECT` [FAQ post(Nature)](Experiments/Laboratory%20Experiment%20Nature.md)<br>
+There is also an `REDIRECT` [FAQ post(Nature)](./Experiments/Laboratory%20Experiment%20Nature.md)<br>
 ### Here are some simple Nature Grid solutions for early players (and speedrinners)<br>
 `DIRECT` [General Help Chat](https://discord.com/channels/488444879836413975/1140658116728471603/1229034736236892171)
 
 # Earth
-Earth experiment has a `REDIRECT` [FAQ post(EARTH)](Experiments/Laboratory%20Experiment%20Earth.md)<br>
+Earth experiment has a `REDIRECT` [FAQ post(EARTH)](./Experiments/Laboratory%20Experiment%20Earth.md)<br>
 
 # Electricity
 Electricity experiment has no FAQ post, check out the `DIRECT` [electricity experiment on wiki](https://www.perfecttower2.com/wiki/Experiment:_Electricity)<br>

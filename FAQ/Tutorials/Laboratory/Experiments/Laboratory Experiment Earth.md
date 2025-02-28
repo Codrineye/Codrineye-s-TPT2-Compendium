@@ -1,10 +1,10 @@
 This file has been made following the rules specified in the [ROOT LEGEND](/FAQ/README.md)
 
 # Laboratory Experiment: Earth
-![Earth Experiment](/FAQ/Images/Earth%20Experiment.png)
+![Earth Experiment](../../../Images/Earth%20Experiment.webp)
 
 # The earth experiment is composed of 3 mechanics
-![Earth Experiment UI](/FAQ/Images/Earth%20Experiment%20Main%20UI.png)
+![Earth Experiment UI](../../../Images/Earth%20Experiment%20Main%20UI.webp)
 
 ## MASS
 Mass is required for you to prestige this experiment, it is gained from your drills and determines how much you can compress
@@ -34,14 +34,14 @@ There are 3 modes, Quick & Qangerous, Slow & Safe, Stabilize<br>
 The compressor is controlled by the player via the green bar<br>
 The red bar is controlled by the compressor and cannot surpass this green bar
 
-![Control Bars](/FAQ/Images/Earth%20Experiment%20Control%20Bars.png)
+![Control Bars](../../../Images/Earth%20Experiment%20Control%20Bars.webp)
 
 The green bar represents the maximum speed the compressor can achieve, the bigger the bar, the quicker it'll run<br>
 The red bar is the progress the compressor has made in its startup/shutdown sequence, it slowly builds up to the maximum when active and slowly drains to the minimum when deactivated<br>
 While compressing, you _ALWAYS_ lose stability, the modes are ordered from most stability drain to least stability drain
 
 # What do these modes do?
-![Earth Experiment Modes](/FAQ/Images/Earth%20Experiment%20Compressor%20Modes.png)
+![Earth Experiment Modes](../../../Images/Earth%20Experiment%20Compressor%20Modes.webp)
 
 ## Mode 1: Quick & Dangerous
 This mode compresses your mass in the fastest way, with the drawback that it **also** drains the stability the fastest
@@ -66,7 +66,7 @@ thanks to this, you are still able to collect your rewards if you're observant e
 You got enough mass to prestige, congratulations<br>
 On first prestige, you will be met with the prestige screen
 
-![Earth Experiment Prestige](/FAQ/Images/Earth%20Experiment%20Prestige%20Screen.png)
+![Earth Experiment Prestige](../../../Images/Earth%20Experiment%20Prestige%20Screen.png)
 
 If you hover over the middle icon, you will learn what performing a prestige has reset<br>
 **Keep in mind that this menu can be accessed whenever you'd like, you do not need to prestige to see these effects**<br>

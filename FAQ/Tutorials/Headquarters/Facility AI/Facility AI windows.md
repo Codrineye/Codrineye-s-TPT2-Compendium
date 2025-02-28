@@ -1,12 +1,12 @@
 # What is a Custom AI Overlay
 
-![Facility AI Interface Visuals](/FAQ/Images/Facility%20AI%20Interface%20Visual.png)
+![Facility AI Interface Visual](../../../Images/Facility%20AI%20Interface%20Visual.webp)
 A custom AI Overlay is a "window" you can create to provide a visual interface to the actions being performed by an AI.<br>
 To access your created windows, you have to move to the "Visual" tab, which is found next to the settings icon at the top right of the Facility AI interface.
 
 ## The AI Overlay Builder
 
-![AI Overlay Builder](/FAQ/Images/AI%20Overlay%20Builder.png)
+![AI Overlay Builder](../../../Images/AI%20Overlay%20Builder.webp)
 
 By hitting `NEW`, you open up the AI Overlay Builder. <br>
 Inside this editor you can click the title `AI Overlay Builder: title` to change the name of the window or add new components to your window.

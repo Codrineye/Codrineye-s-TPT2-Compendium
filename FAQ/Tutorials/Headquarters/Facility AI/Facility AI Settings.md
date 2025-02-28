@@ -1,9 +1,9 @@
 These settings are found in the Facility AI interface<br>
-Please go to [Facility AI](Facility%20AI.md) if you're looking for the Facility AI settings under Controls
+Please go to `Redirect` [Facility AI](Facility%20AI.md) if you're looking for the Facility AI settings under Controls
 
 # Facility AI Settings
 
-![Facility AI Settings](/FAQ/Images/Facility%20AI%20Settings.png)
+![Facility AI Settings](../../../Images/Facility%20AI%20Settings.webp)
 
 `Fast Atomic functions` is a checkbox that makes all [atomic functions](AI%20Functions.md) perform their calculations instantly, as apposed to their usual behaviour where their calculations happen once per tick
 

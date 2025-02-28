@@ -6,11 +6,13 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups `data_type`, buildings, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its coresponding list:
+For space, I've created the groups `data_type`, `buildings`, `resources`, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its coresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
-buildings = "arcade", "construction firm", "factory", "headquarters", "laboratory", "mine", "museum", "power plant", "shipyard", "statue of cubos", "trading post", "workshop"
+`buildings` = "arcade", "construction firm", "factory", "headquarters", "laboratory", "mine", "museum", "power plant", "shipyard", "statue of cubos", "trading post", "workshop"
+
+`resources` = "gameTokens", "town.resources", "gems", "gems.exotic", "powerplant.resources", "mine.resources", "factory.resources", "headquarters.resources", "arcade.resources", "laboratory.resources", "shipyard.resources", "tradingpost.resources", "workshop.resources", "museum.resources", "constructionFirm.resources", "statueofcubos.resources", "halloween.pumpkins", "halloween.souls", "halloween.blood", "christmas.cookies", "christmas.presents", "christmas.reindeers.trained", "christmas.reindeers.milk", "christmas.reindeers.raw", "christmas.milk", "christmas.trees", "christmas.wrappings", "christmas.toys", "christmas.candy", "time.offline"
 
 `digits` = `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`
 
@@ -19,6 +21,7 @@ buildings = "arcade", "construction firm", "factory", "headquarters", "laborator
 The functions are written in the [External AI Editor](https://d0sboots.github.io/perfect-tower/) format first, and then written in the internal editor format in `[square brackets]`
 
 There are 4 types of functions:
+
 - [Impulse functions](#impulse-functions)
 - [Conditional functions](#conditional-functions)
 - [Atomic functions](#atomic-functions)
@@ -61,10 +64,10 @@ activate the script when your middle mouse button is pressed down.
 mouse.2.up() `[impulse mouse: middle up]`<br>
 activate the script when your middle mouse button is no longer being pressed down.
 
-key.*digits*() `[impulse key: `*digits*`]`<br>
+key._digits_() `[impulse key: `_digits_`]`<br>
 activate the script when you press the respective number key.
 
-key.*letters*() `[impulse key: `*letters*`]`<br>
+key._letters_() `[impulse key: `_letters_`]`<br>
 activate the script when you press the respective letter key.
 
 ## Conditional functions
@@ -72,7 +75,7 @@ activate the script when you press the respective letter key.
 A condition is computed by the script before executing any actions.<br>
 If any of the conditions returns false, the script will terminate without execution.
 
-There is a bug in how conditions handle script termination. If a script calls another script using [executesync()](#fundemental-functions), and the called script has a false condition, the called script will terminate itself. However, the calling script incorrectly continues to treat the called script as still running. 
+There is a bug in how conditions handle script termination. If a script calls another script using [executesync()](#fundemental-functions), and the called script has a false condition, the called script will terminate itself. However, the calling script incorrectly continues to treat the called script as still running.
 
 ## Permited operators
 
@@ -84,6 +87,7 @@ There is a bug in how conditions handle script termination. If a script calls an
 `||`, `|` means or
 
 ### Int/Double
+
 `==`, `=` means equal<br>
 `!=` means not equal<br>
 `<` means smaller than<br>
@@ -92,13 +96,17 @@ There is a bug in how conditions handle script termination. If a script calls an
 `>=` means larger or equal than
 
 ### String
+
 `==`, `=` means equal<br>
 `!=` means not equal
 
 ## Conditions
 
-comparison.*data_type*(*data_type*, "operator", *data_type*) 
-`[comparison: `*data_type*` type: `*data_type*`, type: string, type`*data_type*`]`<br>
+Subject is isolated in the section [R data type bool](./Data%20Types/Type%20Bool.md).<br>
+All conditions are the same values as [R type: bool](#type-bool)
+
+comparison.*data_type*(*data_type*, "operator", *data_type*)
+`[comparison: `*data_type*`type: `*data_type*`, type: string, type: `*data_type*`]`<br>
 Compares two values of the same *data_type* (excluding vector) based on the selected operator.
 
 global.bool.get("variable name") `[global: get (bool) type: string]`<br>
@@ -123,12 +131,12 @@ Returns true if string1 contains the same character sequence of string2.
 ```
 contains("foo", "oo") → true: "oo" is part of "foo".
 contains("foo", "foo") → true: "foo" matches "foo" entirely.
-contains("foo", "") → true: An empty string is considered part of a string.
 contains("foo", "fooo") → false: "fooo" exceeds the length of "foo".
 contains("foo", "a") → false: "a" is not part of "foo".
-contains("", "foo") → false: an empty string does not contain any characters.
 
 contains("", "") → true: an empty string contains an empty string
+contains("foo", "") → true: An empty string is considered part of a string.
+contains("", "foo") → false: an empty string does not contain any characters.
 ```
 
 not(bool value) `[bool: not type: bool]`<br>
@@ -223,17 +231,38 @@ Assigns the inputed `valuse` inside of the local variable `variable name`.
 local.unset("variable name") `[local: unset type: string]`<br>
 Deletes the local variable with the name `variable name`.
 
-### type: bool
-All boolean values are [conditional functions](#conditional-functions).<br>
-Subject is isolated in the subject [D Data Type bool](./Data%20Types/Type%20Bool.md).
-
 ### type: double
 
-Subject is isolated in the subject [D Data Type double](./Data%20Types/Type%20Double.md).
+Subject is isolated in the section [R Data Type double](./Data%20Types/Type%20Double.md).
+
+External Editor syntactic sugar.<br>
+:const double `var_name`<br>
+Defines a variable with the name "var_name" that can hold the given boolean value.<br>
+Since this is a const definition, you can not assign a value to this variable if it's been defined.
+
+The value of a const definition cannot be an expression
+
+:global double `var_name`<br>
+Defines a variable with the name "var_name".<br>
+This shortens the assignment and retrieval expressions of the global variable called `var_name`.
+
+```
+:global double test
+global.double.set("test", global.double.get("test"))
+; is the long form of
+test = test
+```
+
+:local double `var_name`<br>
+Is the same as :global bool `var_name` but instead of a global variable, this defines a local variable.
+
+The lable `var_name` can contain alphabetical values, numeric values and the character `_`.<br>
+The first character of `var_name` can't be a numeric value.
 
 arithmetic.double(value1, "operation", value2) `[arithmetic type: double, type: string, type: double]`<br>
 Performs arithmetic on the inputed values.<br>
 Permited operations are:
+
 - `+` addition
 - `-` subtraction
 - `*` multiplication
@@ -274,7 +303,8 @@ infinity() `[game: infinity]`<br>
 Returns the current infinity count during Tower Testing or 0 if Tower Testing is not active.
 
 resource("resource name") `[game: resource type: string]`<br>
-Returns the amount of resources with id `resource name` you have. Returns 0 if `resource name` is not a valid id.
+Returns the amount of resources with id `resource name` you have. Returns 0 if `resource name` is not a valid id.<br>
+Valid resource ID's are defined at the [top of file](#ai-functions)
 
 wave() `[game: wave]`<br>
 Returns the current wave count during Tower Testing or 0 if Tower Testing is not active.
@@ -286,7 +316,7 @@ xp() `[game: xp]`<br>
 Returns the current amount of Tower Testing experience or 0 if Tower Testing is not active.
 
 global.double.get("var name") `[global: get(double) type: string]`<br>
-Returns the value of the global variable `var name`.
+Returns the value of the global variable `var name`.<br>
 
 highscore.era("region", difficulty") `[highscore: era type: string, type: string]`<br>
 Returns the era record of region with ID `region` on difficulty with ID `difficulty`.
@@ -361,6 +391,7 @@ Returns the total time in seconds between the current frame and the last frame. 
 
 time.scale() `[time: scale]`<br>
 Returns the factor at which the time is currently accelerated.<br>
+
 - 0 if the game is paused
 - 1 if the game runs at normal speed
 - 2 if the game runs at 2x speed<br>
@@ -416,5 +447,41 @@ Returns the x coordinate of the inputed `vector value`.
 y(vector value) `[vector2: y type: vector(2d)]`<br>
 Returns the y coordinate of the inputed `vector value`.
 
-## Fundemental functions
+### type: int
 
+Subject is isolated in the section [R data type int](./Data%20Types/Type%20Int.md).
+
+### type: string
+
+### type: bool
+
+All boolean values are [conditional functions](#conditional-functions).<br>
+Subject is isolated in the section [R Data Type bool](./Data%20Types/Type%20Bool.md).
+
+External Editor syntactic sugar.<br>
+:const bool `var_name` true/false<br>
+Defines a variable with the name "var_name" that can hold the values true or false.<br>
+Since this is a const definition, you can not assign a value to this variable after it's been defined.
+
+The value of a const definition cannot be an expression.
+
+:global bool `var_name`<br>
+Defines a variable with the name "var_name".<br>
+This shortens the expressions global.bool.set("var_name", `value`) to `var_name` = `value` and global.bool.get("var_name") to `var_name`.<br>
+
+```
+:global bool test
+global.bool.set("test", global.bool.get("test"))
+; is the long form of
+test = test
+```
+
+:local bool `var_name`<br>
+Is the same as :global bool `var_name` but instead of a global variable this defines a local variable
+
+The lable `var_name` can contain alphabetical values, numeric values and the character `_`.<br>
+The first character of `var_name` can't be a numeric value.
+
+### type: vector(2d)
+
+## Fundemental functions
