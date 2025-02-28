@@ -113,6 +113,8 @@ start_secures:
 :local double i
 i = 1.0
 secures = {comp_secure.get}
+{comp_secure.set("")}
+; Clear the secure field to not over-populate the active scripts count.
 
 loop_secures:
 disable.inf(sub(secures, pointer, index(secures, "|", pointer) - pointer))
