@@ -10,8 +10,8 @@
 ; Positive number = Easy to Impossible
 ; Negative number = Impossible to Easy
 
-:const string forwards_diff_list "{diff_list(1)}"
-:const string reversed_diff_list "{diff_list(-1)}"
+:const string forwards_diff_list {diff_list(1)}
+:const string reversed_diff_list {diff_list(-1)}
 
 ; QOL macro to determine the direction
 #difficulty_list forwards_diff_list
@@ -74,7 +74,6 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 ; .toggle is the string representing all toggle impulses
 ; .state is the string that represents all update_state impulses
 
-
 #impulse.qol "key.{restart}key.{exit}key.{stats}"
 #impulse.toggles "key.{mode_switch}key.{cycling}"
 #impulse.state "key.{state_switch}" . {impulse.toggles}
@@ -125,11 +124,11 @@ update_state:
 {region_cycling.set({region_cycling.get} != {contains.key({cycling})})}
 
 ; curent_mode cycles through its values only if you want it to change
-global.string.set({curent_mode}, if(\
-  {contains.key({mode_switch})}, \
-  if({contains.mode(mode2)}, mode1, mode2), \
+{curent_mode.set(if(\
+  {contains.key({mode_switch})},\
+  if({contains.mode(mode2)}, mode1, mode2),\
   if({contains.mode(mode2)}, mode2, mode1)\
-))
+))}
 
 ; exit the script if we're called
 ; for cycling, mode or if we're shut down

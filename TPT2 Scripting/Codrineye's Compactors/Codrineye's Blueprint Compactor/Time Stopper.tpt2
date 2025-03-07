@@ -1,0 +1,52 @@
+:import Blueprint Compactor lib
+:name {package(Time Stopper)}
+:budget_cap 200
+
+game.newround()
+key.x()
+
+; advance a frame if the compactor is activated
+gotoif(advance_frame, contains(impulse(), "key.x"))
+
+main:
+; Prevents a clunky user interface.
+global.unset(timer_var)
+
+; Since the sequences we send are empty, the pointer offset
+; is only used for the second instance run by game.newround()
+; to pause the game.
+{pointer.set(0)}
+{comp_active.set("")}
+{comp_secure.set("")}
+
+; start our compactor so we can configure our timings.
+execute("{tower_handler}")
+
+waitwhile({timer.get} <= 0.0)
+; We must ensure that the compactor successfully initialized
+; otherwise, we'd be too fast and check if there's any enemies
+; before the game had time to spawn any in
+
+pause()
+; we can now pause the game
+
+waitwhile(health(false) > 0.0 && enemies() > 0)
+; Stop the compactor if we're dead.
+; 
+; Usually, I'd prefer we do {caller.set(idle_mode)}, as
+; that safely terminates all instances of the tower handler,
+; but instead, we have to both mark the time of death but to also
+; ensure that, when we unset timer_var, there's not an actively
+; running ticker that makes {timer.get} != 0.0
+stop("{tower_handler}")
+
+advance_frame:
+; make sure that we don't pause the game before the timer is initialized
+waitwhile({timer.get} <= 0.0)
+
+; unpause the game to let a frame go by
+unpause()
+
+; pause the game
+; this is how we do frame-by-frame advancing
+pause()

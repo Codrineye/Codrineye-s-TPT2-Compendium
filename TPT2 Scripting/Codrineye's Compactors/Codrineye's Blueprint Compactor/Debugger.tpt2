@@ -1,0 +1,67 @@
+:import Blueprint Compactor lib
+:name {package(Debugger)}
+:budget_cap 101
+
+; The debugger attatchment to the
+; core blueprint compactor
+; 
+; It's used to go through the data you sent
+; to the tower handler for execution
+
+key.x()
+
+:global string spell_chunk
+; 
+:global string loop_bit
+:global string sync_bit
+; 
+:global string spell_size
+:global string spell_timer
+; 
+:global string coord_x
+:global string coord_y
+; 
+:global string spell_name
+
+#get_val(val) {lua(return Compactor.{val})}
+
+stop("{tower_handler}")
+; Stop all instances of the tower handler
+
+pointer = {pointer.get}
+actives = {comp_active.get}
+secures = {comp_secure.get}
+; initialize our variables
+
+{pointer.set(pointer)}
+{comp_active.set(actives)}
+{comp_secure.set(secures)}
+{caller.set("debuging")}
+; Start and end the block hider
+
+global.int.set("pointer", pointer)
+spell_chunk = sub(actives, pointer, {get_space})
+; Get the spell chunk, aka, the spell that
+; the pointer is pointing at
+loop_bit = sub(actives, pointer, 1)
+sync_bit = sub(actives, pointer + 1, 1)
+; Show the bits so the user can know what they mean, this is
+; likely unnecesairy as they probably already know what it means
+; but for now, while nobody knows what the compactor even is
+; this data stays
+; 
+global.string.set("timer_base", {get_val(timer_base)})
+spell_size = {get_val(space)}
+; 
+spell_timer = {get_val(timer)}
+coord_x = {get_val(coord_x)}
+coord_y = {get_val(coord_y)}
+spell_name = {get_val(name)}
+; 
+; Increment our pointer to point to the next spell
+{pointer.increment}
+; Save it to our global pointer
+{pointer.set(pointer)}
+; 
+global.string.set("secures", "<br>" . secures)
+; Show the secures as well, this should be a short string

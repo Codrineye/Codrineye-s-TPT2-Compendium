@@ -11,7 +11,7 @@ The Spell and Secures Compactors are strings used by the compactor executor.
 
 # Using EasyEra cat
 
-When you import the Blueprint Compactor resources, you gain access to 3 macros that solve era handling for you.
+When you import Cods Blueprint Compactor, you gain access to 3 macros that solve era handling for you.
 - `set_priority(element_name)` defines that you want the element with element_name to be disabled. This is a `first in first out` (FIFA) priority system, meaning that you will not be able to disable the elements with a priority set after an element.
 - `disable.era` is a macro you use in the function `disable.era()`. 
 - `disabled_era` is a macro you use to detect if all elements you wanted to disable are disabled.
@@ -87,6 +87,8 @@ You will need to use `{pointer.set}` and `{comp_actives.set}` in this exact orde
 Setting the pointer starts a block hider that hides all global variables that get defined ofter it.<br>
 Setting the compactor sends the recording string over to the compctor script for it to get processed and executed.
 
+If you're declairing a blueprint that loops at the end, you can use `{checkpoint.set}` to determine what value the `pointer` will be set to once it loops. You can use this in place of taking a substring to isolate your activation sequence.
+
 Once you execute the compactor, it'll stop the block hider when setting the caller_ID. This variable tells you who started the script.<br>
 This is a signal used by the compactor internally and tells you if there's any blueprint AI's active that you wouldn't want to be.
 
@@ -95,6 +97,8 @@ It's complicated to describe, so if anybody has a suggestion on how to better ex
 
 The Compactor can only reset the timer when it enters idle mode, as it's made to support multiple compactors running at the same time, even if these copies weren't started for your blueprint.<br>
 This design decision was made to support cases in which you'd want to send an additional recording after the previous one was finalized.
+
+It is recommended that you end the compactor by setting the called_ID to idle mode using `{caller.set(idle_mode)}`. The string idle_mode is a constant string defined in the `Blueprint Compactor resources`.
 
 # Usign the Secures Compactor
 

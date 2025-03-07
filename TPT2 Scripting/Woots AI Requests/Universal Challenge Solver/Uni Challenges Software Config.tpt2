@@ -11,32 +11,32 @@
 ; please use the discord post/make a github issue and suggest the change
 ; 
 
-{auto_skip(0)}
-{wave_streaming(0)}
-{wave_surge(0)}
-{critical_wave_jump(0)}
-{wave_momentum(0)}
-{wave_storm(0)}
-{wave_persistence(0)}
-{wave_instability(0)}
-{wave_vortex(0)}
-{wave_catalyst(0)}
-{wave_endurance(0)}
-{new_bounds(0)}
-{wave_marathon(0)}
-{wave_compression(0)}
-{era_surge(0)}
-{era_burst(0)}
-{era_swirl(0)}
-{wave_horizon(0)}
-{no_bounds(0)}
-{era_tunneling(0)}
-{wave_breach(0)}
-{wave_floor(0)}
-{era_floor(0)}
-{era_horizon(0)}
-{wave_restart(0)}
-{infinity_horizon(0)}
+{auto_skip(3)}
+{wave_streaming(3)}
+{wave_surge(2)}
+{critical_wave_jump(1)}
+{wave_momentum(1)}
+{wave_storm(1)}
+{wave_persistence(1)}
+{wave_instability(1)}
+{wave_vortex(1)}
+{wave_catalyst(1)}
+{wave_endurance(1)}
+{new_bounds(1)}
+{wave_marathon(1)}
+{wave_compression(1)}
+{era_surge(1)}
+{era_burst(1)}
+{era_swirl(1)}
+{wave_horizon(1)}
+{no_bounds(1)}
+{era_tunneling(1)}
+{wave_breach(1)}
+{wave_floor(1)}
+{era_floor(1)}
+{era_horizon(1)}
+{wave_restart(1)}
+{infinity_horizon(1)}
 
 ; These constants are used to create the 2 lists used in watercat
 :const string software_list {software.concat(software_list)}
