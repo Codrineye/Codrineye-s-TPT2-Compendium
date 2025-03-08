@@ -35,20 +35,16 @@
   \
   local var = table.pack(\
     "<size=0>", [[{script_name}]], "</size>",\
-    "{name}", string.format("(%s)", string.upper(impulse))\
+    "{name}"\
   );\
+  if impulse ~= "" then var[5] = string.format("(%s)", impulse:upper()); end\
   return string.format([["%s"]], table.concat(var));\
 )}
 
 ; block hider
-:const string hider "<size=0>{script_name} timer"
-#timer.get global.double.get(hider)
-#timer.set(value) global.double.set(hider, {value})
-#timer.add(value) {timer.set({timer.get} + {value})}
-; 
-; it stops the hiding blocker when the user wants to
-; see the values, but hides them when we shut down
-#hider "Variable hider" . {identifier}
+; used to control when the global variables are shown or hidden 
+#hider concat("<size=0>", "Variable hider") . {identifier}
+:const string stop_hiding {display_var(Stop hiding variables,)}
 
 ; the state of the script
 :const string state_var {display_var(state, {state_switch})}

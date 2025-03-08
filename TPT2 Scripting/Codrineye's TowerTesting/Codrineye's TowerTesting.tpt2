@@ -7,8 +7,8 @@
 
 ; keep a timer so that the user can make additional_cond exit after
 ; an ammount of time has passed
-:local double time.real
-:local double time.game
+:global double time.real
+:global double time.game
 
 ; const string that define in which direction the script can
 ; cycle through difficulties
@@ -71,9 +71,6 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 ; local.int.set("exit_lable", exit)
 ; local.int.set("stats_lable", stats)
 
-{timer.set({timer.get})}
-; start the block hider
-
 gotoif(\
   if(\
     {state.get}, \
@@ -86,7 +83,7 @@ gotoif(\
 ; caller macros that determine what the hide blocker should do
 ; 
 ; .toggles always stop the hide block, no matter the scripts state
-; .state stops the hider if we're waking up else frees the hider
+; .state stops the hider if we're starting up else frees the hider
 ; .qol doesn't interfere with the blockers state
 
 #caller.toggles contains({impulse.toggles}, impulse())
@@ -94,21 +91,28 @@ gotoif(\
 #caller.qol {state.get} && contains({impulse.qol}, impulse())
 
 init:
-global.string.set({hider}, if(\
+global.string.set({hider}, "Start hiding values")
+; makes sure the timers are kept hidden
+time.real = time.real
+time.game = time.game
+global.string.set(stop_hiding, if(\
   {caller.state} || ({caller.toggles}) || ({caller.qol}), \
   concat("Stop Hiding", "</size>"), \
   "Cods TowerTesting is Hiding"\
 ))
 
-gotoif(if(\
-  isTowerTesting(), \
+gotoif(\
   if(\
-    {contains.key({restart})}, \
-    restart, \
-    if({contains.key({exit})}, exit, stats)\
-  ),\
-  99\
-), contains({impulse.qol}, impulse()))
+    isTowerTesting(), \
+    if(\
+      {contains.key({restart})}, \
+      restart, \
+      if({contains.key({exit})}, exit, stats)\
+    ),\
+    99\
+  ), \
+  contains({impulse.qol}, impulse())\
+)
 
 update_state:
 {state.set({state.get} != {contains.key({state_switch})})}
@@ -130,15 +134,11 @@ loop:
 waitwhile(isTowerTesting() && {state.get})
 waituntil(isTowerTesting() || not({state.get}))
 
-; initialize the realtime timer
-time.real = time.unscaled()
-
 in_towertesting:
 waitframe() ; wait a frame
 
-; resetting our timer is handled by the game.newround() impulse
-{timer.add(time.delta())}
-time.game = {timer.get}
+; resetting our timers is handled by the game.newround() impulse
+time.game += time.delta()
 ; Transfer the value so it can be used in additional_cond
 time.real += time.unscaled()
 
@@ -151,7 +151,7 @@ additional_cond = {additional_cond}
 gotoif(\
   in_towertesting, \
   health(false) > 0.0 && {state.get} && not(additional_cond)\
-  && (enemies() > 0 || {timer.get} <= time.delta())\
+  && (enemies() > 0 || time.game <= time.delta())\
 )
 
 exit:
@@ -243,7 +243,8 @@ restart:
 restart()
 
 new_round:
-{timer.set(0.0)}
+time.game = 0.0
+time.real = 0.0
 
 ; The user requested the stats be shown
 ; This clicks in the general area of the button where
