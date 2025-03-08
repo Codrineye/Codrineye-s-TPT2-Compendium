@@ -41,9 +41,14 @@
 )}
 
 ; block hider
-; it prevents the variables from being hidden
-; but hides them when it should
-#hider concat("<size=0>", "Variable Hider") . {identifier}
+:const string hider "<size=0>{script_name} timer"
+#timer.get global.double.get(hider)
+#timer.set(value) global.double.set(hider, {value})
+#timer.add(value) {timer.set({timer.get} + {value})}
+; 
+; it stops the hiding blocker when the user wants to
+; see the values, but hides them when we shut down
+#hider "Variable hider" . {identifier}
 
 ; the state of the script
 :const string state_var {display_var(state, {state_switch})}
