@@ -52,7 +52,7 @@ The debugging macros at the top of the file let you
 * `display` your recording so that you can, yet again, better analyze what's happening.
 * define a `display format` that determines the format used when displaying your recording.
 
-Additionally, you can add a breakpoint via the {spell_debug.breakpoint} macro.
+Additionally, you can add a breakpoint via the `{spell_debug.breakpoint}` macro.
 
 The recording macros are used to let you communicate with the compactor.
 * `recorded_blueprint` takes in a blueprint_name and a true/false value determening if you want the recording to loop.
@@ -60,6 +60,10 @@ The recording macros are used to let you communicate with the compactor.
 * `add_spell.instant` takes in the spell name and the time at which you want the spell to execute.
 * `add_spell.grounded` takes in the name and timer, like .instant, but also x/y coordinates for where you want to cast it.
 * `timer_modulo` takes in a double value that's used to determine the base used for the defined blueprint. The base means the largest value the timer can have before it should be considered 0.0 again.
+
+When adding the spell timer, you can either hard code it to a number or make it relative to a modules cooldown.<br>
+To hard code the number, you just assign a double such as `0.0`, once t reaches that value, your spell will be used.<br>
+To make it relative to a modules cooldown, you must write the ID of the module you want to take the cooldown of and ensure that it's surrounded by double quotes `""`. When doing this, make sure that your `timer_modulo` is not smaller than the cooldown you're planning to use.
 
 Please note that, since these are macros, commenting them does not prevent the action from being taken.<br>
 If you want to comment out a spell or a synchronization, you should make a comment that contains the macros inputs but that ***`DOES NOT CALL THE MACRO ITSELF`***.

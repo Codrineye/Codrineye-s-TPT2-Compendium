@@ -1,5 +1,5 @@
-:import Devbuild Blueprint Compactor
-:name devbuild Software Config
+:import Cods Blueprint Compactor
+:name Software Config
 
 ; Modify the value sent to the macro
 ; 
@@ -45,47 +45,6 @@
 ; and this is the length of both of the lists
 ; this is done through adding whitespace to the security levels so that
 ; index(software_list) is the same as index(software_secures)
-:const int software_len {len({software.concat(software_list)})}
+:const int software_len {software.concat(software_len)}
 
-:const string Wcat "w#|"
-
-#watercat_line1(secure_level) \
-software_toggle_loop:\
-software.toggle(\
-  sub(\
-    software_list, \
-    lig(Wcat), \
-    index(software_list, "|", lig(Wcat)) - lig(Wcat)\
-  ),\
-  {secure_level} <= s2i(\
-    sub(\
-      software_secure, \
-      lig(Wcat), \
-      index(software_secure, "|", lig(Wcat)) - lig(Wcat)\
-    ),\
-    0\
-  )\
-)
-; sub = 3
-; lig = 1
-; a.i = 3
-; index = 3
-; c.i = 3
-; s2i = 2
-; software.toggle = 2
-; sub + lig + a.i + index + lig + lig = 3 + 1 + 3 + 3 + 1 + 1 = 12
-; c.i + lig + s2i + sub + lig + a.i + index + lig + lig 
-; = 3 + 1 + 2 + 3 + 1 + 3 + 3 + 1 + 1
-; = 4 + 5 + 4 + 4 + 1 = 9 + 8 + 1 = 18
-; 
-; 2 + 12 + 18 = 32
-
-#watercat_line2 lis(Wcat, 1 + index(software_list, "|", lig(Wcat)))
-; lis + c.i + index + lig = 2 + 3 + 3 + 1 = 9
-
-#watercat_line3 gotoif(software_toggle_loop, lig(Wcat) < software_len)
-; gotoif + c.i + lig = 2 + 3 + 1 = 6
-; 
-; 31 + 9 + 6 = 46
-
-#watercat_index_reset lis(Wcat, 0)
+:local int watercat

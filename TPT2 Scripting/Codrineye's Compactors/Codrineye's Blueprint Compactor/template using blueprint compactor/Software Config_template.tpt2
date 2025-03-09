@@ -48,19 +48,3 @@
 :const int software_len {software.concat(software_len)}
 
 :local int watercat
-#watercat_index_reset watercat = 0
-
-#watercat_sub(list) sub(\
-  {list}, \
-  watercat, \
-  index({list}, "|", watercat) - watercat\
-)
-
-#watercat_line1(secure_level) \
-software_toggle_loop:\
-software.toggle(\
-  {watercat_sub(software_list)},\
-  {secure_level} <= s2i({watercat_sub(software_secure)}, -1)\
-)
-#watercat_line2 watercat = 1 + index(software_list, "|", watercat)
-#watercat_line3 gotoif(software_toggle_loop, watercat < software_len)

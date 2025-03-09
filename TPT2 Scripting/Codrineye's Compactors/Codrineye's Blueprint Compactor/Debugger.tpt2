@@ -29,26 +29,31 @@ stop("{tower_handler}")
 ; Stop all instances of the tower handler
 
 pointer = {pointer.get}
+checkpoint = {checkpoint.get}
 actives = {comp_active.get}
 secures = {comp_secure.get}
 ; initialize our variables
 
 {pointer.set(pointer)}
+{checkpoint.set(checkpoint)}
 {comp_active.set(actives)}
 {comp_secure.set(secures)}
 {caller.set("debuging")}
 ; Start and end the block hider
 
 global.int.set("pointer", pointer)
+global.int.set("loop checkpoint", checkpoint)
+
 spell_chunk = sub(actives, pointer, {get_space})
 ; Get the spell chunk, aka, the spell that
 ; the pointer is pointing at
+; 
 loop_bit = sub(actives, pointer, 1)
 sync_bit = sub(actives, pointer + 1, 1)
 ; Show the bits so the user can know what they mean, this is
 ; likely unnecesairy as they probably already know what it means
-; but for now, while nobody knows what the compactor even is
-; this data stays
+; but for now, while nobody knows what the compactor even is,
+; this data stays visible
 ; 
 global.string.set("timer_base", {get_val(timer_base)})
 spell_size = {get_val(space)}

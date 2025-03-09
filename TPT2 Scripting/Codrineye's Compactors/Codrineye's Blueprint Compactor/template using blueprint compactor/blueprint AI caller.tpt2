@@ -44,7 +44,7 @@ global.unset(timer_var)
 ; 
 
 ; For the compactor to interract with your game, you'll have to execute it
-execute("{blueprint_compactor}")
+execute("{tower_handler}")
 ; This is the name for the compactor. It's going to stop the hiding blocker
 ; by initializing the variable called caller_ID
 ; 
@@ -52,7 +52,9 @@ execute("{blueprint_compactor}")
 ; if the value of {timer.get} is 0
 ; 
 ; If you want the compactor to shut down, you can either use
-stop("{blueprint_compactor}")
+stop("{tower_handler}")
 ; for an immediate stop, or you can use
 {caller.set(idle_mode)}
 ; which is the internal flag to stop execution
+; Using this also resets the timer to 0.0, so you can
+; remove the global.unset from the top of the script

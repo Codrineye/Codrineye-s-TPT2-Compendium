@@ -167,14 +167,16 @@ goto(if(\
 ; or if we've entered idle_mode
 
 start_timer:
-{timer.set(time.delta())}
 execute("{tower_handler}")
 ; We must create another instance of ourselves
-; to start securing modules
+; to start securing modules.
+; 
+; Thanks to the budget, we can save a line here
+; by using the waitframe() in the timer
 
 timer:
-waitframe()
 {timer.add(time.delta())}
+waitframe()
 gotoif(timer, {caller.get} != idle_mode)
 ; The timer will be incremented until one of these actions are performed
 ; - call the compactor outside of towertesting
