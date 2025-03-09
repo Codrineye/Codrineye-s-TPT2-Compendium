@@ -275,12 +275,10 @@
         * that gets looped or not\
        */]]\
     if #BP.comp.spell_names == 0 then\
-      err_msg[1] = "Cannot record a blueprint with no recorded spells";\
+      err_msg[1] = "Cannot record a blueprint with no recorded spells\n";\
+      err_msg[2] = "Recieved " .. #BP.comp.spell_names .. " spells";\
     elseif type(loopable) ~= "boolean" then\
-      err_msg[1] = "Loopable flag must be 'true' or 'false'\n";\
-      err_msg[2] = "recieved ";\
-      err_msg[3] = loopable;\
-      err_msg[4] = " of type " .. type(loopable);\
+      err_msg[1] = "Loopable flag must be 'true' or 'false'";\
     end\
     BP.debug.detect_error();\
     \
@@ -501,8 +499,10 @@
     local spells_count = #spells;\
     --[[number of spells recorded]]\
     \
-    BP.comp.recorded_blueprint([["concat_actives"]], false);\
-    --[[Make sure that the recorded blueprint is valid]]\
+    if #BP.comp.spell_names > 0 then\
+      BP.comp.recorded_blueprint([["concat_actives"]], false);\
+      --[[Make sure that the recorded blueprint is valid]]\
+    end\
     \
     local concat_debug = {};\
     if BP.debug.can_display then\

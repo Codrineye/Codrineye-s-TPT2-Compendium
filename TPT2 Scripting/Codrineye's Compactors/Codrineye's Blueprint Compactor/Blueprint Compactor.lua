@@ -486,8 +486,11 @@ function BP.comp.concat_actives()
     local spells_count = #spells;
     -- number of spells recorded
 
-    BP.comp.recorded_blueprint([["concat_actives"]], false);
-    -- Make sure that the recorded blueprint is valid
+    if #BP.comp.spell_names == 0 then
+      BP.comp.recorded_blueprint([["concat_actives"]], false);
+      -- Make sure that the recorded blueprint is valid
+      -- Do not change the blueprint type
+    end
 
     local concat_debug = {};
     if BP.debug.can_display then
