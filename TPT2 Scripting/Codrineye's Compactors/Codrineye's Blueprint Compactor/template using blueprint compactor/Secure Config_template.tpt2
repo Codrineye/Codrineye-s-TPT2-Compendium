@@ -28,7 +28,7 @@
 ; means that you want to secure spell.void
 ; after you've secured barrier.temporal
 
-{recorded_secures(blue)}
+{recorded_security(blue)}
 ; Gets you the constant secures_blue, which you can use to
 ; isolate this secures sequence by using
 ; sub(recorded_secures, 0, secures_blue)
@@ -38,7 +38,5 @@
 ; ----------------------------END RECORDING---------------------------- ;
 ; ===================================================================== ; 
 
-:const string recorded_secures "{lua(\
-  return table.concat(BP.comp.secure);\
-)}"
-:const int secures_space {lua(return BP.used_space.secure)}
+:const string recorded_secures {recorded_secures}
+:const int secures_space {secures_space}

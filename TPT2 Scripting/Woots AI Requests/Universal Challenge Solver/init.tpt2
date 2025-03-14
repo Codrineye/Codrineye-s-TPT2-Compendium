@@ -3,6 +3,11 @@
 
 wakeup()
 key.{start}()
+key.{up}()
+key.{down}()
+key.{right}()
+key.{left}()
+
 
 #target(selection) "<color=#00A0F0>" . ({selection}) . "</color>"
 global.int.set({status}, if(\
@@ -10,6 +15,7 @@ global.int.set({status}, if(\
   2, \
   global.int.get({status})\
 ))
+
 global.int.set({visual} . "0", {get_visual(0)})
 global.int.set({visual} . "1", {get_visual(1)})
 global.string.set({output}, if(\
@@ -26,7 +32,7 @@ global.string.set({instructions}, if(\
   contains(impulse(), "key."), \
   "</size>", \
   "</size>" . "Challenge=C<region>-<challenge>" . "<br>" \
-    . "<color=#00A0F0>" . "{up}{left}{down}{right} moves, {start} begins the challenge" . "</color>"\
+  . "<color=#00A0F0>" . "{up}{left}{down}{right} moves, {start} begins the challenge" . "</color>"\
 ))
 
 goto(if(\
@@ -36,10 +42,13 @@ goto(if(\
 ))
 warn:
 global.string.set(\
-  "<color=#F00>" . "<b>" . "warning", "Exit All Buildings and/or active games" . "</b>" . "</color>"\
+  "<color=#F00>" . "<b>" . "warning", \
+  "Exit All Buildings and/or active games" . "</b>" . "</color>"\
 )
+
 waitwhile(anyopen() || isTowerTesting() || isBossFight())
 global.unset("<color=#F00>" . "<b>" . "warning")
+
 skip:
 show("towertesting", true)
 executesync("{package(TowerTesting)}")

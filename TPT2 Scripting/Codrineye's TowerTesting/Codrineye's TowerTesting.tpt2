@@ -5,32 +5,30 @@
 ; store the coord_y value
 :local double difficulty
 
+; keep a timer so that the user can make additional_cond exit after
+; an ammount of time has passed
+:global double time.real
+:global double time.game
+
 ; const string that define in which direction the script can
 ; cycle through difficulties
 ; Positive number = Easy to Impossible
 ; Negative number = Impossible to Easy
+:const string forwards_diff_list {diff_list(1)}
+:const string reversed_diff_list {diff_list(-1)}
 
-:const string forwards_diff_list "{diff_list(1)}"
-:const string reversed_diff_list "{diff_list(-1)}"
-
-; QOL macro to determine the direction
+; QOL macro to determine the direction via the source
 #difficulty_list forwards_diff_list
 
-; detect at which difficulty we're at
 :local int difficulty_index
-
-; keep count until we complete a cycle
 :local int counting
-
-; signal to know if we can switch our difficulty or not
 :local bool can_switch
-
-; variable that lets you add aditional conditions
 :local bool additional_cond
 ; 
 ; QOL macro that lets you add the additional cond from the source
 #additional_cond false
 
+game.newround()
 key.{state_switch}()
 key.{mode_switch}()
 key.{cycling}()
@@ -43,7 +41,6 @@ key.{stats}()
 ; you get to chose the direction the difficulties are cycled in
 ; start with easy and move on to impossible, or
 ; start with impossible and move on to easy
-
 concat("Easy -> Impossible", forwards_diff_list) != \
 concat("Impossible -> Easy", reversed_diff_list)
 
@@ -60,20 +57,8 @@ concat("Impossible -> Easy", reversed_diff_list)
 concat({instruct.change_direction}, {goto_line.change_direction}) != \
 concat({instruct.additional_cond}, {goto_line.additional_cond})
 
-; helper macros to shorten contains operations
-; 
-; .key makes it easier to see what I'm checking for
-; .mode(mode) makes it easier to see what mode I'm looking for
-
 #contains.key(impulse) contains(impulse(), "key.{impulse}")
 #contains.mode(mode) contains({curent_mode.get}, {mode})
-
-; impulse macros to shorten contains() checks
-; 
-; .qol is the string representing all qol impulses
-; .toggle is the string representing all toggle impulses
-; .state is the string that represents all update_state impulses
-
 
 #impulse.qol "key.{restart}key.{exit}key.{stats}"
 #impulse.toggles "key.{mode_switch}key.{cycling}"
@@ -87,49 +72,56 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 ; local.int.set("stats_lable", stats)
 
 gotoif(\
-  if({state.get}, movement_manager, 99), \
-  contains(impulse(), "{script_name}")\
+  if(\
+    {state.get}, \
+    if(contains(impulse(), "newround"), new_round, movement_manager), \
+    99\
+  ), \
+  contains("{script_name}game.newround", impulse())\
 )
 
 ; caller macros that determine what the hide blocker should do
 ; 
 ; .toggles always stop the hide block, no matter the scripts state
-; .state stops the hider if we're waking up else frees the hider
+; .state stops the hider if we're starting up else frees the hider
 ; .qol doesn't interfere with the blockers state
 
 #caller.toggles contains({impulse.toggles}, impulse())
 #caller.state not({state.get}) && {contains.key({state_switch})}
 #caller.qol {state.get} && contains({impulse.qol}, impulse())
 
-global.string.set({hider}, if(\
+init:
+global.string.set({hider}, "Start hiding values")
+; makes sure the timers are kept hidden
+time.real = time.real
+time.game = time.game
+global.string.set(stop_hiding, if(\
   {caller.state} || ({caller.toggles}) || ({caller.qol}), \
   concat("Stop Hiding", "</size>"), \
   "Cods TowerTesting is Hiding"\
 ))
 
-gotoif(if(\
-  isTowerTesting(), \
+gotoif(\
   if(\
-    {contains.key({restart})}, \
-    restart, \
-    if({contains.key({exit})}, exit, stats)\
-  ),\
-  99\
-), contains({impulse.qol}, impulse()))
+    isTowerTesting(), \
+    if(\
+      {contains.key({restart})}, \
+      restart, \
+      if({contains.key({exit})}, exit, stats)\
+    ),\
+    99\
+  ), \
+  contains({impulse.qol}, impulse())\
+)
 
 update_state:
-; state is toggled only if you want it to change
 {state.set({state.get} != {contains.key({state_switch})})}
-
-; region_cycling is toggled only if you want it to change
 {region_cycling.set({region_cycling.get} != {contains.key({cycling})})}
-
-; curent_mode cycles through its values only if you want it to change
-global.string.set({curent_mode}, if(\
-  {contains.key({mode_switch})}, \
-  if({contains.mode(mode2)}, mode1, mode2), \
+{curent_mode.set(if(\
+  {contains.key({mode_switch})},\
+  if({contains.mode(mode2)}, mode1, mode2),\
   if({contains.mode(mode2)}, mode2, mode1)\
-))
+))}
 
 ; exit the script if we're called
 ; for cycling, mode or if we're shut down
@@ -139,50 +131,32 @@ gotoif(99, contains({impulse.toggles}, impulse()) || not({state.get}))
 execute("{script_name}")
 
 loop:
-; a gate that ensures we only enter the in_towertesting loop
-; when in towertesting
-; 
-; we wait as long as towertesting is active
 waitwhile(isTowerTesting() && {state.get})
-
-; we wait as long as towertesting is inactive
 waituntil(isTowerTesting() || not({state.get}))
 
-; loop performed while we're in towertesting
-; to determine when to exit
 in_towertesting:
+waitframe() ; wait a frame
 
-; waitframe() is here to prevent the script from
-; crashing Facility AI, as this loop only consists
-; of atomic actions
-waitframe()
-
-; additional_cond must always be false until it's met
-; if you want to exit when you reach x amount of eras
-; `era() >= x` => This is good
-; `era() < x`  => This is bad
+; resetting our timers is handled by the game.newround() impulse
+time.game += time.delta()
+; Transfer the value so it can be used in additional_cond
+time.real += time.unscaled()
 
 additional_cond_pos:
 additional_cond = {additional_cond}
 
-; stay in the loop as long as the tower is alive, the script is alive
-; and the users additional_cond is not met, otherwise, we exit
+; exit if the script is active, our conditional cond isn't met
+; our tower is alive and if we haven't killed all enemies
+; (if used in normal mode instead of endless)
 gotoif(\
   in_towertesting, \
   health(false) > 0.0 && {state.get} && not(additional_cond)\
+  && (enemies() > 0 || time.game <= time.delta())\
 )
 
-; exit towertesting
 exit:
 exit()
-
-; wait for the exit transition animation
-wait(0.222)
-
-; attempt to exit while we're still in towertesting
-; once out of towertesting we terminate the script if
-; we're told by the user to exit or the AI is shut down
-; otherwise, we return to loop
+wait(0.25)
 
 goto(if(isTowerTesting(), exit, if(\
   {contains.key({exit})} || not({state.get}), \
@@ -203,17 +177,12 @@ goto(if(isTowerTesting(), exit, if(\
 #switch.mode2 {contains.mode(mode2)} && counting < 14
 
 change_region:
-
-; wait for the game to enter the towertesting window
 waitframe()
 
 ; click on the arrow to change region
 {click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
 
-
 change_difficulty:
-
-; signal to the script that we're able to switch regions
 can_switch = true
 
 difficulty_list_pos:
@@ -239,16 +208,13 @@ launch_round:
 ; launch a round of towertesting
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
 
-; quit if the script is shut down, otherwise try to launch
-; a round of towertesting otherwise proceed since we are
-; in a round of TowerTesting
-goto(if(\
-  {state.get}, \
-  if(isTowerTesting(), in_towerTesting, launch_round),\
-  99\
-))
+; try to launch the round if we're not in towertesting and
+; not shut down. If we're shut down, terminate the program.
+gotoif(\
+  if({state.get}, launch_round, 99), \
+  not({state.get} && isTowerTesting())\
+)
 
-in_towerTesting:
 ; increment counting based on our mode
 counting = if(\
   {contains.mode(mode1)}, \
@@ -257,38 +223,32 @@ counting = if(\
 )
 
 movement_manager:
-
-; waitwhile we can't open towertesting and our script is active
-; wait for our transition_delay to expire
-
 waitwhile({state.get} && (isTowerTesting() || anyopen()))
-
-; open towertesting
 show("towertesting", true)
 
-; exit script if we're shut down
-; enter region if region_cycling is on and we're in mode 2 or
-; counting == 0 and we can change region
-; otherwise, try to change difficulty
-goto(if(\
-  {state.get}, \
+gotoif(\
   if(\
-    ({contains.mode(mode2)} || {switch.mode1}) && \
-    {region_cycling.get} && can_switch, \
-    change_region, \
+    can_switch && {region_cycling.get} &&\
+    ({contains.mode(mode2)} || {switch.mode1}),\
+    change_region,\
     change_difficulty\
-  ), \
-  99\
-))
+  ),\
+  {state.get}\
+)
+; exit script if we're shut down
+; Change region if we can do so, otherwise, change difficulty
 
 ; The user requested a restart
 restart:
 restart()
 
+new_round:
+time.game = 0.0
+time.real = 0.0
+
 ; The user requested the stats be shown
 ; This clicks in the general area of the button where
 ; resource/sec, xp/sec and frags obtained are seen
-
 stats:
 waitframe()
 {click.relative(260.0/800.0, 275.0/450.0, 0.5, 0.5)}

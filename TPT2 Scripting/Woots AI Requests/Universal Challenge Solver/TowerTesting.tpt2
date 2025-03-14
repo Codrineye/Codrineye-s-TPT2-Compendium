@@ -22,7 +22,7 @@ loop:
 region = region - 1
 gotoif(loop, region > 0)
 
-#curent_challenge s2d(sub({challenges}, {get_visual(1)} * challenge_length, challenge_length), 290.0)
+#curent_challenge s2d(sub(challenges, {get_visual(1)} * challenge_length, challenge_length), 290.0)
 ; Sellect the challenge
 {click.relative(395.0/800.0, {curent_challenge}/450.0, 0.0, 1.0)}
 

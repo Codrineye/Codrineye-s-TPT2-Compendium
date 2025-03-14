@@ -1,41 +1,57 @@
-:import Spell Config:Universal Challenge Solver
+:import Uni Solver Software Config
+:import Uni Solver Spell Config
+:import Blueprint Compactor resources
+
 #package(name) Challenge Solver:{name}
+#identify Challenge Solver
+#identifier "Challenge Solver"
 
 #up w
 #down s
 #left a
 #right d
 #start t
-#init wakeup
 
-#identifier "Challenge Solver"
-
-#pointer "<size=0>" . {identifier} . "pointer"
-#pointer_get global.int.get({pointer})
-#pointer_set(value) global.int.set(\
-  {pointer}, \
-  ({pointer_get} + {value}) % (increment * batch)\
-)
-
-#timer "t"
-#timer_get global.double.get({timer})
-
+:const string instructions "<size=0>{identify}instructions"
 #instructions "<size=0>" . {identifier} . "instructions"
 #status "<size=0>" . {identifier} . "status"
 #visual {identifier} . "visual"
 #output {visual} . "</size>" . "Challenge"
 #get_visual(x) global.int.get({visual} . ({x}))
 
-:const int challenge_length 5
 
-:const string challenge1 '290.0'
-:const string challenge2 '256.0'
-:const string challenge3 '217.0'
-:const string challenge4 '182.0'
-:const string challenge5 '145.0'
-:const string challenge6 '112.0'
-:const string challenge_type '77.0'
+; simple lua macro for recording coordinates
 
-#challenges challenge1 . challenge2 . challenge3 . challenge4 . challenge5 . challenge6 . challenge_type
+{lua(\
+  TowerTest = {};\
+  TowerTest.diff = {};\
+  TowerTest.max_digits = 0;\
+)}
+#set_difficulty(coord_y) {lua(\
+  TowerTest.diff[1 + #TowerTest.diff] = [[{coord_y}]];\
+  TowerTest.max_digits = math.max(\
+    TowerTest.max_digits,\
+    #[[{coord_y}]]\
+  )\
+)}
 
+{set_difficulty(290.0)}
+{set_difficulty(256.0)}
+{set_difficulty(217.0)}
+{set_difficulty(182.0)}
+{set_difficulty(145.0)}
+{set_difficulty(112.0)}
 
+; click on the button to switch challenges to hard mode
+{set_difficulty(77.0)}
+
+; const variables to make the difficulty logic easier to follow
+:const int challenge_length {lua(return TowerTest.max_digits)}
+
+:const string challenges "{lua(\
+  local diff_list = {};\
+  for _, diff in ipairs(TowerTest.diff) do\
+    diff_list[1 + #diff_list] = diff;\
+  end\
+  return table.concat(diff_list)\
+)}"

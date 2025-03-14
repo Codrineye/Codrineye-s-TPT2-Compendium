@@ -1,6 +1,8 @@
 :import Blueprint Compactor resources
+#package(name) {blueprint_package({name})}
 
 :local int pointer
+:local int checkpoint
 :local string actives
 :local string secures
 ; 
@@ -49,16 +51,24 @@
   );\
   Compactor = {};\
   \
-  for i, value in ipairs(compactor_vals) do\
+  for i = 1, #compactor_vals do\
+    local value = compactor_vals[i];\
     index = Editor_index(actives, separator, offset);\
     size = Editor_encase_value(offset);\
     size = Editor_math(index, "-", size);\
     Compactor[value] = Editor_sub(actives, offset, size);\
-    local val = string.format("%s_value", value);\
+    local val = value .. "_value";\
     if i == 2 then\
       Compactor[val] = s2i(Compactor[value]);\
+    elseif i == 3 then\
+      local modulo_timer = [[{timer.get} % timer_base]];\
+      local active_index = Editor_activeIndex(Compactor[value]);\
+      local cooldown = Editor_moduleCooldown(active_index);\
+      local fallback = Editor_math(cooldown, "+", modulo_timer);\
+      local s2d = Editor_convertStringToDouble;\
+      Compactor[val] = s2d(Compactor[value], fallback);\
     elseif i < #compactor_vals then\
-      Compactor[val] = s2d(Compactor[value]);\
+      Compactor[val] = s2d(Compactor[value])\
     end\
     offset = Editor_math(index, "+", 1);\
   end\
@@ -83,7 +93,7 @@
 
 #pointer.increment pointer = if(\
   contains({get_bits}, "#"), \
-  0, \
+  checkpoint, \
   pointer + {get_space}\
 )
 

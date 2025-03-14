@@ -1,5 +1,5 @@
-:import Devbuild Blueprint Compactor
-:name devbuild Spell Config
+:import Cods Blueprint Compactor
+:name Spell Config
 ; 
 ; Welcome to the configuration
 ; This script has macros that allow you to
@@ -53,7 +53,9 @@
 ; Should be used before you use recorded_blueprint to define a
 ; blueprint that can loop
 ; 
-; this modulo value is used to 
+; this modulo value is used when your loopable blueprint
+; has precice timings where the timer must be set back to 0.0 before
+; it can activate spells again.
 ; 
 ; synchronize(spell_ammount) 
 ; it makes the following spell_ammount recordings
@@ -70,6 +72,11 @@
 ; add_spell.instant(spell_name, timer)
 ; spell_name is the active modules ID.
 ; timer is the time at which you'd like the spell to be used
+; 
+; You can make your timer be based off of the cooldown
+; of another module. You must set this cooldown to the module ID
+; of the spell you want as refference. This module ID must
+; be in "double quotes"
 ; 
 ; add_spell.grounded(spell_name, timer, coord_x, coord_y);
 ; Same as add_spell.instant but you now define the x/y coordinates
@@ -101,16 +108,20 @@
 ; the spell activation sequence when it executes the last spell
 
 {synchronize(2)}
-; makes the next 2 recordings happen on the same game_tick
+; makes the next 2 recordings happen on the same frame
 
 {add_spell.instant(spell.response.neutral, 0.0)}
 ; adds the instant spell `neutral response` to be used when t >= 0.0
-{add_spell.grounded(spell.void, 10.0, 0.0, 0.0)}
-; adds the grounded spell `void` to be used
-; at position 0.0, 0.0 on the map when t is a multiple of 10.0
-{timer_modulo(0.0)}
+
+{add_spell.grounded(spell.void, "spell.response.neutral", 0.0, 0.0)}
+; adds the grounded spell `void` to be used at position 0.0, 0.0
+; on the map when the spell `neutral response` has a cooldown of 0.0
+
+{timer_modulo(50.0)}
 {recorded_blueprint(loop, true)}
 ; defines the blueprint called "blueprint_loop" that loops
+; once it reaches the end of the loop, it will wait until t becomes
+; a multiple of 50.0. Then it will activate neutral response again
 
 {add_spell.instant(spell.snapOfDestiny, 28.0)}
 ; adds the instant spell `snap of destiny` to be used
@@ -143,13 +154,13 @@
 {spell_debug}
 
 ; 
-; String holding the recorded spell data"
-:const string recorded_actives {lua(return BP.comp.concat_actives())}
+; String holding the recorded spell data
+:const string recorded_actives {recorded_actives}
 
 ; 
 ; Int holding the size of the recorded string
 ; value is the same as return #Spell.comp.concat_actives() but
-; the function version runs the function one more time, which
-; can get very slow if you have a big recording sequence
+; the function version runs the concat operation one more time, which
+; can get very expensive if you have a big recording sequence
 
-:const int recoring_size {lua(return BP.used_space.active)}
+:const int recording_size {recording_size}

@@ -1,0 +1,66 @@
+:import Cods Blueprint Compactor
+:name Software Config
+
+; Modify the value sent to the macro
+; 
+; This is the ordinairy Watercat security system
+; it's just slightly easier to modify the security level
+; 
+; The macro prevents you from setting security values
+; to the same software more than once, if you think this is a limitation
+; please use the discord post/make a github issue and suggest the change
+; 
+
+{auto_skip(3)}
+{wave_streaming(3)}
+{wave_surge(2)}
+{critical_wave_jump(1)}
+{wave_momentum(1)}
+{wave_storm(1)}
+{wave_persistence(1)}
+{wave_instability(1)}
+{wave_vortex(1)}
+{wave_catalyst(1)}
+{wave_endurance(1)}
+{new_bounds(1)}
+{wave_marathon(1)}
+{wave_compression(1)}
+{era_surge(1)}
+{era_burst(1)}
+{era_swirl(1)}
+{wave_horizon(1)}
+{no_bounds(1)}
+{era_tunneling(1)}
+{wave_breach(1)}
+{wave_floor(1)}
+{era_floor(1)}
+{era_horizon(1)}
+{wave_restart(1)}
+{infinity_horizon(1)}
+
+; These constants are used to create the 2 lists used in watercat
+:const string software_list {software.concat(software_list)}
+:const string software_secure {software.concat(software_secure)}
+; 
+; and this is the length of both of the lists
+; this is done through adding whitespace to the security levels so that
+; index(software_list) is the same as index(software_secures)
+:const int software_len {software.concat(software_len)}
+
+:local int watercat
+#watercat_index_reset watercat = 0
+
+#watercat_sub(list) sub(\
+  {list}, \
+  watercat, \
+  index({list}, "|", watercat) - watercat\
+)
+
+#watercat_line1(secure_level) \
+software_toggle_loop:\
+software.toggle(\
+  {watercat_sub(software_list)},\
+  {secure_level} <= s2i({watercat_sub(software_secure)}, -1)\
+)
+#watercat_line2 watercat = 1 + index(software_list, "|", watercat)
+#watercat_line3 gotoif(software_toggle_loop, watercat < software_len)

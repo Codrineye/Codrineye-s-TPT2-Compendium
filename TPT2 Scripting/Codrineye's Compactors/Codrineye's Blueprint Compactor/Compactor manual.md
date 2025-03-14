@@ -11,7 +11,7 @@ The Spell and Secures Compactors are strings used by the compactor executor.
 
 # Using EasyEra cat
 
-When you import the Blueprint Compactor resources, you gain access to 3 macros that solve era handling for you.
+When you import Cods Blueprint Compactor, you gain access to 3 macros that solve era handling for you.
 - `set_priority(element_name)` defines that you want the element with element_name to be disabled. This is a `first in first out` (FIFA) priority system, meaning that you will not be able to disable the elements with a priority set after an element.
 - `disable.era` is a macro you use in the function `disable.era()`. 
 - `disabled_era` is a macro you use to detect if all elements you wanted to disable are disabled.
@@ -52,7 +52,7 @@ The debugging macros at the top of the file let you
 * `display` your recording so that you can, yet again, better analyze what's happening.
 * define a `display format` that determines the format used when displaying your recording.
 
-Additionally, you can add a breakpoint via the {spell_debug.breakpoint} macro.
+Additionally, you can add a breakpoint via the `{spell_debug.breakpoint}` macro.
 
 The recording macros are used to let you communicate with the compactor.
 * `recorded_blueprint` takes in a blueprint_name and a true/false value determening if you want the recording to loop.
@@ -60,6 +60,10 @@ The recording macros are used to let you communicate with the compactor.
 * `add_spell.instant` takes in the spell name and the time at which you want the spell to execute.
 * `add_spell.grounded` takes in the name and timer, like .instant, but also x/y coordinates for where you want to cast it.
 * `timer_modulo` takes in a double value that's used to determine the base used for the defined blueprint. The base means the largest value the timer can have before it should be considered 0.0 again.
+
+When adding the spell timer, you can either hard code it to a number or make it relative to a modules cooldown.<br>
+To hard code the number, you just assign a double such as `0.0`, once t reaches that value, your spell will be used.<br>
+To make it relative to a modules cooldown, you must write the ID of the module you want to take the cooldown of and ensure that it's surrounded by double quotes `""`. When doing this, make sure that your `timer_modulo` is not smaller than the cooldown you're planning to use.
 
 Please note that, since these are macros, commenting them does not prevent the action from being taken.<br>
 If you want to comment out a spell or a synchronization, you should make a comment that contains the macros inputs but that ***`DOES NOT CALL THE MACRO ITSELF`***.
@@ -87,6 +91,8 @@ You will need to use `{pointer.set}` and `{comp_actives.set}` in this exact orde
 Setting the pointer starts a block hider that hides all global variables that get defined ofter it.<br>
 Setting the compactor sends the recording string over to the compctor script for it to get processed and executed.
 
+If you're declairing a blueprint that loops at the end, you can use `{checkpoint.set}` to determine what value the `pointer` will be set to once it loops. You can use this in place of taking a substring to isolate your activation sequence.
+
 Once you execute the compactor, it'll stop the block hider when setting the caller_ID. This variable tells you who started the script.<br>
 This is a signal used by the compactor internally and tells you if there's any blueprint AI's active that you wouldn't want to be.
 
@@ -95,6 +101,8 @@ It's complicated to describe, so if anybody has a suggestion on how to better ex
 
 The Compactor can only reset the timer when it enters idle mode, as it's made to support multiple compactors running at the same time, even if these copies weren't started for your blueprint.<br>
 This design decision was made to support cases in which you'd want to send an additional recording after the previous one was finalized.
+
+It is recommended that you end the compactor by setting the called_ID to idle mode using `{caller.set(idle_mode)}`. The string idle_mode is a constant string defined in the `Blueprint Compactor resources`.
 
 # Usign the Secures Compactor
 
