@@ -63,19 +63,17 @@
         graph[id] = entry;\
       end\
       local blockers = 0;\
-      if recipe then\
-        for i = 1, #recipe, 2 do\
-          local other = graph[recipe[i]];\
-          if not other then\
-            other = {};\
-            other.blocking = {};\
-            other.blockers = -1;\
-            graph[recipe[i]] = other;\
-          end\
-          if other.blockers ~= 0 then\
-            blockers = blockers + 1;\
-            other.blocking[#other.blocking + 1] = id;\
-          end\
+      for i = 1, #recipe, 2 do\
+        local other = graph[recipe[i]];\
+        if not other then\
+          other = {};\
+          other.blocking = {};\
+          other.blockers = -1;\
+          graph[recipe[i]] = other;\
+        end\
+        if other.blockers ~= 0 then\
+          blockers = blockers + 1;\
+          other.blocking[#other.blocking + 1] = id;\
         end\
       end\
       entry.blockers = blockers;\
