@@ -36,7 +36,7 @@ This script is dependent on the following assumptions:
 - Enter configuration to put the selection slot on your first free inventory slot
 
 ## Default state
-![bigman4X default UI](./Images/bigman4X%20default%20UI.png)
+![bigman4X default UI](/TPT2%20Scripting/Images/Woots%20AI%20Requests/BigManx4X/default%20UI.webp)
 
 The script uses a global string to provide you information. This info is hidden until you press one of the scripts impulses.
 
@@ -44,13 +44,13 @@ While neither of the scripts modes are enables, you'll be told what gift will be
 On startup, the selected gift is `blue gift`, you decrease it by pressing `o` and increase it by pressing `p`.
 
 ## The configuration mode
-![bigman4X congif UI](./Images/bigman4X%20config%20UI.png)
+![bigman4X congif UI](/TPT2%20Scripting/Images/Woots%20AI%20Requests/BigManx4X/config%20UI.webp)
 
 You use it to select the inventory slot the AI will attempt to use. It is enabled by pressing `c`, where it draws a selection square thanks to functions added by the software `boots.dos` and changes the information string at the top right of your game screen, which tells you what each action does.<br>
 You exit configuration mode by pressing `c`, `x` or `m`.
 
 ## The combining mode
-![bigman4X combining](./Images/bigman4X%20combining.png)
+![bigman4X combining](/TPT2%20Scripting/Images/Woots%20AI%20Requests/BigManx4X/combining.webp)
 
 The combining mode is always triggered by pressing `x`, even if you use it to exit configuration. This mode will buy the gift you've got selected, indicated by the name you see in black.
 

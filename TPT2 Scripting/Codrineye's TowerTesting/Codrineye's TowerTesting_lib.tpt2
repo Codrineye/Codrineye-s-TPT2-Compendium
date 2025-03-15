@@ -2,12 +2,8 @@
 ; Easy naming scheme to follow
 
 ; Script identifier value
-#identifier "{script_name}"
 
 ; impulse key macros for easy customization
-; there's a const declaration at the bottom of the script
-; to prevent the same impulse from being assigned
-; 
 #state_switch x
 #mode_switch q
 #cycling w
@@ -20,6 +16,17 @@
   TowerTest.impulse = {};\
   TowerTest.diff = {};\
   TowerTest.max_digits = 0;\
+  \
+  --[[/*\
+      * Go through all impulse keys and prevent compilation \
+      * If there's duplicate keys\
+     */]]\
+  local imp = {};\
+  local keys = "{state_switch}|{mode_switch}|{cycling}|{restart}|{exit}|{stats}";\
+  for key in keys:gmatch("[^|]+") do\
+    if imp[key] then error("Key impulses cannot have duplicate keys", 0) end\
+    imp[key] = 1;\
+  end\
 )}
 
 ; variable macros for improved visibility in the source code
@@ -29,9 +36,10 @@
   local impulse = string.gsub([[{impulse}]], " ", "");\
   --[[Isolate the impulse key and check if it's already been used]]\
   if TowerTest.impulse[impulse] then\
-    error("2 variables cannot be controlled by the same impulse");\
+    error("2 variables cannot be controlled by the same impulse" .. impulse, 0);\
   end\
-  TowerTest.impulse[impulse] = true;\
+  TowerTest.impulse[impulse] = impulse ~= "";\
+  --[[If we get an empty impulse, don't add it to the "used impulses"]]\
   \
   local var = table.pack(\
     "<size=0>", [[{script_name}]], "</size>",\
@@ -43,7 +51,7 @@
 
 ; block hider
 ; used to control when the global variables are shown or hidden 
-#hider concat("<size=0>", "Variable hider") . {identifier}
+#hider concat("<size=0>", "Variable hider") . "{script_name}"
 :const string stop_hiding {display_var(Stop hiding variables,)}
 
 ; the state of the script
@@ -57,24 +65,34 @@
 #region_cycling.set(value) global.bool.set(cycle_var, {value})
 
 ; which mode is selected
-; curent_mode is the last global variable that gets initialised
-; thus, setting a value to it will ensure the hiding block is stopped
 :const string mode_var {display_var(Curent Mode, {mode_switch})}
 #curent_mode.get global.string.get(mode_var)
 #curent_mode.set(mode) global.string.set(mode_var, {mode})
 
 ; mode values, so it's easy to edit
-:const string mode1 "Difficulty>Region</size>"
-:const string mode2 "Region>Difficulty</size>"
+:const string mode1 "Difficulty>Region"
+:const string mode2 "Region>Difficulty"
+
+; Variable used to tell the user what the AI is doing
+:const string job_status {display_var(<size=0>Job Status,)}
+
+; Detects if there's a building open
+#opened_building {lua(\
+  local acc = {};\
+  local isOpen = [[isopen("%s")]];\
+  local buildings = "towertesting|tradingpost|powerplant|factory|laboratory|shipyard|workshop|arcade|museum|headquarters|constructionfirm|statueofcubos|mine|";\
+  for building in buildings:gmatch("[^|]+") do\
+    acc[1 + #acc] = isOpen:format(building);\
+  end\
+  return table.concat(acc, " || ");\
+)}
 
 ; simple lua macro for recording coordinates
-
 #set_difficulty(coord_y) {lua(\
-  TowerTest.diff[1 + #TowerTest.diff] = [[{coord_y}]];\
-  TowerTest.max_digits = math.max(\
-    TowerTest.max_digits,\
-    #[[{coord_y}]]\
-  )\
+  TowerTest.diff[1 + #TowerTest.diff] = {coord_y};\
+  if TowerTest.max_digits < #[[{coord_y}]] then\
+    TowerTest.max_digits = #[[{coord_y}]];\
+  end\
 )}
 
 {set_difficulty(290.0)}
@@ -91,26 +109,17 @@
 ; Simple lua macro that outputs the difficulty list based on
 ; the inputed number. Negative number = reversed list and
 ; Positive number = normal list
-
 #diff_list(mode) {lua(\
   local reversed = {mode} < 0;\
   local diff = TowerTest.diff;\
+  local fmt = string.format("%%0%ds", TowerTest.max_digits);\
   local diff_list = {};\
   for i = 1, #diff do\
     diff_list[i] = reversed and diff[#diff + 1 - i] or diff[i];\
+    diff_list[i] = fmt:format(diff_list[i]);\
   end\
   return string.format([["%s"]], table.concat(diff_list));\
 )}
-
-; safety const declarations to prevent
-; the same impulse key from repeating
-:const double {state_switch} 1.0
-
-:const double {mode_switch} 1.0
-:const double {cycling} 1.0
-:const double {exit} 1.0
-:const double {stats} 1.0
-:const double {restart} 1.0
 
 ; 
 ; guide for size for when I make changes to the script

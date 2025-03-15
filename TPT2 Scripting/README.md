@@ -5,28 +5,33 @@
 
 # Codrineye's TowerTesting
 
-[Version 2.0.6](./Codrineye's%20TowerTesting/README.md)
+[Version 2.0.7](./Codrineye's%20TowerTesting/README.md)
 
 This package handles all movement needed to enter dificulties and regions for TowerTesting.<br>
 Please keep in mind that the script does not know what region or difficulty you're on, nor does it try to interact with blueprints. This is purely for movement automation, not for entire TowerTesting automation.<br>
 For script comments and easier script customization, import the scripts [source code](./Codrineye's%20TowerTesting/README.md).
 
 ```
-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
+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
 ```
 
 ## Requirements
 
 - 7 impulses
 - 2 condition
-- 38 actions
+- 40 actions
 - 1 script
 
 ## Details
 
 The script runs 2 instances of itself. One TowerTesting manager and one Movement manager.
 
-The TowerTesting manager ensures you exit TowerTesting as soon as your goal in `additional_cond` is reached, your tower health reaches 0 or if you manually exit TowerTesting. As there are game-modes such as `challenges` or `normal mode` where your run can end without your tower dying, this AI cannot cycle through them as it'll cause.
+The TowerTesting manager ensures you exit TowerTesting as soon as your goal in `additional_cond` is reached, your tower health reaches 0 or if you manually exit TowerTesting. As there are game-modes such as `challenges` or `normal mode` where your run can end without your tower dying, this AI cannot cycle through them unless you set an additional cond that can detect when you've finished the run.<br>
+This additional cond is able to detect the end of a challenge or normal mode.
+```
+additional_cond = enemies() <= 0
+```
+Which means that you'll exit once the number of enemies becomes less than or equal to 0. The issue with this condition is that you can no longer reset the run, or the script will exit TowerTesting.
 
 `additional_cond` is an additional condition to the exit condition. This is used to exit your run early if you want multiple difficulties and regions to be at equal wave-goals.<br>
 If you want to exit the run after a certain amount of time, you now have 2 global timers at your disposal
@@ -39,11 +44,12 @@ The Movement manager handles moving in the TowerTesting menu.<br>
 This handles clicking on the arrow to change regions, clicking on the difficulty buttons and clicking on the Launch Button.<br>
 For these clicks to work, you need to turn off Dynamic UI Scaling.
 
-The Movement manager will wait until you're no longer in any screens. This means that, if you activate the script while you have a menu open, it will wait until you close that menu.
+There's a `job status` that tells you information detected by the AI.<br>
+This status will also tell you why the script exited your run.
 
 ## The Impulses
 
-You have 6 impulses that let you interract with the script and `game.newround` that sets the 2 timers to 0.
+You have 6 impulses that let you interract with the script and `game.newround` that sets the 2 timers back to `0.0`.
 
 Three of them control the scripts global variables.<br>
 These variables are hidden until you press either of them.
@@ -65,12 +71,25 @@ The values outlined here are from the default version, they do not apply to any 
 
 The script is able to cycle as long as it's active, by default you'll be cycling from `Easy to Impossible`, once it reaches Impossible, it will cycle back from Easy.
 
-The script has always true conditions, the first one contains the strings reprezenting the cycling direction, the second one is used to tell you the line at which you change the directional string and the line at which you add your additional_cond
+## The Conditions
+
+![UI](<Images/Codrineye's TowerTesting/User Interface.webp>)
+
+The script has always true conditions intended to help you configure the script without needing to exit the game.
+- The first contains the strings reprezenting the cycling direction. Where Easy to Impossible is `290.0256.0217.0182.0145.0112.0` and Impossible to Easy is `112.0145.0182.0217.0256.0290.0`.
+- The second tells you the line at which you change the directional string (line 29) and additional_cond (line 20).
+
+![Access Condition](<Images/Codrineye's TowerTesting/Access Condition.webp>)
+
+By looking at the image, you can tell that you should click on the block that has the text `To use addition...` in order to find out the line for `additional_cond`
+
+![Found Action Number](<Images/Codrineye's TowerTesting/Found action number.webp>)
+
+This leads you to this concat operation where you can see that, in order to access additional_cond, you must edit line 20.
 
 ## The Budget
 
 The scripts budget is set to -1 by default, this is because the AI uses that extra speed to ensure you do not enter another building while it's trying to perform the actions needed to cycle. You can savely remove its budget, if you're setting it to idle for you, as it can run perfectly fine without it.
-
 
 # WS.Fragzilla
 

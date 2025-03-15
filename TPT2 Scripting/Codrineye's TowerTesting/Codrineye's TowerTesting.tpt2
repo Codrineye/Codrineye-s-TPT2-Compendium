@@ -2,11 +2,11 @@
 :name {script_name}
 :budget_cap max
 
-; store the coord_y value
+; store the y coordinate for the difficulty button
 :local double difficulty
 
-; keep a timer so that the user can make additional_cond exit after
-; an ammount of time has passed
+; keep a timer so that the user can make additional_cond exit
+; after a certain ammount of time has passed
 :global double time.real
 :global double time.game
 
@@ -60,7 +60,7 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 #contains.key(impulse) contains(impulse(), "key.{impulse}")
 #contains.mode(mode) contains({curent_mode.get}, {mode})
 
-#impulse.qol "key.{restart}key.{exit}key.{stats}"
+#impulse.qol "key.{restart}key.{exit}key.{stats}game.newround"
 #impulse.toggles "key.{mode_switch}key.{cycling}"
 #impulse.state "key.{state_switch}" . {impulse.toggles}
 
@@ -72,12 +72,8 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 ; local.int.set("stats_lable", stats)
 
 gotoif(\
-  if(\
-    {state.get}, \
-    if(contains(impulse(), "newround"), new_round, movement_manager), \
-    99\
-  ), \
-  contains("{script_name}game.newround", impulse())\
+  if({state.get}, movement_manager, 99), \
+  contains("{script_name}", impulse())\
 )
 
 ; caller macros that determine what the hide blocker should do
@@ -93,8 +89,9 @@ gotoif(\
 init:
 global.string.set({hider}, "Start hiding values")
 ; makes sure the timers are kept hidden
-time.real = time.real
-time.game = time.game
+
+time.real = if(contains(impulse(), "key."), time.real, 0.0)
+time.game = if(contains(impulse(), "key."), time.game, 0.0)
 global.string.set(stop_hiding, if(\
   {caller.state} || ({caller.toggles}) || ({caller.qol}), \
   concat("Stop Hiding", "</size>"), \
@@ -103,7 +100,7 @@ global.string.set(stop_hiding, if(\
 
 gotoif(\
   if(\
-    isTowerTesting(), \
+    isTowerTesting() && {contains.key()}, \
     if(\
       {contains.key({restart})}, \
       restart, \
@@ -122,6 +119,9 @@ update_state:
   if({contains.mode(mode2)}, mode1, mode2),\
   if({contains.mode(mode2)}, mode2, mode1)\
 ))}
+; Set the job status to itself so interracting
+; with the script doesn't hide the job.
+global.string.set(job_status, global.string.get(job_status))
 
 ; exit the script if we're called
 ; for cycling, mode or if we're shut down
@@ -130,16 +130,29 @@ gotoif(99, contains({impulse.toggles}, impulse()) || not({state.get}))
 ; make a copy of yourself for movement_manager
 execute("{script_name}")
 
+#job_err <color=#FAA00F>
+#job_inf <color=#0AFF00>
+global.string.set(job_status, if(\
+  {opened_building},\
+  "</size>{job_err}" . \
+  "Waiting for the user to close the building</color></size>",\
+  "</size>{job_err}Waiting for user to close the menu</color></size>"\
+))
+; Sets the
+
 loop:
 waitwhile(isTowerTesting() && {state.get})
 waituntil(isTowerTesting() || not({state.get}))
 
+global.string.set(\
+  job_status, \
+  "</size>{job_inf}Waiting to exit tower testing</color></size>"\
+)
 in_towertesting:
 waitframe() ; wait a frame
 
-; resetting our timers is handled by the game.newround() impulse
+; Update our timers
 time.game += time.delta()
-; Transfer the value so it can be used in additional_cond
 time.real += time.unscaled()
 
 additional_cond_pos:
@@ -151,12 +164,17 @@ additional_cond = {additional_cond}
 gotoif(\
   in_towertesting, \
   health(false) > 0.0 && {state.get} && not(additional_cond)\
-  && (enemies() > 0 || time.game <= time.delta())\
 )
+
+global.string.set(job_status, if(\
+  additional_cond,\
+  "</size>{job_inf}Exit caused by additional_cond</color></size>",\
+  "</size>{job_inf}Exit caused by tower death</color></size>"\
+))
 
 exit:
 exit()
-wait(0.25)
+wait(0.26)
 
 goto(if(isTowerTesting(), exit, if(\
   {contains.key({exit})} || not({state.get}), \
@@ -241,10 +259,6 @@ gotoif(\
 ; The user requested a restart
 restart:
 restart()
-
-new_round:
-time.game = 0.0
-time.real = 0.0
 
 ; The user requested the stats be shown
 ; This clicks in the general area of the button where
