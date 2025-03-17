@@ -1,5 +1,19 @@
 {
   "files.associations": {
-    "*.tpt2": "plaintext"
+    "*.tpt2": "plaintext",
+    "*.asm": "asm-collection",
+    "ios": "cpp",
+    "iostream": "cpp",
+    "exception": "cpp",
+    "fstream": "cpp",
+    "istream": "cpp",
+    "iterator": "cpp",
+    "memory": "cpp",
+    "ostream": "cpp",
+    "streambuf": "cpp",
+    "tuple": "cpp",
+    "utility": "cpp",
+    "xiosbase": "cpp",
+    "xstring": "cpp"
   }
 }

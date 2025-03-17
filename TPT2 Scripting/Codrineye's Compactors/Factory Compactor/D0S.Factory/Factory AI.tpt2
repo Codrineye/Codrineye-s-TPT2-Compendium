@@ -1,0 +1,12 @@
+key.x()
+
+#window_ID "Factory AI by d0sboots"
+#visibility_protocol(name) child.visibility.get({window_ID}, {name}) == false && contains(impulse(), {name})
+
+create("Factory AI by d0sboots", "Factory Automation")
+
+child.visibility.set({window_ID}, "Producers", {visibility_protocol("Producers")})
+child.visibility.set({window_ID}, "Machines", {visibility_protocol("Machines")})
+child.visibility.set({window_ID}, "Crafts", {visibility_protocol("Crafts")})
+child.visibility.set({window_ID}, "Parts", {visibility_protocol("Parts")})
+child.visibility.set({window_ID}, "Groups", {visibility_protocol("Groups")})
