@@ -18,54 +18,93 @@
   TowerTest.max_digits = 0;\
   \
   --[[/*\
-      * Go through all impulse keys and prevent compilation \
-      * If there's duplicate keys\
-     */]]\
+    * Go through all impulse keys and\
+    * prevent compilation if there's duplicate keys\
+  */]]\
+  local impulse = {};\
   local imp = {};\
   local keys = "{state_switch}|{mode_switch}|{cycling}|{restart}|{exit}|{stats}";\
   for key in keys:gmatch("[^|]+") do\
-    if imp[key] then error("Key impulses cannot have duplicate keys", 0) end\
-    imp[key] = 1;\
+    if impulse[key] ~= nil then\
+      error("every key impulse must mean a different key", 0);\
+    end\
+    impulse[key] = true;\
   end\
 )}
 
 ; variable macros for improved visibility in the source code
-; a display var hides the identifier to prevent screen clutter
+; a display var hides the script identifier to make it less likely
+; that the var gets changed by another script
 ; 
-#display_var(name, impulse) {lua(\
-  local impulse = string.gsub([[{impulse}]], " ", "");\
-  --[[Isolate the impulse key and check if it's already been used]]\
-  if TowerTest.impulse[impulse] then\
-    error("2 variables cannot be controlled by the same impulse" .. impulse, 0);\
-  end\
-  TowerTest.impulse[impulse] = impulse ~= "";\
-  --[[If we get an empty impulse, don't add it to the "used impulses"]]\
+{lua(\
+  local security_prefix = "<size=0>{script_name}</size>";\
   \
-  local var = table.pack(\
-    "<size=0>", [[{script_name}]], "</size>",\
-    "{name}"\
-  );\
-  if impulse ~= "" then var[5] = string.format("(%s)", impulse:upper()); end\
-  return string.format([["%s"]], table.concat(var));\
+  --[[/*\
+    * Used to add an impulse to the display_var\
+    * value in `impulse` has no whitespace and is never empty\
+    * Throws an error if the same impulse controls multiple vars\
+    * \
+    * Returns the impulse as an uppercase string encased in\
+    * parenthesies ()\
+    * add_impulse(a) returns `(A)`\
+  */]]\
+  local function add_impulse(impulse)\
+    if TowerTest.impulse[impulse] == true then\
+      local err_msg = table.pack(\
+        "Variables cannot be controlled by the same impulse\n",\
+        "Impulse '", impulse, "' has been used before!"\
+      );\
+      error(table.concat(err_msg), 0);\
+    end\
+    TowerTest.impulse[impulse] = true;\
+    return string.format("(%s)", string.upper(impulse));\
+  end\
+  \
+  --[[/*\
+    * Used to create the name of a global variable\
+    * meant to be visible in the global variables overlay.\
+    * \
+    * security_toggle is a bool that determinse if\
+    * this variable gets the security prefix or not.\
+    * \
+    * var_name is the string that represents this variable\
+    * \
+    * impulse is the triggered impulse for this variable\
+    * if it doesn't have one, nothing will be added\
+  */]]\
+  function TowerTest.display_var(var_name, security_toggle, impulse)\
+    local var = {};\
+    var[1] = security_toggle and security_prefix or "";\
+    var[2] = var_name;\
+    local impulse_val = impulse:gsub(" ", "");\
+    if impulse_val ~= "" then\
+      var[3] = add_impulse(impulse_val);\
+    end\
+    return string.format([["%s"]], table.concat(var));\
+  end\
+)}
+
+#display_var(name, secured, impulse) {lua(\
+  return TowerTest.display_var([[{name}]], {secured}, [[{impulse}]]);\
 )}
 
 ; block hider
 ; used to control when the global variables are shown or hidden 
 #hider concat("<size=0>", "Variable hider") . "{script_name}"
-:const string stop_hiding {display_var(Stop hiding variables,)}
+:const string stop_hiding {display_var(Stop Hiding, true,)}
 
 ; the state of the script
-:const string state_var {display_var(state, {state_switch})}
+:const string state_var {display_var(Active, true, {state_switch})}
 #state.get global.bool.get(state_var)
 #state.set(value) global.bool.set(state_var, {value})
 
 ; if region cycling is enabled or not
-:const string cycle_var {display_var(Region Cycling, {cycling})}
+:const string cycle_var {display_var(Region Cycling, true, {cycling})}
 #region_cycling.get global.bool.get(cycle_var)
 #region_cycling.set(value) global.bool.set(cycle_var, {value})
 
 ; which mode is selected
-:const string mode_var {display_var(Curent Mode, {mode_switch})}
+:const string mode_var {display_var(Curent Mode, true, {mode_switch})}
 #curent_mode.get global.string.get(mode_var)
 #curent_mode.set(mode) global.string.set(mode_var, {mode})
 
@@ -74,15 +113,21 @@
 :const string mode2 "Region>Difficulty"
 
 ; Variable used to tell the user what the AI is doing
-:const string job_status {display_var(<size=0>Job Status,)}
+:const string job_status "<size=0>{script_name}Job Status"
 
 ; Detects if there's a building open
 #opened_building {lua(\
   local acc = {};\
   local isOpen = [[isopen("%s")]];\
-  local buildings = "towertesting|tradingpost|powerplant|factory|laboratory|shipyard|workshop|arcade|museum|headquarters|constructionfirm|statueofcubos|mine|";\
-  for building in buildings:gmatch("[^|]+") do\
-    acc[1 + #acc] = isOpen:format(building);\
+  local buildings = table.pack(\
+    "towertesting", "tradingpost", "powerplant",\
+    "factory", "laboratory", "shipyard",\
+    "workshop", "arcade", "museum",\
+    "headquarters", "constructionfirm",\
+    "statueofcubos", "mine"\
+  );\
+  for i = 1, #buildings do\
+    acc[1 + #acc] = isOpen:format(buildings[i]);\
   end\
   return table.concat(acc, " || ");\
 )}
@@ -110,7 +155,7 @@
 ; the inputed number. Negative number = reversed list and
 ; Positive number = normal list
 #diff_list(mode) {lua(\
-  local reversed = {mode} < 0;\
+  local reversed = {mode};\
   local diff = TowerTest.diff;\
   local fmt = string.format("%%0%ds", TowerTest.max_digits);\
   local diff_list = {};\

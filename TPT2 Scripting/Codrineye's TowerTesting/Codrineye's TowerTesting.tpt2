@@ -12,10 +12,10 @@
 
 ; const string that define in which direction the script can
 ; cycle through difficulties
-; Positive number = Easy to Impossible
-; Negative number = Impossible to Easy
-:const string forwards_diff_list {diff_list(1)}
-:const string reversed_diff_list {diff_list(-1)}
+; false = Easy to Impossible
+; true = Impossible to Easy
+:const string forwards_diff_list {diff_list(false)}
+:const string reversed_diff_list {diff_list(true)}
 
 ; QOL macro to determine the direction via the source
 #difficulty_list forwards_diff_list
@@ -57,9 +57,6 @@ concat("Impossible -> Easy", reversed_diff_list)
 concat({instruct.change_direction}, {goto_line.change_direction}) != \
 concat({instruct.additional_cond}, {goto_line.additional_cond})
 
-#contains.key(impulse) contains(impulse(), "key.{impulse}")
-#contains.mode(mode) contains({curent_mode.get}, {mode})
-
 #impulse.qol "key.{restart}key.{exit}key.{stats}game.newround"
 #impulse.toggles "key.{mode_switch}key.{cycling}"
 #impulse.state "key.{state_switch}" . {impulse.toggles}
@@ -73,7 +70,7 @@ concat({instruct.additional_cond}, {goto_line.additional_cond})
 
 gotoif(\
   if({state.get}, movement_manager, 99), \
-  contains("{script_name}", impulse())\
+  impulse() == "{script_name}"\
 )
 
 ; caller macros that determine what the hide blocker should do
@@ -83,15 +80,15 @@ gotoif(\
 ; .qol doesn't interfere with the blockers state
 
 #caller.toggles contains({impulse.toggles}, impulse())
-#caller.state not({state.get}) && {contains.key({state_switch})}
+#caller.state not({state.get}) && impulse() == "key.{state_switch}"
 #caller.qol {state.get} && contains({impulse.qol}, impulse())
 
 init:
 global.string.set({hider}, "Start hiding values")
 ; makes sure the timers are kept hidden
 
-time.real = if(contains(impulse(), "key."), time.real, 0.0)
-time.game = if(contains(impulse(), "key."), time.game, 0.0)
+time.real = if(impulse() == "game.newround", 0.0, time.real)
+time.game = if(impulse() == "game.newround", 0.0, time.game)
 global.string.set(stop_hiding, if(\
   {caller.state} || ({caller.toggles}) || ({caller.qol}), \
   concat("Stop Hiding", "</size>"), \
@@ -100,11 +97,11 @@ global.string.set(stop_hiding, if(\
 
 gotoif(\
   if(\
-    isTowerTesting() && {contains.key()}, \
+    isTowerTesting() && contains(impulse(), "key."), \
     if(\
-      {contains.key({restart})}, \
+      impulse() == "key.{restart}", \
       restart, \
-      if({contains.key({exit})}, exit, stats)\
+      if(impulse() == "key.{exit}", exit, stats)\
     ),\
     99\
   ), \
@@ -112,12 +109,15 @@ gotoif(\
 )
 
 update_state:
-{state.set({state.get} != {contains.key({state_switch})})}
-{region_cycling.set({region_cycling.get} != {contains.key({cycling})})}
+{state.set({state.get} != (impulse() == "key.{state_switch}"))}
+{region_cycling.set(\
+  {region_cycling.get} != \
+  (impulse() == "key.{cycling}")\
+)}
 {curent_mode.set(if(\
-  {contains.key({mode_switch})},\
-  if({contains.mode(mode2)}, mode1, mode2),\
-  if({contains.mode(mode2)}, mode2, mode1)\
+  impulse() == "key.{mode_switch}",\
+  if({curent_mode.get} == mode1, mode2, mode1),\
+  if({curent_mode.get} == mode2, mode2, mode1)\
 ))}
 ; Set the job status to itself so interracting
 ; with the script doesn't hide the job.
@@ -134,8 +134,7 @@ execute("{script_name}")
 #job_inf <color=#0AFF00>
 global.string.set(job_status, if(\
   {opened_building},\
-  "</size>{job_err}" . \
-  "Waiting for the user to close the building</color></size>",\
+  "</size>{job_err}Waiting for user to close the building</color></size>",\
   "</size>{job_err}Waiting for user to close the menu</color></size>"\
 ))
 ; Sets the
@@ -174,25 +173,23 @@ global.string.set(job_status, if(\
 
 exit:
 exit()
-wait(0.26)
+wait(time.unscaled() * 2.0)
 
 goto(if(isTowerTesting(), exit, if(\
-  {contains.key({exit})} || not({state.get}), \
+  (impulse() == "key.{exit}") || not({state.get}), \
   99, \
   loop\
 )))
 
 ; mode1 means we cycle through our difficulties
 ; and change region only after 6 counts
-; {contains.mode(mode1)} && counting < 6
+; mode1 && counting < 6
 :const int base.mode1 6
-#switch.mode1 {contains.mode(mode1)} && counting == 0
 
 ; mode2 means we always advance through the region
 ; and change difficulty only after 15 repetitions
-; {contains.mode(mode2)} && counting < 14
+; mode2 && counting < 14
 :const int base.mode2 15
-#switch.mode2 {contains.mode(mode2)} && counting < 14
 
 change_region:
 waitframe()
@@ -214,7 +211,7 @@ difficulty = s2d(\
 ; this is always done if we're mode1, and if we're mode2 only when
 ; we're on the last region before we refresh
 difficulty_index = if(\
-  {switch.mode2}, \
+  ({curent_mode.get} == mode2 && counting < 14), \
   difficulty_index, \
   (difficulty_index + 1) % difficulty_count\
 )
@@ -235,8 +232,8 @@ gotoif(\
 
 ; increment counting based on our mode
 counting = if(\
-  {contains.mode(mode1)}, \
-  (counting + 1) % base.mode1, \
+  {curent_mode.get} == mode1, \
+  (counting + 1) % base.mode1,\
   (counting + 1) % base.mode2\
 )
 
@@ -246,8 +243,10 @@ show("towertesting", true)
 
 gotoif(\
   if(\
-    can_switch && {region_cycling.get} &&\
-    ({contains.mode(mode2)} || {switch.mode1}),\
+    can_switch && {region_cycling.get} && (\
+      ({curent_mode.get} == mode2) || \
+      ({curent_mode.get} == mode1 && counting == 0)\
+    ),\
     change_region,\
     change_difficulty\
   ),\
