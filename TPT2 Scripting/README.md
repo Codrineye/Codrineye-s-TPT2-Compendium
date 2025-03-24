@@ -1,7 +1,16 @@
+[Adventure AI](#adventure-ai)<br>
 [Codrineye's TowerTesting](#codrineyes-towertesting)<br>
 [WS.Fragzilla](#wsfragzilla)<br>
 [The Blueprint Compactor](#the-blueprint-compactor)<br>
 [Universal Challenge Solver](#universal-challenge-solver)
+
+# Adventure AI
+
+[Version 3.3.8](https://github.com/Codrineye/Adventure-AI/blob/main/README.md)
+
+A fork of the remake d0sboots made that's being worked on and maintained by me.<br>
+d0s didn't include it in his main repo so neither will I.<br>
+Script details are explained on the repo linked to the version.
 
 # Codrineye's TowerTesting
 
