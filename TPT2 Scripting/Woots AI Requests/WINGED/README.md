@@ -1,6 +1,6 @@
 # WINGED
 
-This is a general era disabler that you can easily modify ingame to choose the order in which you'd like to disable the era abilities.<br>
+This is a general era disabler that you can easily modify ingame to choose the order in which you'd like to disable the era abilities.
 
 It uses a block hider to determine if the user reset or not. This is accomplished by taking a global snapshot of time.tick() on startup and checking against a local copy to see if another script has started up.
 
@@ -14,12 +14,12 @@ Once we pass this waituntil, we try to disable the era power. We exit if we've d
 
 When we increase idx, we turn it into 1 + index(era_priority, "|", idx). This index will give us the next position of `|`, thus taking us to the next era name, and we add 1 so we're pointing past the `|` character
 
-A nice fact about index is that it'll return -1 if it can't find the character sequence you're looking for, this means that, if we've reached the end of our string, we'll give idx the value of 1 + -1 which is 0. So the script will stay in the loop as long as we're in towertesting and idx > 0.
+A nice fact about index is that it'll return -1 if it can't find the character sequence you're looking for, this means that, if we've reached the end of our string, we'll give idx the value of 1 + -1 which is 0. So the script will stay in the loop as long as we're in towertesting and idx > 0.<br>
 If idx == 0, 0 > 0 is false as zero is not bigger than zero.
 
 # AI import
 ```
-zVfNbhMxEH6V4kMvhGWT9Eeqkh4QCLjAgUocSFV5vbObURx7NZ4lDW3fiTdAghdD9qZtmjohgQrtZXY1np9vfjy2r4RThBU7cfLlSkjFaI3/F6M6TVMotc2kTtBw4oBHmbLGsTQcVg887fYHDr/BMD0lcMB7agxqMjKMU0gKklMQHTEibdUGMxRUL5SdVpLgkedyB8/em1/rLvQdE5pyLfjuJ7bV3jvM0ZR7r7RVk5hYejx46V2d3lpPm3g2GC+A5EVFaAl5HnhHyholOaIfi++hfgzTgUS6bgsgziVNDDjXGkTBHkjicWsgFaBBMaFCnrcGlKeHBRK0CtGRxnLMrYJ0bCTXLUpTZqBmkro1gExt8CuQaxGkYG8mGXaZlJ72geSIXZ01cn8FZstjLO1jftkIS0IeT4FReYWGt3CHJofLj8WTZaV7vRu+qI0XO9m4P5rBAKFKZhK5Now6iBTN8Y/OmiSzVjeyS8zc1pkOt4PuYSmnkOToZKYhAZKJsm7blrmrbzSmwYgrLedAyWUVlehdL1K3BM1Xa+mOE/O6cseJWn42fJK7T7qanR0T4+0Ut0UqLduwkjGQkTS/a81YwVqYlY1F7BvbtE0/5AzdmZ0BnYFjv+sfavZU+KSP6Gpm/n/X9obDFX5/DdYH9Nf3nz9WgwxwehGNiFxaPJZbNOE2T4f1ky/mq/tHTIsd/LxNg/M+HUv7CYtohLCmTtHJuEXDLnpjfz+6M/99/J9Go4j0mTjvCGVNjrevy/OOwGlVawfhrRlCMTAjW5vcCxv/bjwRn99/ePvmteiISqqJLD1L3Jzf/AY=
+zVfNbtswDH6VTIdelnlO0j8ETQ/Fhm2X7bACOyxFIcu0Q0SRDIpemjV9p77BgO3FBtlpl6RKmhbF4AttUKT48VfStXCKsGAn+t+vhVSM1vh/MSzjOIZc20TqCA1HDniYKGscS8PV6r6nnd6Jw58wiE8JHHBLjUCNh4ZxAlFGcgKiLYakrdqyDVWql8pOCknwwHL+BMveml/rLPQdE5p8I/jjr2yL1rdPnz+8f9f6iCmavHWmrRqHpOOjk7fe4umdkbh2a4uNDEheFoSWkGcV71BZoyQH9ENuruqHMO1LpHlTAHEqaWzAucYgqvYDSTxqDKQMNCgmVMizxoDy9CBDgkYhOtSYj7hRkI6M5LJBYUoMlExSNwaQKQ3+AHINglTtN5UMT5mUnvaA5JBdmdRyzwKzdPZtOMjiHqZX9aknCXk0AUblFWrewhKaFK6+ZC8WkM58Z2hB9Te7qv87ksEAoYqmErk0jLoSyepjH501UWKtrmWXmKktE13dCjoHuZxAlKKTiYYISEbKul1r5D6hQXdOhlxoOQOKroqgRHc+r/OxBM3n6JEorN1tgju/GrzInSdej84TA+P3ye6SlFu21UrCQEbS7L4gQwlrYFS2JrFnbF02vSpm6M7tFOgcHPs2X9XsquoTP6Drkfn/VdsdDNb4vQ1YV+if29+/1p2s4HQDGgG5OHsot8M1f+uoC5npPApn0byvGzIpF50Yw3IXYRZ0DjZkJzgPdyjTRUXs7T2nH7eP+tOgA4HCEhdtoaxJ8e4ZedEWOClK7aB6VFZeGJiSLU3qhY1/IPZF/QATbVFINZa5Z4m2SMo0Bxb9znEct0Xp4GzBYCrh5uLmLw==
 ```
 
 ## AI Requirements
@@ -27,7 +27,7 @@ zVfNbhMxEH6V4kMvhGWT9Eeqkh4QCLjAgUocSFV5vbObURx7NZ4lDW3fiTdAghdD9qZtmjohgQrtZXY1
 - 0 conditions
 - 19 actions
 - 1 script
-- no budget cap
+- optional budget cap of 1800 if you want it to exit quickly.
 
 # AI Source
 
