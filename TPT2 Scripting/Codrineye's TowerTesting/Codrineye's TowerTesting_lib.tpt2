@@ -22,13 +22,15 @@
     * prevent compilation if there's duplicate keys\
   */]]\
   local impulse = {};\
-  local imp = {};\
-  local keys = "{state_switch}|{mode_switch}|{cycling}|{restart}|{exit}|{stats}";\
-  for key in keys:gmatch("[^|]+") do\
-    if impulse[key] ~= nil then\
+  local keys = table.pack(\
+    "{state_switch}", "{mode_switch}", "{cycling}",\
+    "{restart}", "{exit}", "{stats}"\
+  );\
+  for i = 1, #keys do\
+    if impulse[keys[i]] ~= nil then\
       error("every key impulse must mean a different key", 0);\
     end\
-    impulse[key] = true;\
+    impulse[keys[i]] = true;\
   end\
 )}
 
@@ -91,7 +93,7 @@
 ; block hider
 ; used to control when the global variables are shown or hidden 
 #hider concat("<size=0>", "Variable hider") . "{script_name}"
-:const string stop_hiding {display_var(Stop Hiding, true,)}
+:const string stop_hiding "Stop Hiding"
 
 ; the state of the script
 :const string state_var {display_var(Active, true, {state_switch})}
@@ -114,6 +116,12 @@
 
 ; Variable used to tell the user what the AI is doing
 :const string job_status "<size=0>{script_name}Job Status"
+#job.get global.string.get(job_status)
+#job.set(job) global.string.set(job_status, {job_message({job})})
+#job_message(job) "</size>" . {job} . "</size>"
+; job_status starts a hiding block, which is ended by the first </size>
+; and then, it ends the hiding block started by {hider} with the final
+; </size>
 
 ; Detects if there's a building open
 #opened_building {lua(\

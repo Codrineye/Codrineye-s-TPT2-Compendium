@@ -38,51 +38,41 @@ Editor.error_msg_spacing = 0;
 -- Internal variable for debugging, logs the function components
 local logging = false;
 
-local function failed_field_error(line, name, params, output)
-  local err_msg = "Failed to load all parameters\n";
-  err_msg = string.format("%s| line: '%s'\n\n", err_msg, line);
-  err_msg = string.format("%s| name: '%s'\n", err_msg, name);
-  err_msg = string.format("%s| params: '%s'\n", err_msg, params);
-  err_msg = string.format("%s| output: '%s'\n", err_msg, output);
-  return err_msg;
-end
-
-local function repeat_func_error(name, params, output)
-  local root = string.format("root_Editor_%s", name);
-  local origin = _G[root];
-  local err_msg = "Function replica detected:\n";
-  err_msg = string.format("%s| name: '%s'\n", err_msg, name);
-  err_msg = string.format("%s| params: '%s' ", err_msg, params);
-  err_msg = string.format("%s| original params: '%s'\n", err_msg, origin.params);
-  err_msg = string.format("%s| output: '%s' ", err_msg, output);
-  err_msg = string.format("%s| original output: '%s'", err_msg, origin.output);
-  return err_msg;
-end
+-- Invernal variable that stores an error message
+local err_msg = {};
 
 local function create_Editor_functions(actions_string)
   local action_pattern = "([^%(]+)%(([^%)]+)%) (\"[^;]+)";
-  local incomputable_string = actions_string:match(action_pattern);
-  assert(
-    incomputable_string, 
-    string.format("Cannot comput the actions string: \n\n%s", actions_string)
-  );
+  -- This describes the pattern that actions are recorded in
+
+  local computable_string = actions_string:match(action_pattern);
+  if not computable_string then
+    error("Cannot compute actions string: \n\n" .. actions_string, 0);
+    -- Send an error if the string can't be computed
+  end
 
   for line in actions_string:gmatch("[^;]+") do
     local name = line:match("([^%(]+)");
     local params = line:match("%b()"):sub(2, -2);
     --[[/*
-        * :sub(2, -2) removes the (parenthesies)
-        * string.sub("(test)", 2, -2) turns (test) into test
-       */]]
-    local user_params = params:gsub(", spaces", ""):gsub("spaces, ", "");
-    user_params = user_params:gsub(", parens", ""):gsub("parens, ", "");
+      * :sub(2, -2) removes the (parenthesies)
+      * string.sub("(test)", 2, -2) turns (test) into test
+    */]]
+    local params_substitute = table.pack(
+      ", spaces", "spaces, ",
+      ", parens", "parens, "
+    );
+    local user_params = params;
+    for i = 1, #params_substitute do
+      user_params = user_params:gsub(params_substitute[i], "");
+    end
     --[[/*
-        * The user params are the parameters the user needs to fill out
-        * This removes the spaces and parens fields from the function input
-        * 
-        * spaces and pares are used inside the function so that
-        * the end user can detect the issue with more ease
-       */]]
+      * The user params are the parameters the user needs to fill out
+      * This removes the spaces and parens fields from the function input
+      * 
+      * spaces and pares are used inside the function so that
+      * the end user can detect the issue with more ease
+    */]]
     local output = line:match("(%) [^;]+)"):sub(3);
     --[[/*
         * We isolate the functions 
@@ -93,32 +83,41 @@ local function create_Editor_functions(actions_string)
         * fields are nil
       */]]
     if not (name and params and output) then
-      error(failed_field_error(line, name, params, output), 2);
+      err_msg = table.pack(
+        "Failed to load all parameters\n",
+        "|line '", line, "'\n",
+        "|name '", name, "'\n",
+        "|params '", params, "'\n",
+        "|output '", output, "'"
+      );
+      error(table.concat(err_msg), 0);
     end
-    --[[/*
-        * Since _G holds all lua functions, to
-        * avoid overwriting any with our functions
-        * such as the math. protocol
-        * our new function are called Editor_<function name>
-        * 
-        * This is both for safety, as mentioned above and
-        * so that the user knows that this function will
-        * return editor compatable syntax
-      */]]
-    
+
     local func_name = string.format("Editor_%s", name);
     if _G[func_name] then
-      error(repeat_func_error(name, params, output), 0);
+      local root = "root_" .. func_name;
+      err_msg = table.pack(
+        "Function replica detected:\n",
+        "|name: '", name, "'\n",
+        "|params: '", params, "' ",
+        "|original_params: '", _G[root].params, "'\n",
+        "|output: '", output, "' ",
+        "|original_output: '", _G[root].output, "'"
+      );
+      error(table.concat(err_msg), 0);
     end
 
     if logging then
       -- Log the function data for internal debugging
-      local print_msg = string.format("| %s\n", line);
-      print_msg = string.format("%s| name: %s\n", print_msg, name);
-      print_msg = string.format("%s| params: %s\n", print_msg, params);
-      print_msg = string.format("%s| user_params: %s\n", print_msg, user_params);
-      print_msg = string.format("%s| output: %s\n| ", print_msg, output);
-      print(print_msg);
+      local print_msg = table.pack(
+        "|", line, "\n",
+        "|name: ", name, "\n",
+        "|params: ", params, "\n",
+        "|user_params: ", user_params, "\n",
+        "|output: ", output, "\n",
+        "| "
+      );
+      error(table.concat(print_msg), 0);
     end
     local func_body = string.format([==[
       return function(%s)
@@ -132,51 +131,45 @@ local function create_Editor_functions(actions_string)
         return string.format(%s, %s);
       end]==], user_params, output, params
     );
-      --[[/*
-        * Adds some basic error handling XD
-        * If load successfully loads the function, 
-        * chunk becomes that function and err gets no message
-        * If load cannot load the function, chunk is nil and
-        * err gets an error message
-        * 
-        * Then, check if the chunk is empty and throw out
-        * an error saying what went wrong
-      */]]
     local chunk, err = load(func_body, "Editor_actions lib", "t", _G);
-    assert(chunk, string.format("Error loading function '%s': '%s'", name, err));
+    if not chunk then
+      err_msg = table.pack(
+        "Error loading function '", name, "'\n",
+        "Error code ", err
+      );
+      error(table.concat(err_msg), 0);
+    end
 
-    Editor[name] = chunk();
-    local root_func_data = string.format("root_%s", func_name);
-    Editor[root_func_data] = {};
-    local func_data = Editor[root_func_data];
+    Editor[func_name] = chunk();
+    local root = "root_" .. func_name;
+    Editor[root] = {};
+    local func_data = Editor[root];
 
     func_data.params = params;
     func_data.output = output;
   end
 end
-
-local Editor_actions = [==[
-stringify_value(value_to_stringify) '"%s"';
+  local Editor_actions = [==[
+stringify_value(value_to_stringify) [["%s"]];
 encase_value(value_to_encase) "(%s)";
 
 varGet(var_type, data_type, var_name) "%s.%s.get(%s)";
 get_globalVar(data_type, var_name) "global.%s.get(%s)";
 get_localVar(data_type, var_name) "local.%s.get(%s)";
 
-math(spaces, leftVal, spaces, op_name, rightVal, parens) "%s%s %s%s %s%s";
-primitive_math(leftVal, op_name, rightVal) "%s, %s, %s";
+math(leftVal, op_name, rightVal) "%s %s %s";
+primitive_math(leftVal, op_name, rightVal) "%s, "%s", %s";
 
 primitive_comparison(dataType, leftVal, op_name, rightVal) 
-"comparison.%s(%s, %s, %s)";
+"comparison.%s(%s, "%s", %s)";
 
 primitive_arithmetic(dataType, leftVal, op_name, rightVal) 
 "arithmetic.%s(%s, %s, %s)";
 
 not(value_to_negate) "not(%s)";
-if(spaces, condition, spaces, valueTrue, spaces, valueFalse, parens) 
-"if(%s%s, %s%s, %s%s%s)";
+if(condition, valueTrue, valueFalse) "if(%s, %s, %s)";
 
-contains(spaces, parent_string, spaces, checker_string, spaces) "contains(%s, %s)";
+contains(parent_string, checker_string) "contains(%s, %s)";
 
 len(string_value) "len(%s)";
 index(parent_string, checker_string, string_offset) "index(%s, %s, %s)";
@@ -234,12 +227,14 @@ towerShield(percentage) "tower.shield(%s)";
 moduleCooldown(module_index) "tower.module.cooldown(%s)";
 
 highscore(type, region, difficulty) "highscore.%s(%s, %s)";
+
 highscoreWave(region, difficulty) "highscore.wave(%s, %s)";
 highscoreEra(region, difficulty) "highscore.era(%s, %s)";
 highscoreInfinity(region, difficulty) "highscore.infinity(%s, %s)";
 
 disableCost(element_name) "disable.cost(%s)";
-activeID(active_spell_name) "active.id(%s)";
+activeID(active_spell_index) "active.id(%s)";
+activeIndex(moduleId) "active.index(%s)";
 
 workerPaused(workerID) "worker.paused(%s)";
 workerGroup(workerID) "worker.group(%s)";
@@ -269,5 +264,8 @@ trashTier(trashSlot) "museum.trashTier(%s)";
 slotElement(offerSlot) "museum.slotElement(%s)";
 trashElement(trashSlot) "museum.trashElement(%s)";
 ]==];
-
+--[[/*
+  * Now that the string has been defined,
+  * let the function do the rest
+*/]]
 create_Editor_functions(Editor_actions);

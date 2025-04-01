@@ -121,7 +121,7 @@ update_state:
 ))}
 ; Set the job status to itself so interracting
 ; with the script doesn't hide the job.
-global.string.set(job_status, global.string.get(job_status))
+global.string.set(job_status, {job.get})
 
 ; exit the script if we're called
 ; for cycling, mode or if we're shut down
@@ -130,25 +130,25 @@ gotoif(99, contains({impulse.toggles}, impulse()) || not({state.get}))
 ; make a copy of yourself for movement_manager
 execute("{script_name}")
 
-#job_err <color=#FAA00F>
-#job_inf <color=#0AFF00>
-global.string.set(job_status, if(\
-  {opened_building},\
-  "</size>{job_err}Waiting for user to close the building</color></size>",\
-  "</size>{job_err}Waiting for user to close the menu</color></size>"\
-))
-; Sets the
+{job.set(\
+  "<color=#FAA00F>Waiting for user to close the "\
+  . if({opened_building}, "building", "menu")\
+  . "</color>"\
+)}
+; Sets the job status to a warning.
+; It lets the user know that they need to close
+; whatever building or menu they're in
 
 loop:
 waitwhile(isTowerTesting() && {state.get})
 waituntil(isTowerTesting() || not({state.get}))
 
-global.string.set(\
-  job_status, \
-  "</size>{job_inf}Waiting to exit tower testing</color></size>"\
-)
+{job.set("<color=#0AFF00>Waiting to exit tower testing</color>")}
+; Lets the user know that everything is going well and the script
+; is running as intentional
+
 in_towertesting:
-waitframe() ; wait a frame
+waitframe()
 
 ; Update our timers
 time.game += time.delta()
@@ -161,17 +161,35 @@ additional_cond = {additional_cond}
 ; our tower is alive and if we haven't killed all enemies
 ; (if used in normal mode instead of endless)
 gotoif(\
-  in_towertesting, \
+  in_towertesting,\
   health(false) > 0.0 && {state.get} && not(additional_cond)\
 )
 
-global.string.set(job_status, if(\
-  additional_cond,\
-  "</size>{job_inf}Exit caused by additional_cond</color></size>",\
-  "</size>{job_inf}Exit caused by tower death</color></size>"\
-))
-
 exit:
+
+{job.set(\
+  "<color=#0AFF00>Exit caused by "\
+  . if(\
+    impulse() == "key.{exit}" ||\
+    {job.get} == "</size>"\
+    . "<color=#0AFF00>Exit caused by pressing key.{exit}</color>"\
+    . "</size>",\
+    "pressing key.{exit}",\
+    if(\
+      additional_cond, \
+      "additional_cond", \
+      if(\
+        isTowerTesting() ||\
+        {job.get} == "</size>"\
+        . "<color=#0AFF00>Exit caused by tower death</color>"\
+        . "</size>",\
+        "tower death",\
+        "an external cause"\
+      )\
+    )\
+  ) . "</color>"\
+)}
+
 exit()
 wait(time.unscaled() * 2.0)
 
