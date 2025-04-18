@@ -33,172 +33,339 @@
 
 Editor = {};
 Editor.format_error_message = false;
-Editor.error_msg_spacing = 0;
+Editor.error_msg_params = {};
 
--- Internal variable for debugging, logs the function components
+--[[Internal variable for debugging, logs the function]]
 local logging = false;
 
--- Invernal variable that stores an error message
+--[[Internal variable that stores an error message]]
 local err_msg = {};
 
-local function create_Editor_functions(actions_string)
-  local action_pattern = "([^%(]+)%(([^%)]+)%) (\"[^;]+)";
-  -- This describes the pattern that actions are recorded in
-
-  local computable_string = actions_string:match(action_pattern);
-  if not computable_string then
-    error("Cannot compute actions string: \n\n" .. actions_string, 0);
-    -- Send an error if the string can't be computed
+function Editor.assemble_error(input_string)
+  if not Editor.format_error_message then
+    err_msg = table.pack(
+      "Cod-proofing violation!\n\n",
+      "Editor.assemble_error was called when Editor.format_error_message is false.\n",
+      "Why are you trying to assemble an error when the output is un-formatted?"
+    );
+  elseif input_string:match(",") == nil then
+    err_msg = table.pack(
+      "Cod-proofing violation!\n\n",
+      "Editor.assemble_error called for an input without multiple parameters.\n",
+      "Any formatting applied would only make the output harder to read."
+    );
   end
 
-  for line in actions_string:gmatch("[^;]+") do
-    local name = line:match("([^%(]+)");
-    local params = line:match("%b()"):sub(2, -2);
+  if err_msg[1] ~= nil then
+    err_msg[#err_msg+1] = "\n\n";
+    err_msg[#err_msg+1] = "Unformatted input message:\n";
+    err_msg[#err_msg+1] = input_string;
+    error(table.concat(err_msg), 0);
+  end
+
+  local spaces = 0;
+
+  local idx = 1;
+  local args = {};
+
+  local pos = 0;
+
+  while pos < #input_string do
     --[[/*
-      * :sub(2, -2) removes the (parenthesies)
-      * string.sub("(test)", 2, -2) turns (test) into test
+      * Extract the text up to and including the first parenthesee.
+      * Add pos as our offset, so args doesn't have repeat contents.
     */]]
-    local params_substitute = table.pack(
-      ", spaces", "spaces, ",
-      ", parens", "parens, "
-    );
-    local user_params = params;
-    for i = 1, #params_substitute do
-      user_params = user_params:gsub(params_substitute[i], "");
-    end
-    --[[/*
-      * The user params are the parameters the user needs to fill out
-      * This removes the spaces and parens fields from the function input
-      * 
-      * spaces and pares are used inside the function so that
-      * the end user can detect the issue with more ease
-    */]]
-    local output = line:match("(%) [^;]+)"):sub(3);
-    --[[/*
-        * We isolate the functions 
-        * name, parameters and return output
-        * using string.match(line, pattern)
-        * 
-        * we only create a global function if none of the
-        * fields are nil
+    args[idx] = input_string:match("([^%(%)]+.)", pos);
+    if args[idx] == nil then
+      -- We failed to extract anything meaningfull, so just extract the first character
+      args[idx] = input_string:sub(pos + 1, pos + 1);
+    
+    elseif input_string:sub(pos + 1, pos + 1) == ("(") then
+      --[[/*
+        * If the first character was a paranthesee,
+        * The match wouldn't have hit it, so we have to add it
       */]]
-    if not (name and params and output) then
+      args[idx] = "(" .. args[idx];
+    end
+
+    if args[idx]:sub(#args[idx], #args[idx]) == "(" then
+      args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s");
+      spaces = spaces + 2;
+    else
+      spaces = spaces - 2;
+      args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s");
+    end
+
+    pos = pos + #args[idx];
+    idx = idx + 1;
+  end
+
+  local action = "\n" .. string.gsub(table.concat(args), "\\n", "\n");
+  action = string.format(action, table.unpack(Editor.error_msg_params));
+  error(action, 0);
+end
+
+local function create_Editor_functions(actions_string)
+
+  --[[/*
+    * Every action must end with a ;
+    * If the actions_string doesn't contain a `;`, throw an error
+  */]]
+  if actions_string:match(";") == nil then
+    error("\n\nMalformed action string.\nInput contains no `;`.", 0);
+  end
+
+  local action_count = 0;
+  --[[/*
+    * Keep count of our actions for additional helpful information
+    * 
+    * Create a pattern that defines an action.
+  */]]
+  local actions_pattern = "([%w_]+)(%b())%s*(.*)";
+  for line in actions_string:gmatch("[^;]+") do
+    -- line is the action without the EOL character
+
+    action_count = action_count + 1;
+    local action = table.pack(line:match(actions_pattern))
+    -- Extracts our action name, parameters and output
+
+    if #action ~= 3 then
       err_msg = table.pack(
-        "Failed to load all parameters\n",
-        "|line '", line, "'\n",
-        "|name '", name, "'\n",
-        "|params '", params, "'\n",
-        "|output '", output, "'"
+        "\n\n",
+        "|Cannot compute actions string:\n",
+        "|'", line, "'\n",
+        "|Was only able to extract " .. #action .. " values of the expected 3:\n",
+        "|name = '", action[1] or "nil", "'\n",
+        "|params = '", action[2] or "nil", "'\n",
+        "|output = '", action[3] or "nil", "'"
       );
       error(table.concat(err_msg), 0);
     end
 
-    local func_name = string.format("Editor_%s", name);
-    if _G[func_name] then
+    --[[/*
+      * now that all 3 parameters have been obtained,
+      * we can assign them to their respective variables
+      * so it's easier to know what we're doing
+    */]]
+    local name, params, output = table.unpack(action);
+    params = params:sub(2, -2);
+
+    -- Create the name of our function and check if it has already been defined
+    local func_name = "Editor_" .. name;
+    if Editor[func_name] ~= nil then
+      --[[/*
+        * If the function already exists, throw an error telling us that we messed up.
+        * Access the functions "root" to be able to compare the input and output of the 2
+      */]]
       local root = "root_" .. func_name;
+      local origin = Editor[root];
       err_msg = table.pack(
-        "Function replica detected:\n",
-        "|name: '", name, "'\n",
-        "|params: '", params, "' ",
-        "|original_params: '", _G[root].params, "'\n",
-        "|output: '", output, "' ",
-        "|original_output: '", _G[root].output, "'"
+        "\n\n",
+        "|Action duplicate detected on action string:\n",
+        "|'", line, "'\n|\n",
+        "|line number = ", action_count, "\n",
+        "|root line number = ", origin.action_count, "\n|\n",
+        "|name = '", name, "'\n",
+        "|root name = '", origin.name, "'\n|\n",
+        "|params = '", params, "'\n",
+        "|original params = '", origin.params, "'\n|\n",
+        "|output = '", output, "'\n",
+        "|original output = '", origin.output, "'"
       );
       error(table.concat(err_msg), 0);
     end
 
-    if logging then
-      -- Log the function data for internal debugging
-      local print_msg = table.pack(
-        "|", line, "\n",
-        "|name: ", name, "\n",
-        "|params: ", params, "\n",
-        "|user_params: ", user_params, "\n",
-        "|output: ", output, "\n",
-        "| "
-      );
-      error(table.concat(print_msg), 0);
+    local params_count = 1;
+    for _ in params:gmatch(",") do
+      params_count = params_count + 1;
     end
-    local func_body = string.format([==[
-      return function(%s)
-        local spaces, parens = "", "";
-        if Editor.format_error_message then
-          local level = Editor.error_msg_spacing;
-          Editor.error_msg_spacing = level + 1;
-          spaces = "\\\n" .. string.rep("  ", level + 1);
-          parens = "\\\n" .. string.rep("  ", level);
-        end
-        return string.format(%s, %s);
-      end]==], user_params, output, params
-    );
-    local chunk, err = load(func_body, "Editor_actions lib", "t", _G);
+
+    -- Now we handle logging the action, so we can check if our error handling is faulty
+    if logging then
+      local print_msg = table.pack(
+        "|Logging action ", line, " which is number ", action_count, "\n",
+        "|name = '", name, "'\n",
+        "|params = '", params, "'\n",
+        "|params_count = ", params_count, "\n",
+        "|output = '", output, "'\n"
+      );
+      print(table.concat(print_msg));
+    end
+
+    --[[/*
+      * Time to create the function body.
+      * Since this is activated using load(), we need to return the function definition,
+      * Additionally, every escape character must be doubled, meaning that,
+      * to create %s, you'd need to do %%s
+    */]]
+    local func_body = string.format(
+        [==[
+          return function(%s)
+            local output = %s;
+            local params = table.pack(%s);
+            local param_count = %d;
+            Editor.error_msg_params[#Editor.error_msg_params + 1] = "";
+            if #params < param_count then
+              local err_msg = table.pack(
+                "\n\n",
+                "Missing ", (#params == 0) and "all" or (param_count - #params), " parameters!",
+                "\nExpected ", param_count, " but obtained ", #params, " parameters"
+              );
+              if #params == 0 then
+              end
+              error(table.concat(err_msg));
+            elseif not Editor.format_error_message or #params == 1 or not output:match(",") then
+              return string.format(output, table.unpack(params));
+            end
+            
+            local action = {};
+            action[1] = output:match("([^%%(%%)]+.)");
+            
+            for i = 1, param_count do
+              Editor.error_msg_params[#Editor.error_msg_params + 1] = "";
+              action[#action + 1] = "\\n%%0s" .. params[i];
+              if i ~= #params then
+                action[#action + 1] = ",";
+              end
+            end
+            action[#action + 1] = "\\n%%0s";
+            if output:match("%%b()") ~= nil then
+              action[#action + 1] = string.sub("()", -1);
+            end
+            return table.concat(action)
+          end
+        ]==],
+        params, output, params, params_count
+      );
+    --[[/*
+      * With our function defined, we must load the function in a chunk
+      * We assign 2 values here:
+      * - chunk is the actual function we're loading
+      * - err is an error message returned if the function failed to load
+      * 
+      * The parameters in load are as follows:
+      * - The function to load
+      * - The "chunk" we're loading it into. This provides the function name.      * - The mode of our function.
+      *   The mode "t" reprezents text, as our function body is defined as a string
+      *   and its parameters are treated as strings
+      * - The environment is global, as we need to have access to our Editor body
+    ]]
+    local chunk, err = load(func_body, func_name, "t", _G);
     if not chunk then
+      -- If the chunk failed to load, throw an error and include the error message
       err_msg = table.pack(
-        "Error loading function '", name, "'\n",
-        "Error code ", err
+        "\n\n",
+        "|Error while loading function '", name, "'\n",
+        "|Error message =\n",
+        "|`", err, "`"
       );
       error(table.concat(err_msg), 0);
     end
 
     Editor[func_name] = chunk();
+    --[[/*
+      * We've successfully created the function called func_name,
+      * Add it to the global scope instead of our Editor table
+      * so that the call Editor.Editor_name() can just be Editor_name()
+      * 
+      * Also define the root properties of our function.
+      * Since these aren't useful to anyone other than ourselves, we can add them to our
+      * Editor table instead, purely for organization purposes.
+    */]]
     local root = "root_" .. func_name;
     Editor[root] = {};
-    local func_data = Editor[root];
+    local root_data = Editor[root];
 
-    func_data.params = params;
-    func_data.output = output;
+    root_data.name = name;
+    root_data.params = params;
+    root_data.output = output;
+    root_data.action_count = action_count;
   end
 end
-  local Editor_actions = [==[
+
+local Editor_actions = [==[
 stringify_value(value_to_stringify) [["%s"]];
 encase_value(value_to_encase) "(%s)";
 
-varGet(var_type, data_type, var_name) "%s.%s.get(%s)";
-get_globalVar(data_type, var_name) "global.%s.get(%s)";
-get_localVar(data_type, var_name) "local.%s.get(%s)";
+setVar(var_type, dataType, name, set_value) "%s.%s.set(%s, %s)";
+set_globalVar(dataType, name, set_value) "global.%s.set(%s, %s)";
+set_localVar(dataType, name, set_value) "local.%s.set(%s, %s)";
+
+getVar(var_type, dataType, name) "%s.%s.get(%s)";
+get_globalVar(dataType, name) "global.%s.get(%s)";
+get_localVar(dataType, name) "local.%s.get(%s)";
+
+unsetVar(var_type, name) "%s.unset(%s)";
+unset_globalVar(name) "global.unset(%s)";
+unset_localVar(name) "local.unset(%s)";
 
 math(leftVal, op_name, rightVal) "%s %s %s";
-primitive_math(leftVal, op_name, rightVal) "%s, "%s", %s";
 
-primitive_comparison(dataType, leftVal, op_name, rightVal) 
-"comparison.%s(%s, "%s", %s)";
-
-primitive_arithmetic(dataType, leftVal, op_name, rightVal) 
-"arithmetic.%s(%s, %s, %s)";
+primitive_math(primitive_op, dataType, leftVal, op_name, rightVal) "%s.%s(%s, %s, %s)";
+primitive_comparison(dataType, leftVal, op_name, rightVal) "comparison.%s(%s, %s, %s)";
+primitive_arithmetic(dataType, leftVal, op_name, rightVal) "arithmetic.%s(%s, %s, %s)";
 
 not(value_to_negate) "not(%s)";
+
 if(condition, valueTrue, valueFalse) "if(%s, %s, %s)";
+ternary.int(condition, valueTrue, valueFalse) "if(%s, %s, %s)";
+ternary.double(condition, valueTrue, valueFalse) "if(%s, %s, %s)";
+ternary.string(condition, valueTrue, valueFalse) "if(%s, %s, %s)";
+ternary.vec2(condition, valueTrue, valueFalse) "if(%s, %s, %s)";
 
-contains(parent_string, checker_string) "contains(%s, %s)";
+contains(parent_string, checker_string) "string.contains(%s, %s)";
 
-len(string_value) "len(%s)";
-index(parent_string, checker_string, string_offset) "index(%s, %s, %s)";
+len(string_value) "string.length(%s)";
+index(parent_string, checker_string, string_offset) "string.indexOf(%s, %s, %s)";
 
 concat(left_string, right_string) "concat(%s, %s)";
-sub(parent_string, string_offset, substring_lenght) "sub(%s, %s, %s)";
+sub(parent_string, string_offset, substring_lenght) "substring(%s, %s, %s)";
 
-lower(string_to_manipulate) "lower(%s)";
-upper(string_to_manipulate) "upper(%s)";
+impulse() "script.impulse()";
 
-floor(floor_value) "floor(%s)";
-ceil(ceil_value) "ceil(%s)";
-round(round_value) "round(%s)";
+lower(string_to_manipulate) "string.lower(%s)";
+upper(string_to_manipulate) "string.upper(%s)";
 
-sin(sin_value) "sin(%s)";
-cos(cos_value) "cos(%s)";
-tan(tan_value) "tan(%s)";
-asin(asin_value) "asin(%s)";
-acos(acos_value) "acos(%s)";
-atan(atan_value) "atan(%s)";
-atan2(atan2_value) "atan2(%s)";
+budget() "generic.budget()";
+time_frame() "time.frame()";
+screenWidth() "screen.width()";
+screenHeight() "screen.height()";
 
 min(leftVal, rightVal) "min(%s, %s)";
 max(leftVal, rightVal) "max(%s, %s)";
 rnd(minVal, maxVal) "rnd(%s, %s)";
 
+screenWidth_double() "screen.width.d()";
+screenHeight_double() "screen.height.d()";
+get_UISize() "option.ui.size()";
+
+time_now() "timestamp.now()";
+time_utcnow() "timestamp.utcnow()";
+
+time_delta() "time.delta()";
+time_unscaled() "time.unscaledDelta()";
+get_timeScale() "time.scale()";
+
+floor(floor_value) "double.floor(%s)";
+ceil(ceil_value) "double.ceil(%s)";
+round(round_value) "double.round(%s)";
+
+sin(sin_value) "double.sin(%s)";
+cos(cos_value) "double.cos(%s)";
+tan(tan_value) "double.tan(%s)";
+asin(asin_value) "double.asin(%s)";
+acos(acos_value) "double.acos(%s)";
+atan(atan_value) "double.atan(%s)";
+atan2(atan2_value) "double.atan2(%s)";
+
 vector_xCoord(vector_value) "vec2.x(%s)";
 vector_yCoord(vector_value) "vec2.y(%s)";
-vec(vector_coord_x, vector_coord_y) "vec(%s, %s)";
+vec(vector_coord_x, vector_coord_y) "vec.fromCoords(%s, %s)";
+
+getMousePosition() "mouse.position()";
+get_leftMouseState() "mouse.0.state()";
+get_rightMouseState() "mouse.1.state()";
+get_middleMouseState() "mouse.2.state()";
 
 convertDataType(originalType, desiredType, value) "%s2%s(%s)";
 convertFromString(desiredType, value, fallback) "s2%s(%s, %s)";
@@ -215,8 +382,23 @@ convertStringToDouble(value, fallback) "s2d(%s, %s)";
 visibilityGet(windowID) "visibility.get(%s)";
 childVisibilityGet(windowID, elementID) "child.visibility.get(%s, %s)";
 
-isopen(roomID) "isopen(%s)";
+createWindow(windowID, windowType) "window.create(%s, %s)";
+destroyWindow(windowID) "window.destroy(%s)";
+destroyWindow_all() "window.destroy.all()";
+
+setWindowPosition(windowID, position) "window.position.set(%s, %s)";
+
+setTextInWindow(windowID, elementID, value) "window.text.set(%s, %s, %s)";
+setSpriteInWindow(windowID, elementID, spriteID) "window.sprite.set(%s, %s, %s)";
+
+setWindowVisibility(windowID, visibility) "window.visibility.set(%s, %s)";
+setChildVisibility(windowID, elementID, visibility) "window.child.visibility.set(%s, %s, %s)";
+
 resource(resourceID) "resource(%s)";
+
+isopen(roomID) "town.window.isopen(%s)";
+anyopen() "town.window.anyopen()";
+show(roomID, enter) "town.window.show(%s)";
 
 softwareEnabled(softwareID) "software.enabled(%s)";
 softwareFind(softwareName) "software.find(%s)";
@@ -263,9 +445,18 @@ slotTier(offerSlot) "museum.slotTier(%s)";
 trashTier(trashSlot) "museum.trashTier(%s)";
 slotElement(offerSlot) "museum.slotElement(%s)";
 trashElement(trashSlot) "museum.trashElement(%s)";
+
+goto(label) "goto(%s)";
+gotoif(label, condition) "gotoif(%s, %s)";
+
+execute(script_to_execute) "execute(%s)";
+executesync(script_to_execute) "executesync(%s)";
 ]==];
 --[[/*
   * Now that the string has been defined,
   * let the function do the rest
+  *
+  * For the input between the lua version and the external editor version
+  * to match, I have to replace every instance of \n with an empty string
 */]]
-create_Editor_functions(Editor_actions);
+create_Editor_functions(Editor_actions:gsub("\n", ""));

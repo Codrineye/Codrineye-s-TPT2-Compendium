@@ -6,7 +6,7 @@
 
 # Adventure AI
 
-[Version 3.3.9](https://github.com/Codrineye/Adventure-AI/blob/main/README.md)
+[Version 3.4.1](https://github.com/Codrineye/Adventure-AI/blob/main/README.md)
 
 A fork of the remake d0sboots made that's being worked on and maintained by me.<br>
 d0s didn't include it in his main repo so neither will I.<br>
