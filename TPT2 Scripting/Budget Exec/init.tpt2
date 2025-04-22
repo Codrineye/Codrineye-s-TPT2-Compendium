@@ -1,0 +1,22 @@
+:import budget exec_lib
+:name {budget_exec} init
+; Set the scripts name
+; This is not included in the package so that impulse:wakeup() initializes our package
+
+:budget_cap 100
+; budget cap of 100 so that every action is done instantly
+
+wakeup()
+; This script will start once the user first activates the AI overlay.
+; As scripts outside of packages are executed before scripts in packages,
+; we guarantee that every package that uses our library start
+; after budget_exec_var has been initialized
+; 
+
+gotoif(99, impulse() != "wakeup")
+; We kill the instance if our impulse wasn't wakeup, as we've already initialized the variable
+;
+; If we're here, we want to initialize budget_exec_var by starting up our package.
+; If budget_exec_var is empty after this initialization,
+; the script that uses this package will show an error
+execute("{accelerate_budget}")

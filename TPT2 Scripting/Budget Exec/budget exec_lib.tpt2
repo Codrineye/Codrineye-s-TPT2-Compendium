@@ -1,0 +1,10 @@
+#budget_exec BudEx
+; This is the identifier for the script. It's also the scripts package name
+
+#accelerate_budget {budget_exec}:accelerate
+; The purpose of this library is so that people can use this macro
+; so that they can update their scripts with ease if the name gets updated
+
+:const string budget_exec_var "<size=0>{budget_exec}.state"
+; A hiding block that's used to signal to scripts that use this library
+; if the user has the package installed or not
