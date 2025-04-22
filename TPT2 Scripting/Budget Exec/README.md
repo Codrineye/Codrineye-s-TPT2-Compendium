@@ -34,7 +34,7 @@ To re-iterate, the execution stack removes all "dead" instances once the frame e
 As explained in [Why this exists](#why-this-exists), fast execution is more accessible now than it was before, so more scripts would require this budget "acceleration". If 20 scripts use this system, even if the core program is in just 1 script, their package requires 2 scripts, so having 20 such scripts would mean that 40 script slots are taken up, and 20 of are the same 2 lines, just with a different script that they're stop()ing and execue()ing.
 
 If you'd think that this stop/execute() system could be inserted in the same script as the logic script, that doesn't work for 2 reasons:
-1. As of update 0.51.0, the turbo bug still exists, so if a script stop()s itself, all running scripts will be turbo-ified, which you should avoid at all costs.
+1. The turbo bug will exist up until version 1.0.0, so until then, if a script stop()s itself, all running scripts will be turbo-ified, which you should avoid at all costs.
 2. Even after the turbo bug is patched out, once a script stop()'s itself, it's removed from the execution stack, so it can't reach the next action to execute() another worker instance of itself.
 
 # The imports
