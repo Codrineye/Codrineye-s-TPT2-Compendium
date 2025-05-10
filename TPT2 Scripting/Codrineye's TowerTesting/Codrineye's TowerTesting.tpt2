@@ -44,22 +44,21 @@ key.{stats}()
 concat("Easy -> Impossible", forwards_diff_list) != \
 concat("Impossible -> Easy", reversed_diff_list)
 
-; helper macros containing the components of our second condition
-; telling the user at what line they input the difficulty direction string
-; or at which line they input their additional cond
-
-#instruct.change_direction "To change the difficulty direction you must"
-#goto_line.change_direction "go to line " . difficulty_list_pos
-
-#instruct.additional_cond "To use additional_cond you must"
-#goto_line.additional_cond "go to line " . additional_cond_pos
-
-concat({instruct.change_direction}, {goto_line.change_direction}) != \
-concat({instruct.additional_cond}, {goto_line.additional_cond})
-
-#impulse.qol "key.{restart}key.{exit}key.{stats}game.newround"
-#impulse.toggles "key.{mode_switch}key.{cycling}"
-#impulse.state "key.{state_switch}" . {impulse.toggles}
+#condition_comment {lua(\
+  local msg = table.pack(\
+    "</size>",\
+      "\nadditional_cond is found on line ",\
+      [[" . i2d(additional_cond_pos) . "]],\
+      "\nto change the difficulty direction, modify action ",\
+      [[" . i2d(difficulty_list_pos) . "]],\
+    "<size=0>"\
+  );\
+  return table.concat(msg);\
+)}
+contains(\
+  concat("click here for line numbers!<size=0>", "{condition_comment}"),\
+  ""\
+)
 
 ; Start of code
 
@@ -73,59 +72,51 @@ gotoif(\
   impulse() == "{script_name}"\
 )
 
-; caller macros that determine what the hide blocker should do
-; 
-; .toggles always stop the hide block, no matter the scripts state
-; .state stops the hider if we're starting up else frees the hider
-; .qol doesn't interfere with the blockers state
-
-#caller.toggles contains({impulse.toggles}, impulse())
-#caller.state not({state.get}) && impulse() == "key.{state_switch}"
-#caller.qol {state.get} && contains({impulse.qol}, impulse())
-
 init:
 global.string.set({hider}, "Start hiding values")
 ; makes sure the timers are kept hidden
 
 time.real = if(impulse() == "game.newround", 0.0, time.real)
 time.game = if(impulse() == "game.newround", 0.0, time.game)
+
 global.string.set(stop_hiding, if(\
-  {caller.state} || ({caller.toggles}) || ({caller.qol}), \
+  not({state.get}) && impulse() == "key.{state_switch}" ||\
+  contains("key.{mode_switch}|key.{cycling}", impulse()) ||\
+  {state.get} && contains("key.{exit}|key.{stats}|key.{restart}", impulse()), \
   concat("Stop Hiding", "</size>"), \
   "Cods TowerTesting is Hiding"\
 ))
 
-gotoif(\
-  if(\
-    isTowerTesting() && contains(impulse(), "key."), \
-    if(\
-      impulse() == "key.{restart}", \
-      restart, \
-      if(impulse() == "key.{exit}", exit, stats)\
-    ),\
-    99\
-  ), \
-  contains({impulse.qol}, impulse())\
-)
-
-update_state:
+; State, region_cycling and curent_mode are toggles
 {state.set({state.get} != (impulse() == "key.{state_switch}"))}
-{region_cycling.set(\
-  {region_cycling.get} != \
-  (impulse() == "key.{cycling}")\
-)}
+{region_cycling.set({region_cycling.get} != (impulse() == "key.{cycling}"))}
 {curent_mode.set(if(\
   impulse() == "key.{mode_switch}",\
   if({curent_mode.get} == mode1, mode2, mode1),\
   if({curent_mode.get} == mode2, mode2, mode1)\
 ))}
-; Set the job status to itself so interracting
-; with the script doesn't hide the job.
-global.string.set(job_status, {job.get})
 
-; exit the script if we're called
-; for cycling, mode or if we're shut down
-gotoif(99, contains({impulse.toggles}, impulse()) || not({state.get}))
+; Set the job status to itself so interracting with the script doesn't hide the job.
+; Sets itself to an empty job_status if this is the first time it's getting set
+global.string.set(job_status, if({job.get} == "", "</size></size>", {job.get}))
+
+; This gotoif is passed only if we didn't activate the script
+;
+; We exit if we started a new round or if key.{cycling}/key.{mode_switch} was pressed
+; otherwise, if one of the qol impulses were pressed but we're not in towertesting, we exit
+; Otherwise, we perform the qol action that was requested
+gotoif(\
+  if(\
+    isTowerTesting() && contains("key.{exit}|key.{stats}|key.{restart}", impulse()),\
+    if(\
+      impulse() == "key.{exit}",\
+      exit,\
+      if(impulse() == "key.{stats}", stats, restart)\
+    ),\
+    99\
+  ),\
+  not({state.get}) || impulse() != "key.{state_switch}"\
+)
 
 ; make a copy of yourself for movement_manager
 execute("{script_name}")

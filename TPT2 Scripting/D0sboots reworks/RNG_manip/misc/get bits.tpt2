@@ -1,0 +1,21 @@
+{lua(\
+  local digits = string.byte("0");\
+  local conv4 = {};\
+  --[[/*\
+    * table holding 4 bits at each index\
+    *\
+    * build up the table, we've got 4 bits meaning 2 ^ 4, which is 16\
+    * i = 15 is our 16th iteration\
+  */]]\
+  for i = 0, 15 do\
+    --[[shift & 1 forces the output to be either 0 or 1]]\
+    local bits = table.pack(\
+      string.char(((i >> 3) & 1) + digits),\
+      string.char(((i >> 2) & 1) + digits),\
+      string.char(((i >> 1) & 1) + digits),\
+      string.char(((i >> 0) & 1) + digits)\
+    );\
+    conv4[i] = table.concat(bits);\
+  end\
+  error(conv4[15 ~ 13])\
+)}

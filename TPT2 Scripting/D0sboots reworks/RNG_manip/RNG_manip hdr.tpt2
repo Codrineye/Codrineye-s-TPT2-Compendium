@@ -1,0 +1,67 @@
+; This is the header of the RNG manipulation library
+; It's purpose is to explain what you're looking at and what the library implements
+;
+; This library exists to do RNG manipulation in TPT2.
+; If you don't know what RNG manipulation is, you can find plenty of info on the web.
+; Also, this library is probably not for you.
+
+{lua(\
+  --[[Core RNG table that everything is built ontop of]]\
+  RNG = {};\
+  \
+  --[[Table that holds all our usable data]]\
+  RNG.code_cache = nil;\
+  \
+  --[[Return the appropiate macro body]]\
+  function RNG.macro_body(id, arg1, arg2) end\
+)}
+
+; There are three sets of macros defined in this library
+; The first is the 3-part rng_init sequence
+#rng.line_1 {lua(return RNG.macro_body("line_1"))}
+#rng.line_2 {lua(return RNG.macro_body("line_2"))}
+#rng.line_3(label) {lua(return RNG.macro_body("line_3", [[{label}]]))}
+;
+; To use these, place this sequence *immediately* before the event you want to manipulate
+; {rng.line_1}
+; {rng.line_2}
+; {rng.line_3(continue)}
+; continue:
+;
+; The last one makes a label to `goto` to when it is done.
+; You can define the lable on the next line if you just want it to continue there.
+; You can also use more complicated conditional expressions if you want
+; 
+; It is important that you run this in the same frame as the event you are trying to manipulate,
+; ideally right before, so that other calls to the rng do not happen in-between.
+; 
+; If you need to re-initialize the state, jump to label `rng.line_2`.
+;
+; To simulate future rolls of the rng, use this macro:
+#rng.next {lua(return RNG.macro_body("next"))}
+; You will need to call this (at least) once before calling rng.get_int.
+; Every call to {rng.next} should correspond to one call to the RNG (generally via rnd()),
+; except for the last one(s) which you want to save for the actual in-game event(s)
+; that are rolling the RNG.
+
+
+
+; This macro converts the simulated state to a 32-bit integer.
+#rng.get_int {lua(return RNG.macro_body("get_int"))}
+#rng.get_double {lua(return RNG.macro_body("get_double"))}
+; Don't forget that you need one call to {rng.next} before the result is valid.
+; {rng.get_int} could be negative if the high bit is set.
+; {rng.get_double} avoids this issue by using a double,
+; so the result will always be a non-negative integer.
+
+; Return a float value between 0.0 and 1.0 (inclusive).
+#rng.get_uniform {lua(return RNG.macro_body("get_uniform"))}
+; This performs the same function as UnityEngine.Random.value. Although the number returned
+; is a double because of TPT2 type limitations, it only has single-precision values.
+; If you need to do math that accurately mimics single-precision game math, keep that in
+; mind (you may need to use the vector type to keep the behavior consistent.)
+
+; This simpulates the same behaviour as the rnd() function.
+#rng.get_range(min, max) {lua(return RNG.macro_body("get_range", [[{min}]], [[{max}]]))}
+; The range is inclusive, so we can also return the values in `min` and in `max`.
+; Just like with {rng.get_int}, {rng.next} needs to be called before this is valid.

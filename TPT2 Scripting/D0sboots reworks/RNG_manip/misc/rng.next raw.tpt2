@@ -1,0 +1,116 @@
+:local string rng_state
+
+
+rng_state = sub(rng_state, 32, 96) . local.string.get(concat(\
+  substring(rng_state, 96, 4),\
+  concat("xor", local.string.get(concat(\
+    substring(rng_state, 0, 4),\
+    concat("xor", substring(rng_state, 11, 4))\
+  )))\
+)) . local.string.get(concat(\
+  substring(rng_state, 100, 4),\
+  concat("xor", local.string.get(concat(\
+    substring(rng_state, 4, 4),\
+    concat("xor", substring(rng_state, 15, 4))\
+  )))\
+)) . local.string.get(concat(\
+  substring(rng_state, 104, 4),\
+  concat("xor", local.string.get(concat(\
+    substring(rng_state, 8, 4),\
+    concat("xor", local.string.get(concat(\
+      substring(rng_state, 0, 4),\
+      concat("xor", local.string.get(concat(\
+        substring(rng_state, 19, 4),\
+        concat("xor", substring(rng_state, 11, 4))\
+      )))\
+    )))\
+  )))\
+)) . local.string.get(concat(\
+  substring(rng_state, 108, 4),\
+  concat("xor", local.string.get(concat(\
+    substring(rng_state, 12, 4),\
+    concat("xor", local.string.get(concat(\
+      substring(rng_state, 4, 4),\
+      concat("xor", local.string.get(concat(\
+        substring(rng_state, 23, 4),\
+        concat("xor", substring(rng_state, 15, 4))\
+      )))\
+    )))\
+  )))\
+)) . local.string.get(concat(\
+    substring(rng_state, 112, 4),\
+    concat("xor", local.string.get(\
+      concat(\
+        substring(rng_state, 16, 4),\
+        concat("xor", local.string.get(\
+          concat(\
+            substring(rng_state, 8, 4),\
+            concat("xor", local.string.get(\
+              concat(\
+                substring(rng_state, 27, 4),\
+                concat("xor", local.string.get(\
+                  concat(\
+                    substring(rng_state, 19, 4),\
+                    concat("xor000", substring(rng_state, 96, 1))\
+                  )\
+                ))\
+              )\
+            ))\
+          )\
+        ))\
+      )\
+    ))\
+  )) . local.string.get(concat(\
+    substring(rng_state, 116, 4),\
+    concat("xor", local.string.get(\
+      concat(\
+        substring(rng_state, 20, 4),\
+        concat("xor", local.string.get(\
+          concat(\
+            substring(rng_state, 12, 4),\
+            concat("xor", local.string.get(\
+              concat(\
+                substring(rng_state, 23, 4),\
+                concat("xor", local.string.get(\
+                  concat(\
+                    substring(rng_state, 31, 1),\
+                    concat("000xor", substring(rng_state, 97, 4))\
+                  )\
+                ))\
+              )\
+            ))\
+          )\
+        ))\
+      )\
+    ))\
+  )) . local.string.get(concat(\
+    substring(rng_state, 120, 4),\
+    concat("xor", local.string.get(\
+      concat(\
+        substring(rng_state, 24, 4),\
+        concat("xor", local.string.get(\
+          concat(\
+            substring(rng_state, 16, 4),\
+            concat("xor", local.string.get(\
+              concat(\
+                substring(rng_state, 27, 4),\
+                concat("xor", substring(rng_state, 101, 4))\
+              )\
+            ))\
+          )\
+        ))\
+      )\
+    ))\
+  )) . local.string.get(concat(\
+    substring(rng_state, 124, 4),\
+    concat("xor", local.string.get(concat(\
+      substring(rng_state, 28, 4),\
+      concat("xor", local.string.get(concat(\
+        substring(rng_state, 20, 4),\
+        concat("xor", local.string.get(concat(\
+          substring(rng_state, 31, 1),\
+          concat("000xor", substring(rng_state, 105, 4))\
+        )))\
+      )))\
+    )))\
+  ))

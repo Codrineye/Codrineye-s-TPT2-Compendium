@@ -1,0 +1,82 @@
+; A mining program that works quickly, but is also meant as an
+; example of how to code.
+;
+; This code is meant for the external editor at
+; https://d0sboots.github.io/perfect-tower/
+
+;
+; Sets the name of the script
+:name D0S.ExampleMiner
+
+; This line enables high-speed mode.
+:budget_cap max
+
+; These two impulses + one condition collectively mean that when you
+; enter the mine or start the AI while in the mine, the program will run.
+wakeup()
+open.mine()
+
+isopen("mine")
+
+; Local variables have their values contained within a single copy of the script,
+; and don't show in the "variables" list on the UI.
+; 
+; boolean variables start with the value false.
+:local bool should_loop
+; 
+; int variables start with the value 0.
+:local int tab
+:local int x
+:local int y
+
+; This is a label, which lets you goto() this line
+; without needing to figure out its line number.
+
+begin:
+; Should the script loop infinitely?
+should_loop = false
+
+; The rest of this is a relatively straightforward fast-mining script.
+
+newtab:
+; this determines which tab in the mine we can enter
+; since tab(0) isn't a valid option, tab can have the values 1 through 12
+; he take advantage in priority order, 1 + happens after tab % 12
+tab = 1 + tab % 12
+tab(tab)
+; Skip newlayer after setting tab, because the first layer might have stuff
+goto(loop)
+
+newlayer:
+newlayer()
+
+; The "%" returns the remainder after division. In this case it is being used
+; for wrap-around; when x is 3, (x+1) is 4 and 4%4 is 0. So it allows x to count
+; 0, 1, 2, 3, and back to 0 again in a cycle.
+loop:
+dig(x, y)
+x = (x + 1) % 4
+gotoif(loop, x != 0)
+
+y = (y + 1) % 4
+gotoif(loop, y != 0)
+
+; The most complicated line:
+; fall through the gotoif into `end` if we're not in the mine
+; jump to the lable `newlayer` if the tab has layers
+; jump to new tab if we aren't on the last tab
+; otherwise, jump to end
+gotoif(\
+  if(\
+    hasLayers(),\
+    newlayer,\
+    if(tab < 12, newtab, end)\
+  ),\
+  isopen("mine")\
+)
+
+end:
+; Wait for the end of the frame, so we don't waste time switching tabs
+; and checking things that can't have changed yet.
+waitframe()
+gotoif(begin, should_loop && isopen("mine"))

@@ -1,0 +1,17 @@
+:import RNG_manip lib
+:budget_cap 100
+
+:global double predicted_rng
+:global double actual_rng
+
+key.t()
+
+goto(rng.line_2)
+{rng.line_1}
+{rng.line_2}
+{rng.line_3(guess)}
+
+guess:
+{rng.next}
+predicted_rng = {rng.get_uniform}
+actual_rng = rnd(0.0, 1.0)
