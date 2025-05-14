@@ -1,0 +1,80 @@
+:import COD.Benchmark lib
+:name {package(Main)}
+:budget_cap 300
+
+; This is the main program for benchmarking.
+; There should be no need for manual modifications here; all the constants that need tweaking
+; are in COD.Benchmark lib. But it might be useful to understand how it works
+
+:global int benchmark_idx
+:local double start_time
+
+key.b()
+
+#current_benchmark (benchmark_idx % (NUM_BENCHMARKS + 1))
+#bench_time local.double.get("b_time" . {current_benchmark})
+#nanos(time) round(({time}) * (100.0 / NUM_CYCLES))
+
+global.string.set(\
+  "<size=0>c^0B",\
+  if(global.string.get("<size=0>c^0B") == "0</size>", "1", "0") . "</size>"\
+)
+; Toggle the script on/off
+;
+gotoif(if(impulse() == "key.b", start, end), contains(global.string.get("<size=0>c^0B"), "1"))
+stop("{benchmark()}" . {current_benchmark})
+stop("{package(Budget_exec)}")
+execute("{package(Budget_exec)}")
+
+start:
+; reset the idx to 0 in case we've already been run
+benchmark_idx = 0
+loop:
+
+; Reset the benchmark cycles
+benchmark_cycles = 0
+execute("{benchmark()}" . {current_benchmark})
+;
+; record our start time
+start_time = now()
+
+goto(if({current_benchmark} == 0, calc_base, wait_frame))
+; wait a frame if we're not calculating the base time
+;
+calc_base:
+gotoif(wait_frame, benchmark_cycles == NUM_CYCLES)
+; Calculate the base payload i.e how much time it takes to
+; reach NUM_CYCLES without anything extra
+benchmark_cycles += 1
+gotoif(calc_base, budget() > 200)
+
+wait_frame:
+; and trigger a waitframe to start the benchmark process
+waitframe()
+
+local.double.set(\
+  "b_time" . {current_benchmark},\
+  min(\
+    now() - start_time,\
+    if({bench_time} == 0.0, 1.0 / 0.0, {bench_time})\
+  )\
+)
+;
+; Update the result display for the benchmark run
+global.string.set(\
+  "<color=#FFF>" . if({current_benchmark} == 0, "base", "benchmark_" . {current_benchmark}),\
+  "last: " . {nanos(now() - start_time)} . "nS, " .\
+  "best: " . {nanos({bench_time})} . if(\
+    {current_benchmark} == 0,\
+    "",\
+    "nS, self: " . {nanos({bench_time} - local.double.get("b_time0"))}\
+  ) . "nS</color>"\
+)
+
+; Move to the next benchmark target
+benchmark_idx += 1
+gotoif(loop, benchmark_idx < NUM_REPEATS * (NUM_BENCHMARKS + 1))
+
+end:
+; Toggle the script off when we're done
+global.string.set("<size=0>c^0B", "0</size>")

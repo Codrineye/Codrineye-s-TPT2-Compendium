@@ -1,0 +1,22 @@
+:import COD.Benchmark utils
+:name {benchmark(1)}
+:budget_cap 10000
+
+{show_command(false)}
+
+gotoif(99, benchmark_cycles >= NUM_CYCLES)
+; Start of the benchmarker
+
+; The code to benchmark goes here
+waituntil({function(Editor_math, true; ||; false, 3, 30)})
+
+;
+; End of the benchmarker
+benchmark_cycles += 1
+; You increment benchmark_cycles by the number of actions you have
+; You have to increment by at least 1
+;
+gotoif(0, budget() > 200)
+re_exec:
+stop("{package(Budget_exec)}")
+execute("{package(Budget_exec)}")

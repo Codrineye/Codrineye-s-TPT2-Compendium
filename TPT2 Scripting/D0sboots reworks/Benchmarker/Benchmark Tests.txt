@@ -1,0 +1,146 @@
+Tests performed on 5000 NUM_CYCLES with 1000 NUM_REPEATS
+Only 1 benchmarker, testing waituntil(contains("", ""))
+test1
+base best: 3000
+bench_1 best: 3795 self: 794
+
+test2
+base best: 3197
+bench_1 best: 3796 self: 599
+
+test3
+base best: 3998
+bench_1 best: 3796 self: 799
+
+test4
+base best: 2998
+bench_1 best: 3796 self: 799
+
+test5
+base best: 2998
+bench_1 best: 3796 self: 799
+
+Turbo Exec version
+test1
+base best: 5594
+bench_1 best: 6195 self: 602
+
+test2
+base best: 5596
+bench_1 best: 6195 self: 599
+
+test3
+base best: 5596
+bench_1 best: 6195 self: 599
+
+test4
+base best: 5596
+bench_1 best: 6395 self: 799
+
+test5
+base best: 5596
+bench_1 best: 6303 self: 707
+
+Summing up
+base: best
+budget | turbo
+t1 3000 | 5594
+t2 3197 | 5596
+t3 3998 | 5596
+t4 2998 | 5596
+t5 2998 | 5596
+
+Turbo version is more stable than budget at its current stage
+
+bench_1:
+budget best | budget self
+turbo best | turbo self
+t1 3795 | 794
+t1 6195 | 602
+-
+t2 3796 | 599
+t2 6195 | 599
+-
+t3 3796 | 799
+t3 6195 | 599
+-
+t4 3796 | 799
+t4 6395 | 799
+-
+t5 3796 | 799
+T5 6303 | 707
+
+|-----------------|
+
+1 benchmark, 5000 cycles, 1000 repetitions
+waituntil({function(Editor_math, true; ||; true, 1, 35)})
+
+budget version
+test1
+base best: 3082
+bench_1 best: 12792 self: 9710
+
+test2
+base best: 2998
+bench_1 best: 12792 self: 9795
+
+test3
+base best: 3059
+bench_1 best: 12790 self: 9732
+
+test4
+base best: 2798
+bench_1 best: 12792 self: 9994
+
+test5
+base best: 3067
+bench_1 best: 12792 self: 9725
+
+turbo version
+test1
+base best: 5581
+bench_1 best: 15388 self: 9807
+
+test2
+base best: 5496
+bench_1 best: 15388 self: 9892
+
+test3
+base best: 5596
+bench_1 best: 15590 self: 9994
+
+test4
+base best: 5596
+bench_1 best: 15391 self: 9795
+
+test5
+base best: 5565
+bench_1 best: 15388 self: 9823
+
+Summing up
+
+base best:
+budget | turbo
+t1 3082 | 5581
+t2 2998 | 5496
+t3 3059 | 5596
+t4 2798 | 5596
+t5 3067 | 5565
+
+bench_1 best: self:
+budget best | budget self
+turbo best | turbo self
+t1 12792 | 9710
+t1 15388 | 9807
+-
+t2 12792 | 9795
+t2 15388 | 9892
+-
+t3 12790 | 9732
+t3 15590 | 9994
+-
+t4 12792 | 9994
+t4 15391 | 9795
+-
+t5 12792 | 9725
+t5 15388 | 9823

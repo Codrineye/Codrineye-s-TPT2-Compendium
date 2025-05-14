@@ -1,0 +1,13 @@
+:import COD.Benchmark lib
+:name {package(Budget_exec)}
+:budget_cap 200
+
+; This is an internal implementation of budget_exec so we can avoid the
+; extra checks needed to make to ensure that the package is working properly
+stop(impulse())
+;
+; This is standard for working with the budget system
+; We stop the script that started us to remove it from the execution queue and then
+; we call it to add it back to the execution queue
+;
+execute(impulse())

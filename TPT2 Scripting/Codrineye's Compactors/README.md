@@ -1,35 +1,106 @@
 # Codrineye's Compactors
 
-Codrineye's Compactors are scripts formed out of 3 components
+Compactors are systems that work with large sets of data by forming a lookup string.<br>
+These are broken up in the following 3 components:
 
 1. [The Compactor](#the-compactor)
-1. [The Configuration Workspace](#the-configuration-script)
-1. [The Reading Script](#the-reading-script)
+2. [The Configuration Workspace](#the-configuration-script)
+3. [The Reading Script](#the-reading-script)
 
-These have comments included, to make using the compactor as simple and user friendly as possible.
+Each component features comments that explain what is happening and its purpose.
+
+# Purpose of a compactor
+
+These systems are specialized tools that give you a formatted string and the tools to work with them.<br>
+By having the format already defined, it lets you concentrate more on your code and have to worry less on how your data is stored.<br>
+Any tasks that involves processing strings can be converted into a compactor, and it is my hope that by making these systems easy to understand, less people will be driven away from creating tools.
 
 ## The compactor
 
-The compactor is a system mostly composing of lua macros that works to `compact` a sequence of information needed to perform a set task.<br>
-Its design is self sufficient, meaning that no modifications should be needed on the user end to be able to use it.
+The compactor is a system built entirely within lua macros.<br>
+These are further divided into the `header` and the `source`.
 
-A compactor made by me will generaly consist of 2 systems:
+#### The compactor header
 
-1. The compression system, that takes in a user input, stores it and outputs it coresponding to what the task requires. Its output is usually a string.
-1. The debugger system, that handles edge-cases such as sending error messages and data validation to ensure none of the inputed values can cause a malformed output string.
+This header file is used to create the macros through which the end user will communicate with the compactor.<br>
+Macros defined in the header file do not create any code, so they can be used in the [configuration script](#the-configuration-script) comments to provide a short code snippet.
 
-Personalyzations is typicall handled by the debugging functions, that permit you to display the internal data.<br>
-The output string, however, is usually a generalized output that looks the same for all applications.
+The header file should follow this structure
+
+```
+; comment explaining the use of the compactor
+{lua(\
+  --[[lua macro to make relevant comments within]]\
+  Compactor_table = {};\
+  --[[Define the root table global table that's used by your compactor]]\
+  \
+  function Compactor_table.macro_body(id)\
+  end\
+  --[[/*\
+    * Define a *stub* function that produces no code that the macros use to get defined.\
+    *\
+    * While this function gets overwritten in the source,\
+    * you should still outline all of the parameters that will be used by your function\
+    * The first parameter of the function should be the macro ID.\
+  */]]\
+)}
+; finish the definition of your lua macro
+; Define all the macros the user will work with
+; All macro definitions should start with an id. This is important for the source
+#macro_name {lua(return Compactor_table.macro_body("name"))}
+```
+
+#### The compactor source
+
+This source file is what processes the input and formats everything in a compacted form.<br>
+It features all computation, and thus, holds the complexity of the compactor.<br>
+The most important thing to keep in mind is to make sure that your function names corelate with the macro ID's, but you can easily change the macro ID's after you've built the compactor.
+
+For your macros defined in the header to interact with your code, you'll want to re-define the macro_body function at the end of this lua macro.
+
+```
+{lua(\
+  --[[Place all of your code before this]]\
+  function Compactor_table.macro_body(id)\
+    return Compactor_table[id]();\
+  end\
+)}
+```
+
+This simply links up your macros to the lua definitions. In this case, if all you had was 1 macro with the id `name`, you'd need to define the function Compactor_table.name().
 
 ## The configuration script
 
-The configuration script is the space in which the user comunicates with [the compactor](#the-compactor).<br>
-It uses macros defined at the bottom of the compactor, to create a syntax simple to use for adding elements.
+This script is the workspace in which the user uses the compactor to _compact_ their data.<br>
+By having a header -> source system you can first import the header to explain how to interact with the macros and then you import the source file for the user to use the compactor.
+
+Here is an example
+
+```
+:import Example_compactor hdr
+;
+; Import the header file to explain what you can work with
+; use {example1("test")} to define your test environment
+; {debug(true)} enables debugging and {debug(false)} disables it
+; {output.1} outputs the first character of {example1}
+
+:import Example_compactor src
+{debug(false)}
+{example1("1 + 1")}
+:const string t {example.3}
+```
 
 ## The reading script
 
-The reading script is the end result program that uses the compacted data to finalize the task.<br>
-Each compactor features a README.md which explains what its reading script accomplishes.
+This is the script that's imported in the game.<br>
+Reading scripts fall in 2 categories:<br>
+1. The stand-alone script that's integrated within your script package without issues.
+2. The communication script.
+
+#### What is a communication script?
+
+This script comes into play if your compactor performs tasks so complex that you need to create a library for it.<br>
+The communication script is used to transmit data from your script to the execution script.
 
 # But why
 

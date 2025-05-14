@@ -1,0 +1,29 @@
+; Macro for keeping all the names consistent
+; Changing this package name here changes it for all scripts
+#package(name) C0D.Benchmark v1.0:{name}
+;
+; Use this macro to create the `Benchmark_N` script
+#benchmark(num) {package(Benchmark_{num})}
+;
+
+;
+; How many cycles to run each measurment for.
+; Although the precision of the timer is much higher, the actual accuracy of the now()
+; function appears to be 0.5ms. This means that, to achieve a timing accuracy of 0.1us, we need
+; at least 5000 cycles.
+:const int NUM_CYCLES 5000
+
+; The number of benchmark programs to run.
+; Each one must be names "Benchmark_N" inside this package.
+:const int NUM_BENCHMARKS 1
+
+;
+; How many times to repeat the measurment, to try to get the best, stable value.
+; Note that you'll be able to see in-progress results before this point, and
+; that you can interrupt the process with F4, so there's little downside to this being large
+:const int NUM_REPEATS 1000
+
+;
+; Display variable for the number of elapsed cycles.
+; As a user, you'll only see the final count as that's when the frame ends.
+:global int benchmark_cycles

@@ -4,9 +4,9 @@
 ; 
 ; Building expressions in lua can greately improve script
 ; readability and maintinability if used correctly
-; 
+;
 
-; 
+;
 ; For this library, I will take a page out of d0s's book and
 ; just write the functions out in a string
 ; 
@@ -30,7 +30,12 @@
 {lua(\
   Editor = {};\
   Editor.format_error_message = false;\
-  Editor.error_msg_params = {};\
+  Editor.error_message_params = {};\
+  Editor.output_table = false;\
+  \
+  Editor.cache = {};\
+  Editor.cache.coma = ", ";\
+  Editor.cache.parens = table.pack("(", ")");\
   \
   --[[Internal variable for debugging, logs the function]]\
   local logging = false;\
@@ -38,14 +43,64 @@
   --[[Internal variable that stores an error message]]\
   local err_msg = {};\
   \
-  function Editor.assemble_error(input_string)\
+  local function table_output(error_format, output, params)\
+    local acc = {};\
+    local param = 1;\
+    local passed_paren = false;\
+    output = ";" .. output\
+    output = output:gsub("%%s", "PARAM")\
+    for word in output:gmatch("[^PARAM]+") do\
+      passed_paren = 1 < #params and (passed_paren or (word:match("[%(%)]") ~= nil));\
+      word = word:gsub(";", "");\
+      acc[#acc + 1] = word;\
+      if param <= #params then\
+        if passed_paren == true then\
+          Editor.error_message_params[#Editor.error_message_params + 1] = "";\
+          acc[#acc + 1] = error_format and "\\n%0s" or "";\
+        end\
+        \
+        if type(params[param]) ~= "table" then\
+          acc[#acc + 1] = tostring(params[param]);\
+        else\
+          for i = 1, #params[param] do\
+            acc[#acc + 1] = tostring(params[param][i]);\
+          end\
+        end\
+      elseif error_format and passed_paren then\
+        acc[#acc] = "\\n%0s";\
+        acc[#acc + 1] = word;\
+      end\
+      param = param + 1;\
+    end\
+    return acc;\
+  end\
+  \
+  --[[Function that processes all the actions to form the desired output]]\
+  function Editor.process_action(output, param_count, ...);\
+    local params = table.pack(...);\
+    Editor.error_message_params[#Editor.error_message_params + 1] = "";\
+    if #params < param_count then\
+      err_msg = table.pack(\
+        "\n",\
+        "\nMissing ", (#params == 0) and "all" or (param_count - #params), " parameter(s)!",\
+        "\nExpected ", param_count, " but obtained ", #params, " parameters"\
+      );\
+      error(table.concat(err_msg));\
+    end\
+    local acc = table_output(Editor.format_error_message, output, params);\
+    return Editor.output_table and acc or table.concat(acc);\
+  end\
+  \
+  function Editor.assemble_error(input)\
+    input = (type(input) ~= "table") and input or table.concat(input);\
+    \
     if not Editor.format_error_message then\
       err_msg = table.pack(\
         "Cod-proofing violation!\n\n",\
         "Editor.assemble_error was called when Editor.format_error_message is false.\n",\
         "Why are you trying to assemble an error when the output is un-formatted?"\
       );\
-    elseif input_string:match(",") == nil then\
+    elseif not input:match(",") then\
       err_msg = table.pack(\
         "Cod-proofing violation!\n\n",\
         "Editor.assemble_error called for an input without multiple parameters.\n",\
@@ -56,7 +111,7 @@
     if err_msg[1] ~= nil then\
       err_msg[#err_msg + 1] = "\n\n";\
       err_msg[#err_msg + 1] = "Unformatted input message:\n";\
-      err_msg[#err_msg + 1] = input_string;\
+      err_msg[#err_msg + 1] = input;\
       error(table.concat(err_msg), 0);\
     end\
     \
@@ -67,7 +122,8 @@
     \
     local pos = 0;\
     \
-    local action = input_string;\
+    input = (type(input) ~= "table") and input or table.concat(input);\
+    local action = input;\
     while pos < #action do\
       local pos_copy = pos;\
       \
@@ -75,28 +131,31 @@
         * Extract the text up to and including the first parenthesee.\
         * Add pos as our offset, so acc doesn't have repeat contents.\
       */]]\
-      args[idx] = action:match("([^%(%)]+.)", pos);\
-      if args[idx] == nil then\
+      args[idx] = action:match("^([^%(%)]+.)", pos + 1);\
+      pos = pos + #(args[idx] or "")\
+      if not args[idx] then\
         --[[extract just 1 parenthesee]]\
         args[idx] = action:sub(pos + 1, pos + 1);\
-      \
-      elseif input_string:sub(pos + 1, pos + 1) == string.sub("()", 0, 1) then\
+        pos = pos + 1;\
+      elseif input:sub(pos_copy + 1, pos_copy + 1) == Editor.cache.parens[1] then\
         --[[/*\
           * If the first character was a paranthesee,\
           * the match wouldn't have hit it, so we have to add it\
         */]]\
-        args[idx] = string.sub("()", 0, 1) .. args[idx];\
+        args[idx] = Editor.cache.parens[1] .. args[idx];\
+        pos = pos - 1;\
       end\
       \
-      if args[idx]:sub(#args[idx], #args[idx]) == string.sub("()", 0, 1) then\
-        args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s")\
+      if args[idx]:sub(#args[idx], #args[idx]) == Editor.cache.parens[1] then\
+        args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s");\
         spaces = spaces + 2;\
       else\
+        local cpy, count = args[idx]:gsub("%%0s", "");\
+        args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s", count - 1);\
         spaces = spaces - 2;\
         args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s");\
       end\
       \
-      pos = pos + #args[idx];\
       idx = idx + 1;\
       if pos == pos_copy then\
         error("Prevent infinite loop");\
@@ -104,7 +163,7 @@
     end\
     \
     action = "\n" .. string.gsub(table.concat(args), "\\n", "\n");\
-    action = string.format(action, table.unpack(Editor.error_msg_params));\
+    action = action:format(table.unpack(Editor.error_message_params))\
     error(action, 0);\
   end\
   \
@@ -123,7 +182,7 @@
       * \
       * Create a pattern that defines an action.\
     */]]\
-    local actions_pattern = "([%w_]+)(%b())%s*(.*)";\
+    local actions_pattern = "([%w_]+)(%b())%s+(.+)";\
     for line in actions_string:gmatch("[^;]+") do\
       --[[line is the action without the EOL character]]\
       \
@@ -150,7 +209,6 @@
         * so it's easier to know what we're doing\
       */]]\
       local name, params, output = table.unpack(action);\
-      \
       params = params:sub(2, -2);\
       \
       --[[Create the name of our function and check if it has already been defined]]\
@@ -206,41 +264,11 @@
       local func_body = string.format(\
         [==[\
           return function(%s)\
-            local output = %s;\
-            local params = table.pack(%s);\
-            local param_count = %d;\
-            Editor.error_msg_params[#Editor.error_msg_params + 1] = "";\
-            if #params < param_count then\
-              local err_msg = table.pack(\
-                "\n\n",\
-                "Missing ", (#params == 0) and "all" or (param_count - #params), " parameters!",\
-                "\nExpected ", param_count, " but obtained ", #params, " parameters"\
-              );\
-              if #params == 0 then\
-              end\
-              error(table.concat(err_msg));\
-            elseif not Editor.format_error_message or not output:match(",") then\
-              return string.format(output, table.unpack(params));\
-            end\
-            \
-            local action = {};\
-            action[1] = output:match("([^%%(%%)]+.)");\
-            \
-            for i = 1, param_count do\
-              Editor.error_msg_params[#Editor.error_msg_params + 1] = "";\
-              action[#action + 1] = "\\n%%0s" .. params[i];\
-              if i ~= #params then\
-                action[#action + 1] = ",";\
-              end\
-            end\
-            action[#action + 1] = "\\n%%0s";\
-            if output:match("%%b()") ~= nil then\
-              action[#action + 1] = string.sub("()", -1);\
-            end\
-            return table.concat(action)\
+            local output, params_count = [[%s]], %d;\
+            return Editor.process_action(output, params_count, %s)\
           end\
         ]==],\
-        params, output, params, params_count\
+        params, output, params_count, params\
       );\
       --[[/*\
         * With our function defined, we must load the function in a chunk\
@@ -290,174 +318,136 @@
   end\
   \
   local Editor_actions = [==[\
-stringify_value(value_to_stringify) [["%s"]];\
-encase_value(value_to_encase) "(%s)";\
+stringify_value(value_to_stringify) "%s";\
+encase_value(value_to_encase) (%s);\
 \
-setVar(var_type, dataType, name, set_value) "%s.%s.set(%s, %s)";\
-set_globalVar(dataType, name, set_value) "global.%s.set(%s, %s)";\
-set_localVar(dataType, name, set_value) "local.%s.set(%s, %s)";\
+setVar(var_type, dataType, name, set_value) %s.%s.set(%s, %s);\
+set_globalVar(dataType, name, set_value) global.%s.set(%s, %s);\
+set_localVar(dataType, name, set_value) local.%s.set(%s, %s);\
 \
-getVar(var_type, dataType, name) "%s.%s.get(%s)";\
-get_globalVar(dataType, name) "global.%s.get(%s)";\
-get_localVar(dataType, name) "local.%s.get(%s)";\
+getVar(var_type, dataType, name) %s.%s.get(%s);\
+get_globalVar(dataType, name) global.%s.get(%s);\
+get_localVar(dataType, name) local.%s.get(%s);\
 \
-unsetVar(var_type, name) "%s.unset(%s)";\
-unset_globalVar(name) "global.unset(%s)";\
-unset_localVar(name) "local.unset(%s)";\
+unsetVar(var_type, name) %s.unset(%s);\
+unset_globalVar(name) global.unset(%s);\
+unset_localVar(name) local.unset(%s);\
 \
-math(leftVal, op_name, rightVal) "%s %s %s";\
+math(leftVal, op_name, rightVal) %s %s %s;\
 \
-primitive_math(primitive_op, dataType, leftVal, op_name, rightVal) "%s.%s(%s, %s, %s)";\
-primitive_comparison(dataType, leftVal, op_name, rightVal) "comparison.%s(%s, %s, %s)";\
-primitive_arithmetic(dataType, leftVal, op_name, rightVal) "arithmetic.%s(%s, %s, %s)";\
+primitive_math(primitive_op, dataType, leftVal, op_name, rightVal) %s.%s(%s, %s, %s);\
+primitive_comparison(dataType, leftVal, op_name, rightVal) comparison.%s(%s, %s, %s);\
+primitive_arithmetic(dataType, leftVal, op_name, rightVal) arithmetic.%s(%s, %s, %s);\
 \
-not(value_to_negate) "not(%s)";\
+not(value_to_negate) not(%s);\
 \
-if(condition, valueTrue, valueFalse) "if(%s, %s, %s)";\
-ternary.int(condition, valueTrue, valueFalse) "if(%s, %s, %s)";\
-ternary.double(condition, valueTrue, valueFalse) "if(%s, %s, %s)";\
-ternary.string(condition, valueTrue, valueFalse) "if(%s, %s, %s)";\
-ternary.vec2(condition, valueTrue, valueFalse) "if(%s, %s, %s)";\
+if(condition, valueTrue, valueFalse) if(%s, %s, %s);\
 \
-contains(parent_string, checker_string) "string.contains(%s, %s)";\
+contains(parent_string, checker_string) contains(%s, %s);\
 \
-len(string_value) "string.length(%s)";\
-index(parent_string, checker_string, string_offset) "string.indexOf(%s, %s, %s)";\
+len(string_value) len(%s);\
+index(parent_string, checker_string, string_offset) index(%s, %s, %s);\
 \
-concat(left_string, right_string) "concat(%s, %s)";\
-sub(parent_string, string_offset, substring_lenght) "substring(%s, %s, %s)";\
+concat(left_string, right_string) concat(%s, %s);\
+sub(parent_string, string_offset, substring_lenght) sub(%s, %s, %s);\
 \
-impulse() "script.impulse()";\
+lower(string_to_manipulate) lower(%s);\
+upper(string_to_manipulate) upper(%s);\
 \
-lower(string_to_manipulate) "string.lower(%s)";\
-upper(string_to_manipulate) "string.upper(%s)";\
+min(leftVal, rightVal) min(%s, %s);\
+max(leftVal, rightVal) max(%s, %s);\
+rnd(minVal, maxVal) rnd(%s, %s);\
 \
-budget() "generic.budget()";\
-time_frame() "time.frame()";\
-screenWidth() "screen.width()";\
-screenHeight() "screen.height()";\
+floor(floor_value) floor(%s);\
+ceil(ceil_value) ceil(%s);\
+round(round_value) round(%s);\
 \
-min(leftVal, rightVal) "min(%s, %s)";\
-max(leftVal, rightVal) "max(%s, %s)";\
-rnd(minVal, maxVal) "rnd(%s, %s)";\
+sin(sin_value) sin(%s);\
+cos(cos_value) cos(%s);\
+tan(tan_value) tan(%s);\
+asin(asin_value) asin(%s);\
+acos(acos_value) acos(%s);\
+atan(atan_value) atan(%s);\
+atan2(atan2_value) atan2(%s);\
 \
-screenWidth_double() "screen.width.d()";\
-screenHeight_double() "screen.height.d()";\
-get_UISize() "option.ui.size()";\
+vector_xCoord(vector_value) x(%s);\
+vector_yCoord(vector_value) y(%s);\
+vec(vector_coord_x, vector_coord_y) vec(%s, %s);\
 \
-time_now() "timestamp.now()";\
-time_utcnow() "timestamp.utcnow()";\
+convertDataType(originalType, desiredType, value) %s2%s(%s);\
+convertFromString(desiredType, value, fallback) s2%s(%s, %s);\
 \
-time_delta() "time.delta()";\
-time_unscaled() "time.unscaledDelta()";\
-get_timeScale() "time.scale()";\
+convertIntToDouble(value) i2d(%s);\
+convertIntToString(value) i2s(%s);\
 \
-floor(floor_value) "double.floor(%s)";\
-ceil(ceil_value) "double.ceil(%s)";\
-round(round_value) "double.round(%s)";\
+convertDoubleToInt(value) d2i(%s);\
+convertDoubleToString(value) d2s(%s);\
 \
-sin(sin_value) "double.sin(%s)";\
-cos(cos_value) "double.cos(%s)";\
-tan(tan_value) "double.tan(%s)";\
-asin(asin_value) "double.asin(%s)";\
-acos(acos_value) "double.acos(%s)";\
-atan(atan_value) "double.atan(%s)";\
-atan2(atan2_value) "double.atan2(%s)";\
+convertStringToInt(value, fallback) s2i(%s, %s);\
+convertStringToDouble(value, fallback) s2d(%s, %s);\
 \
-vector_xCoord(vector_value) "vec2.x(%s)";\
-vector_yCoord(vector_value) "vec2.y(%s)";\
-vec(vector_coord_x, vector_coord_y) "vec.fromCoords(%s, %s)";\
+visibilityGet(windowID) visibility.get(%s);\
+childVisibilityGet(windowID, elementID) child.visibility.get(%s, %s);\
 \
-getMousePosition() "mouse.position()";\
-get_leftMouseState() "mouse.0.state()";\
-get_rightMouseState() "mouse.1.state()";\
-get_middleMouseState() "mouse.2.state()";\
+createWindow(windowID, windowType) window.create(%s, %s);\
+destroyWindow(windowID) window.destroy(%s);\
 \
-convertDataType(originalType, desiredType, value) "%s2%s(%s)";\
-convertFromString(desiredType, value, fallback) "s2%s(%s, %s)";\
+setWindowPosition(windowID, position) window.position.set(%s, %s);\
 \
-convertIntToDouble(value) "i2d(%s)";\
-convertIntToString(value) "i2s(%s)";\
+setTextInWindow(windowID, elementID, value) window.text.set(%s, %s, %s);\
+setSpriteInWindow(windowID, elementID, spriteID) window.sprite.set(%s, %s, %s);\
 \
-convertDoubleToInt(value) "d2i(%s)";\
-convertDoubleToString(value) "d2s(%s)";\
+setWindowVisibility(windowID, visibility) window.visibility.set(%s, %s);\
+setChildVisibility(windowID, elementID, visibility) window.child.visibility.set(%s, %s, %s);\
 \
-convertStringToInt(value, fallback) "s2i(%s, %s)";\
-convertStringToDouble(value, fallback) "s2d(%s, %s)";\
+resource(resourceID) resource(%s);\
 \
-visibilityGet(windowID) "visibility.get(%s)";\
-childVisibilityGet(windowID, elementID) "child.visibility.get(%s, %s)";\
+softwareEnabled(softwareID) software.enabled(%s);\
+softwareFind(softwareName) software.find(%s);\
 \
-createWindow(windowID, windowType) "window.create(%s, %s)";\
-destroyWindow(windowID) "window.destroy(%s)";\
-destroyWindow_all() "window.destroy.all()";\
+towerHealth(percentage) health(%s);\
+towerEnergy(percentage) energy(%s);\
+towerShield(percentage) shield(%s);\
+moduleCooldown(module_index) cooldown(%s);\
 \
-setWindowPosition(windowID, position) "window.position.set(%s, %s)";\
+highscore(type, region, difficulty) highscore.%s(%s, %s);\
 \
-setTextInWindow(windowID, elementID, value) "window.text.set(%s, %s, %s)";\
-setSpriteInWindow(windowID, elementID, spriteID) "window.sprite.set(%s, %s, %s)";\
+highscoreWave(region, difficulty) highscore.wave(%s, %s);\
+highscoreEra(region, difficulty) highscore.era(%s, %s);\
+highscoreInfinity(region, difficulty) highscore.infinity(%s, %s);\
 \
-setWindowVisibility(windowID, visibility) "window.visibility.set(%s, %s)";\
-setChildVisibility(windowID, elementID, visibility) "window.child.visibility.set(%s, %s, %s)";\
+disableCost(element_name) disable.cost(%s);\
+activeID(active_spell_index) active.id(%s);\
+activeIndex(moduleId) active.index(%s);\
 \
-resource(resourceID) "resource(%s)";\
+workerPaused(workerID) worker.paused(%s);\
+workerGroup(workerID) worker.group(%s);\
+workerName(workerID) worker.name(%s);\
+workerTask(workerID) worker.task(%s);\
 \
-isopen(roomID) "town.window.isopen(%s)";\
-anyopen() "town.window.anyopen()";\
-show(roomID, enter) "town.window.show(%s)";\
+adventureCountEntities(entityType) adventure.countEntities(%s);\
+adventureHasItem(item_name) adventure.hasItem(%s);\
+adventureIsWall(tile_coords) adventure.isWall(%s);\
+adventureIsBomb(tile_coords) adventure.isBomb(%s);\
+adventureIsEnemy(tile_coords) adventure.isEnemy(%s);\
+adventureIsCompleted(room_coords) adventure.isCompleted(%s);\
+adventureEntityType(tile_coords) adventure.entityType(%s);\
 \
-softwareEnabled(softwareID) "software.enabled(%s)";\
-softwareFind(softwareName) "software.find(%s)";\
+isMachineActive(machine_name) active(%s);\
+factoryCountItems(item_name, tier) count(%s, %s);\
+factoryCountMachineItems(machine_name) machine.item.count(%s);\
+factoryItemInMachine(machine_name) machine.item(%s);\
+factoryFindItem(item_name) factory.find(%s);\
 \
-towerHealth(percentage) "tower.health(%s)";\
-towerEnergy(percentage) "tower.energy(%s)";\
-towerShield(percentage) "tower.shield(%s)";\
-moduleCooldown(module_index) "tower.module.cooldown(%s)";\
+marketPreference(stone_element) museum.pref(%s);\
+isMarketSlotLocked(stone_index) museum.isLocked(%s);\
+museumFreeSlots(target_menu) museum.freeSlots(%s);\
+maxStoneTier(element) museum.maxTier(%s);\
+slotTier(offerSlot) museum.slotTier(%s);\
+trashTier(trashSlot) museum.trashTier(%s);\
+slotElement(offerSlot) museum.slotElement(%s);\
+trashElement(trashSlot) museum.trashElement(%s);\
 \
-highscore(type, region, difficulty) "highscore.%s(%s, %s)";\
-\
-highscoreWave(region, difficulty) "highscore.wave(%s, %s)";\
-highscoreEra(region, difficulty) "highscore.era(%s, %s)";\
-highscoreInfinity(region, difficulty) "highscore.infinity(%s, %s)";\
-\
-disableCost(element_name) "disable.cost(%s)";\
-activeID(active_spell_index) "active.id(%s)";\
-activeIndex(moduleId) "active.index(%s)";\
-\
-workerPaused(workerID) "worker.paused(%s)";\
-workerGroup(workerID) "worker.group(%s)";\
-workerName(workerID) "worker.name(%s)";\
-workerTask(workerID) "worker.task(%s)";\
-\
-adventureCountEntities(entityType) "adventure.countEntities(%s)";\
-adventureHasItem(item_name) "adventure.hasItem(%s)";\
-adventureIsWall(tile_coords) "adventure.isWall(%s)";\
-adventureIsBomb(tile_coords) "adventure.isBomb(%s)";\
-adventureIsEnemy(tile_coords) "adventure.isEnemy(%s)";\
-adventureIsCompleted(room_coords) "adventure.isCompleted(%s)";\
-adventureEntityType(tile_coords) "adventure.entityType(%s)";\
-\
-isMachineActive(machine_name) "active(%s)";\
-factoryCountItems(item_name, tier) "count(%s, %s)";\
-factoryCountMachineItems(machine_name) "machine.item.count(%s)";\
-factoryItemInMachine(machine_name) "machine.item(%s)";\
-factoryFindItem(item_name) "factory.find(%s)";\
-\
-marketPreference(stone_element) "museum.pref(%s)";\
-isMarketSlotLocked(stone_index) "museum.isLocked(%s)";\
-museumFreeSlots(target_menu) "museum.freeSlots(%s)";\
-maxStoneTier(element) "museum.maxTier(%s)";\
-slotTier(offerSlot) "museum.slotTier(%s)";\
-trashTier(trashSlot) "museum.trashTier(%s)";\
-slotElement(offerSlot) "museum.slotElement(%s)";\
-trashElement(trashSlot) "museum.trashElement(%s)";\
-\
-label(label, action) "%s: %s";\
-goto(label) "goto(%s)";\
-gotoif(label, condition) "gotoif(%s, %s)";\
-\
-execute(script_to_execute) "execute(%s)";\
-executesync(script_to_execute) "executesync(%s)";\
 ]==];\
   --[[/*\
     * Now that the string has been defined,\

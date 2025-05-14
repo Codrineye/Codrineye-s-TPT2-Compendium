@@ -1,0 +1,80 @@
+:import COD.Benchmark lib
+; This is the file imported in your `Benchmark_N` script to create a complex action.
+
+:import Editor_actions lib
+
+; Macro used to inable output formatting
+#show_command(val) {lua(Editor.format_error_message = {val};)}
+
+; Form an action through Editor_actions lib
+; func must be a valid Editor_func (such as Editor_if)
+; args is a string of `n` arguments, where you separate them with `;`
+; replace is the argument you want to be replaced
+; copies is the number of copies you want to form
+;
+; For instance
+; if(true, 0, if(true, 0, 1)) looks like [Editor_if, true; 0; 1, 3, 1]
+; We call for the function `Editor_if` with the arguments `true, 0 and 1`
+; We want to replace the 3rd parameter and we want to copy this one more time;
+
+#function(func, args, replace, copies) {lua(\
+  local args = {};\
+  do\
+    local input = [[{args}]];\
+    --[[Extract our arguments]]\
+    for arg in input:gmatch("[^;]+") do\
+      args[#args + 1] = arg:gsub(" +", "");\
+    end\
+  end\
+  local func = string.gsub([[{func}]], " +", "");\
+  --[[/*\
+    * remove all spaces from the function name,\
+    * Editor_actions has function names without spaces inside\
+    *\
+    * Throw an error if the requested func doesn't exist\
+  */]]\
+  if _G[func] == nil then\
+    error([[Trying to call a non-function ]] .. func);\
+  end\
+  \
+  local copies = tonumber({copies});\
+  if copies == nil then\
+    error("num_copies = {copies} is a nil argument.");\
+  elseif math.type(copies) ~= "integer" then\
+    error("num_copes {copies} must be an integer!\nGot type " .. math.type(copies));\
+  end\
+  \
+  local replace = tonumber([[{replace}]]);\
+  if replace == nil then\
+    error("replace = {replace} is nil.");\
+  elseif math.type(replace) ~= "integer" then\
+    error("replace = {replace} must be an integer!\nGot type " .. math.type(replace))\
+  end\
+  \
+  if #args < replace then\
+    error("cannot replace argument {replace} when we have " .. #args .. " arguments");\
+  end\
+  local action = _G[func](table.unpack(args));\
+  for i = 1, copies do\
+    local params = args;\
+    params[replace] = action;\
+    action = _G[func](table.unpack(params));\
+  end\
+  \
+  if Editor.format_error_message == true then\
+    Editor.assemble_error(action);\
+  end\
+  return action;\
+)}
+
+; copy the term num_copies times
+#dup(term, num_copies) {lua(\
+  if {num_copies} <= 1000 then\
+    return string.rep([[{term}]], {num_copies});\
+  end\
+  local acc = {};\
+  for i = 1, {num_copies} do\
+    acc[i] = [[{term}]];\
+  end\
+  return table.concat(acc);\
+)}
