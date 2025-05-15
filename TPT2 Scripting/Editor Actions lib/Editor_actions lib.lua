@@ -3,31 +3,31 @@
 ; Script that defines multiple helper lua functions
 ; that let you easily build and return large expressions
 ; by using a lua macro instead of multiple line breaks
-; 
+;
 ; Building expressions in lua can greately improve script
 ; readability and maintinability if used correctly
-; 
+;
 
-; 
+;
 ; For this library, I will take a page out of d0s's book and
 ; just write the functions out in a string
-; 
+;
 ; I'm pretty sure this should make everything easier
-; 
+;
 ; The library is made to read from the Editor_actions string and
 ; create a function that the user can call, that returns
 ; the formatted value requested by the syntax
-; 
+;
 ; Function name is defined first, its name ends at the first instance of
 ; an open parenthesis (
-; 
+;
 ; Function parameters are the contents within the set of
 ; (enclosed parenthesies), the match() pattern stops reading when
 ; it reaches a closed parenthesis )
-; 
+;
 ; Function return output is found at the first instance of a
 ; quote mark " and stops reading once it hits a semicolon ;
-; 
+;
 ; A function sequence ends with a semicolon ;
 ]==]
 
@@ -40,78 +40,103 @@ Editor.cache = {};
 Editor.cache.comma = ", ";
 Editor.cache.parens = table.pack("(", ")");
 
---[[Internal variable for debugging, logs the function]]
+-- Internal variable for debugging, logs the function
 local logging = false;
 
---[[Internal variable that stores an error message]]
+-- Internal variable that stores an error message
 local err_msg = {};
 
-local function table_output(error_format, output, params)
+-- Function that processes all the actions to form the desired output
+function Editor.process_action(output, param_count, ...)
+  local params = table.pack(...);
+  Editor.error_message_params[#Editor.error_message_params + 1] = "";
+  if #params < param_count then
+    err_msg = table.pack(
+      "n",
+      "nMissing ", (#params == 0) and "all" or (param_count - #params), " parameter(s)!",
+      "nExpected ", param_count, " but obtained ", #params, " parameters"
+    );
+    error(table.concat(err_msg));
+  end
   local acc = {};
   local param = 1;
   local passed_paren = false;
   output = ";" .. output:gsub("%%s", "PARAM");
   for word in output:gmatch("[^PARAM]+") do
-    passed_paren = 1 < #params and (passed_paren or (word:match("[%(%)]") ~= nil));
-    acc[#acc+1] = word:gsub(";", "");
-    if param <= #params then
-      if passed_paren == true then
-        Editor.error_msg_params[#Editor.error_msg_params+1] = "";
-        acc[#acc+1] = error_format and "\\n%0s" or "";
+    if param_count > 1 and word:match("[%(%)]") ~= nil then
+      --[[/*
+        * we only care if we've passed the first paren
+        * when we're formatting for an error message
+      */]]
+      passed_paren = Editor.format_error_message;
+    end
+
+    if param == 1 then
+      -- get rid of the `;` we added to the output
+      word = word:sub(2);
+    end
+
+    if param > param_count and passed_paren then
+      acc[#acc + 1] = "n%0s";
+    end
+    acc[#acc + 1] = word;
+    if param <= param_count then
+      if passed_paren then
+        Editor.error_message_params[#Editor.error_message_params + 1] = "";
+        acc[#acc + 1] = "n%0s";
       end
 
+      local str;
       if type(params[param]) ~= "table" then
-        acc[#acc+1] = tostring(params[param]);
+        str = tostring(params[param]);
+        if Editor.format_error_message and str == "%" then
+          acc[#acc + 1] = "%%";
+        else
+          acc[#acc + 1] = str;
+        end
       else
-        for i = 1, #params[param] do
-          acc[#acc+1] = tostring(params[param][i]);
+        local params_count = #params[param];
+        if params_count > math.maxinteger then
+          error("table input is too large!n" .. params_count .. " elements");
+        elseif Editor.format_error_message then
+          for i = 1, params_count do
+            str = tostring(params[param][i]);
+            acc[#acc + 1] = (str == "%") and "%%" or str;
+          end
+        else
+          for i = 1, params_count do
+            acc[#acc + 1] = tostring(params[param][i]);
+          end
         end
       end
-    elseif error_format and passed_paren then
-      acc[#acc] = "\\n%0s";
-      acc[#acc+1] = word;
     end
     param = param + 1;
   end
-end
--- Function that processes all the actions to form the desired output
-function Editor.process_action(output, param_count, ...)
-  local params = table.pack(...);
-  Editor.error_message_params[#Editor.error_message_params+1] = "";
-  if #params < param_count then
-    err_msg = table.pack(
-      "\n",
-      "\nMissing ", (#params == 0) and "all" or (param_count - #params), " parameter(s)!",
-      "\nExpected ", param_count, " but obtained ", #params, " parameters."
-    );
-    error(table.concat(err_msg), 0);
-  end
-  local acc = table_output(Editor.format_error_message, output, params);
-  if not acc then
-    error("table_output failed");
-  end
+
   return Editor.output_table and acc or table.concat(acc);
 end
+
 function Editor.assemble_error(input)
-  input = type(input) == "table" and table.concat(input) or input;
+  local action = (type(input) ~= "table") and input or table.concat(input);
+
   if not Editor.format_error_message then
     err_msg = table.pack(
-      "Cod-proofing violation!\n\n",
-      "Editor.assemble_error was called when Editor.format_error_message is false.\n",
+      "Cod-proofing violation!nn",
+      "Editor.assemble_error was called when Editor.format_error_message is false.n",
       "Why are you trying to assemble an error when the output is un-formatted?"
     );
-  elseif input:match(",") == nil then
+  elseif not action:match(",") then
     err_msg = table.pack(
-      "Cod-proofing violation!\n\n",
-      "Editor.assemble_error called for an input without multiple parameters.\n",
+      "Cod-proofing violation!nn",
+      "Editor.assemble_error called for an input without multiple parameters.n",
       "Any formatting applied would only make the output harder to read."
     );
   end
 
   if err_msg[1] ~= nil then
-    err_msg[#err_msg+1] = "\n\n";
-    err_msg[#err_msg+1] = "Unformatted input message:\n";
-    err_msg[#err_msg+1] = input;
+    err_msg[#err_msg + 1] = "nn";
+    err_msg[#err_msg + 1] = "Unformatted input message:n";
+    err_msg[#err_msg + 1] = action;
     error(table.concat(err_msg), 0);
   end
 
@@ -121,29 +146,29 @@ function Editor.assemble_error(input)
   local args = {};
 
   local pos = 0;
-
-  while pos < #input do
+  while pos < #action do
     local pos_copy = pos;
+
     --[[/*
-      * Extract the text up to and including the first parenthesee.
-      * Add pos as our offset, so args doesn't have repeat contents.
-    */]]
-    args[idx] = input:match("^([^%(%)]+.)", pos + 1);
-    pos = pos + #(args[idx] or "");
-    if args[idx] == nil then
-      -- We failed to extract anything meaningfull, so just extract the first character
-      args[idx] = input:sub(pos_copy + 1, pos_copy + 1);
-      pos = pos + 1;
-    elseif input:sub(pos_copy + 1, pos_copy + 1) == "(" then
-      --[[/*
-        * If the first character was a paranthesee,
-        * The match wouldn't have hit it, so we have to add it
+        * Extract the text up to and including the first parenthesee.
+        * Add pos as our offset, so acc doesn't have repeat contents.
       */]]
-      args[idx] = "(" .. args[idx];
+    args[idx] = action:match("^([^%(%)]+.)", pos + 1);
+    pos = pos + #(args[idx] or "")
+    if not args[idx] then
+      --[[extract just 1 parenthesee]]
+      args[idx] = action:sub(pos + 1, pos + 1);
+      pos = pos + 1;
+    elseif action:sub(pos_copy + 1, pos_copy + 1) == Editor.cache.parens[1] then
+      --[[/*
+          * If the first character was a paranthesee,
+          * the match wouldn't have hit it, so we have to add it
+        */]]
+      args[idx] = Editor.cache.parens[1] .. args[idx];
       pos = pos - 1;
     end
 
-    if args[idx]:sub(#args[idx], #args[idx]) == "(" then
+    if args[idx]:sub(#args[idx], #args[idx]) == Editor.cache.parens[1] then
       args[idx] = args[idx]:gsub("%%0s", "%%" .. spaces .. "s");
       spaces = spaces + 2;
     else
@@ -154,15 +179,18 @@ function Editor.assemble_error(input)
     end
 
     idx = idx + 1;
+    if pos == pos_copy then
+      error("Prevent infinite loop");
+    end
   end
 
-  local action = "\n" .. string.gsub(table.concat(args), "\\n", "\n");
-  action = string.format(action, table.unpack(Editor.error_msg_params));
+  action = table.concat(args);
+  action = "n" .. action:gsub("n", "n");
+  action = action:format(table.unpack(Editor.error_message_params))
   error(action, 0);
 end
 
 local function create_Editor_functions(actions_string)
-
   --[[/*
     * Every action must end with a ;
     * If the actions_string doesn't contain a `;`, throw an error
@@ -174,7 +202,7 @@ local function create_Editor_functions(actions_string)
   local action_count = 0;
   --[[/*
     * Keep count of our actions for additional helpful information
-    * 
+    *
     * Create a pattern that defines an action.
   */]]
   local actions_pattern = "([%w_]+)(%b())%s*(.*)";
@@ -255,20 +283,20 @@ local function create_Editor_functions(actions_string)
       * to create %s, you'd need to do %%s
     */]]
     local func_body = string.format(
-        [==[
+      [==[
           return function(%s)
             local output, params_count = [[%s]], %d;
             return Editor.process_action(output, params_count, %s);
           end
         ]==],
-        params, output, params_count, params
-      );
+      params, output, params_count, params
+    );
     --[[/*
       * With our function defined, we must load the function in a chunk
       * We assign 2 values here:
       * - chunk is the actual function we're loading
       * - err is an error message returned if the function failed to load
-      * 
+      *
       * The parameters in load are as follows:
       * - The function to load
       * - The "chunk" we're loading it into. This provides the function name.      * - The mode of our function.
@@ -293,7 +321,7 @@ local function create_Editor_functions(actions_string)
       * We've successfully created the function called func_name,
       * Add it to the global scope instead of our Editor table
       * so that the call Editor.Editor_name() can just be Editor_name()
-      * 
+      *
       * Also define the root properties of our function.
       * Since these aren't useful to anyone other than ourselves, we can add them to our
       * Editor table instead, purely for organization purposes.

@@ -1,7 +1,7 @@
 ; Script that defines multiple helper lua functions
 ; that let you easily build and return large expressions
 ; by using a lua macro instead of multiple line breaks
-; 
+;
 ; Building expressions in lua can greately improve script
 ; readability and maintinability if used correctly
 ;
@@ -9,23 +9,23 @@
 ;
 ; For this library, I will take a page out of d0s's book and
 ; just write the functions out in a string
-; 
+;
 ; I'm pretty sure this should make everything easier
-; 
+;
 ; The library is made to read from the Editor_actions string and
 ; create a function that the user can call, that returns
 ; the formatted value requested by the syntax
-; 
+;
 ; Function name is defined first, its name ends at the first instance of
 ; an open parenthesis (
-; 
+;
 ; Function parameters are the contents within the set of
 ; (enclosed parenthesies), the match() pattern matches the
 ; first instance of the (enclosed parenthesies) set
-; 
+;
 ; Function return output is found at the first instance of a
 ; closed parenthesis ) and a space. It stops reading when it reaches ;
-; 
+;
 ; A function sequence ends with a semicolon ;
 {lua(\
   Editor = {};\
@@ -43,38 +43,6 @@
   --[[Internal variable that stores an error message]]\
   local err_msg = {};\
   \
-  local function table_output(error_format, output, params)\
-    local acc = {};\
-    local param = 1;\
-    local passed_paren = false;\
-    output = ";" .. output\
-    output = output:gsub("%%s", "PARAM")\
-    for word in output:gmatch("[^PARAM]+") do\
-      passed_paren = 1 < #params and (passed_paren or (word:match("[%(%)]") ~= nil));\
-      word = word:gsub(";", "");\
-      acc[#acc + 1] = word;\
-      if param <= #params then\
-        if passed_paren == true then\
-          Editor.error_message_params[#Editor.error_message_params + 1] = "";\
-          acc[#acc + 1] = error_format and "\\n%0s" or "";\
-        end\
-        \
-        if type(params[param]) ~= "table" then\
-          acc[#acc + 1] = tostring(params[param]);\
-        else\
-          for i = 1, #params[param] do\
-            acc[#acc + 1] = tostring(params[param][i]);\
-          end\
-        end\
-      elseif error_format and passed_paren then\
-        acc[#acc] = "\\n%0s";\
-        acc[#acc + 1] = word;\
-      end\
-      param = param + 1;\
-    end\
-    return acc;\
-  end\
-  \
   --[[Function that processes all the actions to form the desired output]]\
   function Editor.process_action(output, param_count, ...);\
     local params = table.pack(...);\
@@ -87,12 +55,66 @@
       );\
       error(table.concat(err_msg));\
     end\
-    local acc = table_output(Editor.format_error_message, output, params);\
+    local acc = {};\
+    local param = 1;\
+    local passed_paren = false;\
+    output = ";" .. output:gsub("%%s", "PARAM");\
+    for word in output:gmatch("[^PARAM]+") do\
+      if param_count > 1 and word:match("[%(%)]") ~= nil then\
+        --[[/*\
+          * we only care if we've passed the first paren\
+          * when we're formatting for an error message\
+        */]]\
+        passed_paren = Editor.format_error_message;\
+      end\
+      \
+      if param == 1 then\
+        --[[get rid of the `;` we added to the output]]\
+        word = word:sub(2);\
+      end\
+      \
+      if param > param_count and passed_paren then\
+        acc[#acc + 1] = "\\n%0s";\
+      end\
+      acc[#acc + 1] = word;\
+      if param <= param_count then\
+      \
+        if passed_paren then\
+          Editor.error_message_params[#Editor.error_message_params + 1] = "";\
+          acc[#acc + 1] = "\\n%0s";\
+        end\
+        \
+        local str;\
+        if type(params[param]) ~= "table" then\
+          str = tostring(params[param]);\
+          if Editor.format_error_message and str == "%" then\
+            acc[#acc + 1] = "%%";\
+          else\
+            acc[#acc + 1] = str;\
+          end\
+        else\
+          local params_count = #params[param];\
+          if params_count > math.maxinteger then\
+            error("table input is too large!\n" .. params_count .. " elements");\
+          elseif Editor.format_error_message then\
+            for i = 1, params_count do\
+              str = tostring(params[param][i]);\
+              acc[#acc + 1] = (str == "%") and "%%" or str;\
+            end\
+          else\
+            for i = 1, params_count do\
+              acc[#acc + 1] = tostring(params[param][i]);\
+            end\
+          end\
+        end\
+      end\
+      param = param + 1;\
+    end\
     return Editor.output_table and acc or table.concat(acc);\
   end\
   \
   function Editor.assemble_error(input)\
-    input = (type(input) ~= "table") and input or table.concat(input);\
+    local action = (type(input) ~= "table") and input or table.concat(input);\
     \
     if not Editor.format_error_message then\
       err_msg = table.pack(\
@@ -100,7 +122,7 @@
         "Editor.assemble_error was called when Editor.format_error_message is false.\n",\
         "Why are you trying to assemble an error when the output is un-formatted?"\
       );\
-    elseif not input:match(",") then\
+    elseif not action:match(",") then\
       err_msg = table.pack(\
         "Cod-proofing violation!\n\n",\
         "Editor.assemble_error called for an input without multiple parameters.\n",\
@@ -111,7 +133,7 @@
     if err_msg[1] ~= nil then\
       err_msg[#err_msg + 1] = "\n\n";\
       err_msg[#err_msg + 1] = "Unformatted input message:\n";\
-      err_msg[#err_msg + 1] = input;\
+      err_msg[#err_msg + 1] = action;\
       error(table.concat(err_msg), 0);\
     end\
     \
@@ -121,9 +143,6 @@
     local args = {};\
     \
     local pos = 0;\
-    \
-    input = (type(input) ~= "table") and input or table.concat(input);\
-    local action = input;\
     while pos < #action do\
       local pos_copy = pos;\
       \
@@ -137,7 +156,7 @@
         --[[extract just 1 parenthesee]]\
         args[idx] = action:sub(pos + 1, pos + 1);\
         pos = pos + 1;\
-      elseif input:sub(pos_copy + 1, pos_copy + 1) == Editor.cache.parens[1] then\
+      elseif action:sub(pos_copy + 1, pos_copy + 1) == Editor.cache.parens[1] then\
         --[[/*\
           * If the first character was a paranthesee,\
           * the match wouldn't have hit it, so we have to add it\
@@ -162,7 +181,8 @@
       end\
     end\
     \
-    action = "\n" .. string.gsub(table.concat(args), "\\n", "\n");\
+    action = table.concat(args);\
+    action = "\n" .. action:gsub("\\n", "\n");\
     action = action:format(table.unpack(Editor.error_message_params))\
     error(action, 0);\
   end\
