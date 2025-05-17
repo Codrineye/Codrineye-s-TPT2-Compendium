@@ -1,0 +1,377 @@
+:import museum_macros
+:name {package(Main)}
+:budget_cap max
+
+; The main entry point of the script.
+; It's responsible for updating the scripts UI, for filling up
+; the users inventory with stones bought in the market and for combining
+; 
+; The UI is controlled by the global "museum_status", which
+; tells the user what the script is doing
+; and also stops the hiding block started by
+; our script status
+
+
+:global bool museum_buying
+
+:local int offer_idx
+;
+:global int museum_slot
+:global int museum_tier
+:global int target_tier
+:global int instances
+
+; string containing the tiers we can buy from the offshore market
+:global string offer_tiers
+:global string museum_status
+
+; Try to show the UI when facility AI activates in the museuem
+wakeup()
+
+; Update the UI when we enter/close the museum
+open.museum()
+close.museum()
+
+; toggle the scripts state on/off
+key.{start}()
+
+;|======================================================================|
+;|-----------------------------START MACROS-----------------------------|
+;|======================================================================|
+
+; Macro-substitution for the museum timer,
+; allows mocking it out easily for testing.
+#timer museum.timer()
+
+; Normally we would take the ceiling of the time remaining,
+; because that's how timers work.
+; (You show 1 second left until the time hits 0.0)
+; However, the display timer in the museum uses floor,
+; and we want to match that, so we use floor too.
+; The parameter is a divisor, to make dealing with minutes easier.
+#time_floor(offset) floor({timer} / ({offset} * 10.0)) % 6.0\
+                  . floor({timer} / {offset}) % 10.0
+
+
+
+; Turn an element string into an index.
+; The base version is defined in museum_macros.
+#element_to_index(offset) {element_to_index_base(\
+  museum.slotElement(offer_idx), \
+  {offset}\
+)}
+
+;|======================================================================|
+;|------------------------------END MACROS------------------------------|
+;|======================================================================|
+
+; Stop all instances of our parent.
+stop("{package(Cycle Refresh)}")
+
+; 
+; If we were activated, but we're not in the museum, we exit immediately
+; unless we've initialized our variables, in which case we hide our
+; UI by overwriting museum_status with a simple "</size>" and then
+; terminate the instance
+; 
+; Otherwise, we were activated in the museum
+; 
+; We could've been called by Ourselves, Cycle Refresh or by a user action
+; 
+; The user action means that they want to toggle the scripts state
+; in which case, we're going through top and reseting our variables
+; to their default values
+;
+; We called ourselves if we were in the middle of a combine or buy cycle
+; And we're called by Cycle Refresh only when we're active
+
+
+goto(if(\
+  not(isopen("museum")),\
+  if(museum_status == "" || impulse() == "{package(Cycle Refresh)}", 99, unset),\
+  if(\
+    contains("key.{start}|wakeup|open.museum|close.museum", impulse()),\
+    top,\
+    if(\
+      not(global.bool.get({status})),\
+      new_instance,\
+      if(\
+        tier("inventory", 0) == target_tier,\
+        next_slot,\
+        if(\
+          museum_buying,\
+          inventory_fill,\
+          start_combine\
+        )\
+      )\
+    )\
+  )\
+))
+
+start_waiting:
+; click to enter the Power Stones menu
+{click.relative(150.0 / 800.0, 325.0 / 450.0, 0.0, 1.0)}
+
+waiting:
+; Start the waiting loop.
+; We enter it once museum_slot becomes 130 and it resets
+
+museum_status = "</size>museum=<color=#2F4>{start}</color> " . if(\
+  global.bool.get({status}),\
+  "<color=#0DF>stops</color><br><color=white>Waiting "\
+  . {time_floor(60.0)} . ":"\
+  . {time_floor(1.0)} . "</color>",\
+  "<color=#0DF>begins</color>"\
+)
+
+waitframe()
+gotoif(\
+  waiting,\
+  global.bool.get({status}) && {timer} <= 59.0 * 60.0 + 59.0\
+)
+
+top:
+; toggles our status
+; lock it to false if we've got an error
+:const int error_size {len(</size>ERROR=)}
+global.bool.set(\
+  {status},\
+  not(contains(museum_status, "</size>ERROR=")) &&\
+  global.bool.get({status}) != (impulse() == "key.{start}")\
+)
+
+instances = 0
+
+museum_tier = -1
+museum_slot = -1
+target_tier = -1
+
+museum_buying = false
+
+; 01 for all elements
+; -1 for universal as it can only be bought from the offshore market
+offer_tiers = "0101010101010101-1"
+
+
+update_status:
+; Prevent the script from combining if we get an error
+museum_status = if(\
+  contains(museum_status, "ERROR="),\
+  museum_status,\
+  "</size>" . if(\
+    global.bool.get({status}),\
+    "museum=<color=#FF0>Combining... [" . museum_slot + 1 . "]</color>" .\
+    "<br><color=#2F4>{start}</color> <color=#0DF>stops",\
+    if(\
+      museum_slot >= 0 && freeSlots("inventory") < 30,\
+      "ERROR=<color=#FB3>Script cannot be run!<br>"\
+      . "Inventory must have 30 slots!",\
+      if(\
+        museum_slot == -1 && budget() < 9900,\
+        "ERROR=<color=#FB3>Insufficient Budget!<br>"\
+        . "Upgrade Server RAM in Headquarters",\
+        "museum=<color=#2F4>{start}</color> <color=#0DF>begins"\
+      )\
+    )\
+  ) . "</color>"\
+)
+
+
+; Time for more ugly math!
+; When we set preferred tier to "pref", we get stones in
+; the range [pref-10, pref], at uniform.
+; We want our best stone to be in that range minus the one that
+; we can *just* afford to do +11 levels from. Stones smaller
+; than that fall off at a rate of 1 tier/level, and stones higher
+; fall off at a rate of (18 log 3 - 1), or ~1.63 tiers/level.
+; To maximize the potential of the range, we want the top and bottom
+; of the range to have equally high max_tiers,
+; so max_tier(pref - 10.5) = max_tier(pref + 0.5).
+; 
+; The halves make the range of size 11, which is needed to
+; properly match the actual integer-sized range.
+;
+; Substituting gives
+; K = 2000 * 100 / 18
+; pref - 10.5 + 11 = log_3(budget / K / 18 ^ (pref + 0.5)) + pref + 0.5
+; pref - pref + 11 - 10.5 - 0.5 = log_3(budget / K / 18 ^ (pref + 0.5))
+; pref - pref = 11 - 10.5 - 0.5 = 0
+;
+; log_3(budget / K / 18 ^ (pref + 0.5)) = 0
+; log(a / b) = log(a) - log(b) (basic math principle)
+; 
+; log_3(budget / K) - log_3(18 ^ (pref + 0.5)) = 0
+; log_3(budget / K) = log_3(18 ^ (pref + 0.5))
+; log(a ^ b) = b * log(a) (basic math principle)
+; 
+; log_3(budget / K) = (pref + 0.5) * log_3(18)
+; pref + 0.5 = log_3(budget / K) / log_3(18)
+; 
+; pref = log_18(budget / K) - 0.5
+; pref = log_18(budget / (2000 * 100 / 18) / 18 ^ 0.5)
+; pref = log_18(budget / (2000 * 100 / 18 ^ 0.5))
+; 2000 * 100 = 2e5
+; pref = log_18(budget / (2e5 / 18 ^ 0.5))
+; The result ends up being intuitive - since the range of stones spans
+; 11 tiers, and our uptiers is also +11 tiers, we want to match
+; the preferred tier to the point where we can just barely afford to buy
+; the stone.
+museum.setPreferredTier(max(1, min(\
+  50, \
+  d2i((resource("museum.resources") / (2e5 / (18.0 ^ 0.5))) // 18.0)\
+)))
+
+
+goto(if(\
+  museum_slot == -1 || global.bool.get({status}),\
+  next_slot,\
+  99\
+))
+
+next_slot:
+
+; click to enter the Artifacts menu
+{click.relative(150.0 / 800.0, 280.0 / 450.0, 0.0, 1.0)}
+
+museum.swap(\
+  "inventory",\
+  0,\
+  if(tier("inventory", 0) == -1, "inventory", "loadout"),\
+  museum_slot\
+)
+
+clear("inventory")
+museum_slot += 1
+
+waitframe()
+; start waiting if we've reached the last museum slot
+; otherwise jump to update_status if we're idle
+; 
+; If offer_tiers is not at its default value and the first slot has an element
+; we skip getting the offers because we either already got them or the user doesn't have
+; the offshore market
+goto(if(\
+  museum_slot == 15 * 9,\
+  start_waiting,\
+  if(\
+    global.bool.get({status}),\
+    if(offer_tiers . museum.slotElement(0) != "0101010101010101-1", skip_offers, get_offers),\
+    update_status\
+  )\
+))
+
+get_offers:
+
+; This updates offer_tiers such that only the highest tier stone
+; that we can afford gets added
+offer_tiers = if(\
+  museum.slotElement(offer_idx) == "" ||\
+    {top_tier(i2d(museum.slotTier(offer_idx)))} <=\
+    {top_tier(s2d(\
+      sub(offer_tiers, {element_to_index(0)}, {element_size}),\
+      -1.0\
+    ))},\
+  offer_tiers,\
+  sub(offer_tiers, 0, {element_to_index(0)})\
+  . sub(i2s(100 + museum.slotTier(offer_idx)), 1, {element_size})\
+  . sub(\
+    offer_tiers,\
+    {element_to_index({element_size})},\
+    9 * {element_size}\
+  )\
+)
+; there are max 10 offer slots, numbered 0 through 9. We'll exit after #9
+offer_idx += 1
+gotoif(get_offers, offer_idx < 10)
+
+skip_offers:
+; get the pre-calculated tier of stone we're buying
+museum_tier = s2i(\
+  sub(\
+    offer_tiers,\
+    {element_to_index_base(element("loadout", museum_slot), 0)},\
+    {element_size}\
+  ),\
+  -1\
+)
+
+; Determine the tier we're aiming for.
+; In the best case, we can upgrade 11 levels past the tier of stones
+; we can buy from the museum. (Which may only be tier 1.0)
+target_tier = if(\
+  min(tier("loadout", museum_slot), museum_tier) < 0,\
+  -1,\
+  d2i({top_tier(i2d(museum_tier))})\
+)
+
+; If tier(museum_pos) < museum_tier, buy one of the target stones.
+; In this case, we're about to move our stone into the 0th slot
+; and if it's below the base level, it will never get combined with,
+; so the combine loop will never end.
+museum.buyTier(\
+  element("loadout", museum_slot),\
+  museum_tier,\
+  if(tier("loadout", museum_slot) < museum_tier, 1, 0)\
+)
+
+; don't move the targeted stone if we've bought a stone
+; skip the slot if the tier is already our target_tier
+gotoif(\
+  if(freeSlots("inventory") == 1, inventory_fill, new_instance),\
+  freeSlots("loadout") == 1 ||\
+  tier("loadout", museum_slot) >= target_tier\
+)
+museum.move("loadout", museum_slot, "inventory")
+
+; 3900 + 600 = 4500 + 3900 = 8400 + 3900
+
+; in the worst case, we're here with a budget of 9400
+; we need fill the inventory, which requires at most 29 buyTier's
+; this means we need at least 2900 budget, which we have
+inventory_fill:
+museum_buying = true
+
+; If we're only upgrading 5 or fewer levels, we buy one-at-a-time
+; to avoid overbuying. The number of operations is so small that
+; it won't be slow.
+; This actually maxes out on speed at +7 levels, because at that point
+; we are buying 6 each cycle, which matches the amount the combines use.
+museum.buyTier(\
+  element("inventory", 0),\
+  museum_tier,\
+  max(1, (target_tier - museum_tier - 5) * 3)\
+)
+
+gotoif(\
+  if(museum.freeSlots("inventory") > 0, inventory_fill, new_instance),\
+  museum.freeSlots("inventory") > 0 && budget() > 200\
+)
+
+start_combine:
+museum_buying = false
+
+combine_loop:
+combine(50)
+
+goto(if(\
+  budget() == 100,\
+  new_instance,\
+  if(tier("inventory", 27) == -1, inventory_fill, combine_loop)\
+))
+
+unset:
+; reset our status to idle and hide our status
+global.bool.set({status}, false)
+museum_status = "</size>"
+
+; unset also starts a combiner instance
+; to stop all running instances of Main
+
+new_instance:
+; limit of 20 instances is an arbitrary number
+instances = (instances + 1) % 20
+execute(if(\
+  instances > 0 && isopen("museum"),\
+  "{package(Main)}",\
+  "{package(Cycle Refresh)}"\
+))

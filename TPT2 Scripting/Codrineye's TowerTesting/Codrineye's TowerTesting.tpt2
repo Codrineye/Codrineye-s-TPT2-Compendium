@@ -82,7 +82,7 @@ time.game = if(impulse() == "game.newround", 0.0, time.game)
 global.string.set(stop_hiding, if(\
   not({state.get}) && impulse() == "key.{state_switch}" ||\
   contains("key.{mode_switch}|key.{cycling}", impulse()) ||\
-  {state.get} && contains("key.{exit}|key.{stats}|key.{restart}", impulse()), \
+  {state.get} && contains("key.{exit}|key.{stats}|key.{restart}|game.newround", impulse()), \
   concat("Stop Hiding", "</size>"), \
   "Cods TowerTesting is Hiding"\
 ))

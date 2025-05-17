@@ -1,0 +1,137 @@
+:import museum_macros
+:name {script(Calculate)}
+
+; This script contains (stub) logic for handling key.{start}. This would be part
+; of Main normally, but there can only be 2 impulses per script at the
+; resource-cost-levels we're targeting.
+;
+; The final (bulk) of the logic deals with buying test stones from the
+; offshore market and doing calculations/preparations for the actual
+; combining, which is handled by Combine. This script sets museum_tier
+; and target_tier, which directly drive the combining process.
+
+key.{start}()
+
+:global int museum_tier
+:global int target_tier
+:global int museum_pos
+:global double budget
+:global string offer_tiers
+
+:global int turbo.register
+:global int turbo.cycles
+:global int turbo.cycles.max
+
+:local int offer_idx
+
+; If we're called from key.{start}, then check if the museum
+; is open. If it is, signal Main, otherwise exit. We can't just set a
+; condition on the script, because that would possibly mess up scripts
+; that execute us, on exiting the museum.
+; This will overwrite target_tier if we are currently combining,
+; causing an early exit and leading to main resuming - which is what we
+; want.
+; If we're called from Main, then we need to set museum_tier to 0, because it
+; serves as a signal variable. Main waits on it for BuyOffshore/Combine to be done.
+;
+; It's ugly to fold this up into a single conditional set, but between the fact that
+; we need museum_tier reset on the first instruction, and some of the other conditions
+; involved, it wouldn't be less complicated to do it as two instructions.
+global.int.set(\
+  if(contains("key.{start}", impulse()), "target_tier", "museum_tier"),\
+  if(contains("key.{start}", impulse()),\
+    if(isopen("museum"), -2, target_tier),\
+    0\
+  )\
+)
+; If we're called from key.{start}, we're done now. Otherwise, if offer_tiers is
+; the default, calculate it now, but don't bother re-doing work if we don't have to.
+; (This would be easier to do at the top, but there's no room in Main.)
+goto(if(\
+  contains("key.{start}", impulse()),\
+  end,\
+  if(\
+    contains(offer_tiers, "0101010101010101-1"),\
+    get_offers,\
+    skip_offers\
+  )\
+))
+
+; This loop calculates the best stone to buy, for each element.
+get_offers:
+
+; Turn an element string into an index. The base version is defined in museum_macros.
+#element_to_index(offset) {element_to_index_base(museum.slotElement(offer_idx), {offset})}
+
+; This monstrousity updates the value of the best tier to use for an element.
+; The element is the element in slot [offer_idx], and we're assessing whether
+; that offer will be an improvement.
+; The base logic relies on the top_tier formula.
+offer_tiers = if(\
+  museum.slotElement(offer_idx) == "" ||\
+    {top_tier(i2d(museum.slotTier(offer_idx)))} <=\
+      {top_tier(s2d(sub(offer_tiers, {element_to_index("")}, 2), -1.))},\
+  offer_tiers,\
+  sub(offer_tiers, 0, {element_to_index("")}) .\
+    sub(i2s(100 + museum.slotTier(offer_idx)), 1, 2) .\
+    sub(offer_tiers, {element_to_index("  ")}, 99)\
+)
+; There are max 10 offer slots, numbered 0 through 9. We'll exit after #9.
+offer_idx = offer_idx + 1
+gotoif(get_offers, offer_idx < 10)
+
+skip_offers:
+clear("inventory")
+
+; Load the pre-calculated tier of stone we are buying.
+museum_tier = s2i(sub(\
+  offer_tiers,\
+  {element_to_index_base(element("loadout", museum_pos), "")},\
+  2\
+), -1)
+
+; Determine "target_tier", the level we are trying to upgrade to. In the
+; best case, we can upgrade 11 levels past the tier of the stones we can
+; buy from the museum. (Which may only be tier 1.)
+target_tier = if(min(tier("loadout", museum_pos), museum_tier) < 0,\
+  -1,\
+  d2i({top_tier(i2d(museum_tier))})\
+)
+; If tier(museum_pos) < museum_tier, buy one of the target stone.
+; In this case, we're about to move our stone into the 0th slot, and
+; if it's below the base level it will never get combined with, so
+; the combine loop will never end.
+; It's OK to still move it, because there's enough room in the inventory
+; for an extra stone.
+; If we can't afford the stone, or for some other reason are unable to buy
+; it, then we'll also fall through in Combine and move the original stone
+; back when we're done. In this way, we can always avoid eating stones,
+; no matter what happens.
+museum.buyTier(\
+  element("loadout", museum_pos),\
+  museum_tier,\
+  if(tier("loadout", museum_pos) < museum_tier, 1, 0)\
+)
+move("loadout", museum_pos, "inventory")
+
+; Extend turbo for a little longer. There's a race condition where we might
+; run out of cycles and start a new frame, but even if we do that on this
+; line, the new frame will start in time for the Combiners to loop properly,
+; and for the max-setting line in Combine to set the max to its proper value.
+;
+; Otherwise, this ensures that we stay in the current loop until the line
+; in Combine sets cycles.max to its full value.
+; This is a small enough extension so that if we never enter the main loop
+; of Combine, we'll still eventually hit turbo.cycles.max and start a new frame.
+; (I.e. we can't loop indefinitely with this extension alone.)
+turbo.cycles.max = max(turbo.cycles.max, turbo.cycles + 15)
+
+; executesync() is used here to pause us until our child Combine stops us.
+; If we jump from the top, we have to be prepared to loop back to this instruction.
+; in that case, this needs to be a no-op.
+executesync(if(contains("key.{start}", impulse()),\
+  "%%museum-nop%%",\
+  "{script(Combine)}"\
+))
+
+end:
