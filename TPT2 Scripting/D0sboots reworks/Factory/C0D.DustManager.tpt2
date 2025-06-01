@@ -1,0 +1,233 @@
+; Add a budget_cap for the script
+; We have 3 non-atomic actions, and there are 10 tiers
+; This means we'd need a budget of 10 * 3 * 100 for all tiers to be checked in 1 frame
+:budget_cap 3000
+:name C0D.DustManager
+
+:local double crusher_tier
+:local double crush_time
+:local double ore_buffer
+:local double powerplant_boost
+;
+:global int factory_target
+:local int i
+:local int state
+;
+:local string dust_multipliers
+
+wakeup()
+open.factory()
+
+isopen("factory")
+
+; Amount of ore to save at each tier. Ore will only be saved if there is
+; more dust than ore, otherwise it will be crushed anyway (so that saving
+; ore doesn't prevent you from progressing.) This function exists to allow
+; for scanning ore with the Crafter.
+ore_buffer = 1000.0
+
+; Initialize multipliers from a string.
+; This used to be much worse, but is easy now that there is native s2d().
+
+dust_multipliers = "1 1 0.625 0.5 0.07872 0.06312 0.01 0.01 0.0021"
+;
+; "i" combines the position in the string with the tier currently being
+; initialized. The encoding is pos + tier * 10000.
+; (I.e. the string can only be 10000 long.)
+#pos (i % 10000)
+#tier (i / 10000)
+#next_space index(dust_multipliers . " ", " ", {pos})
+
+#buffer(tier) "buffer" . ({tier})
+#buffer.get(tier) local.double.get({buffer({tier})})
+#buffer.set(tier, ammount) local.double.set({buffer({tier})}, {ammount})
+
+; This is a simple loop: Each iteration converts one number and advances
+; both the read position "pos" and the "tier" appropriately. The only subtle
+; wrinkle is that once it gets to the end of the list, it will keep reading
+; the same entry to fill in the remaining tiers.
+init_multipliers:
+{buffer.set({tier} + 1, s2d(sub(dust_multipliers, {pos}, {next_space} - {pos}), 0.0 / 0.0))}
+i += 10 ^ 4 + if(index(dust_multipliers, " ", {pos}) == -1, 0, {next_space} + 1 - {pos})
+
+; loop until we've got a buffer for every tier
+gotoif(init_multipliers, i < 10 * 10 ^ 4)
+
+; Mark the maximum amount of time you want the crusher to be occupied for
+; and the crusher tier
+crusher_tier = 10.0
+crush_time = 0.0 + (arithmetic.double(5.0, "*", 60.0) + arithmetic.double(0.0, "*", 60.0 * 60.0))
+powerplant_boost = 1.0
+
+; The overall plan is to count down through the ores, so that the best ones
+; (with the least count) get processed first, and to count down through
+; the lumps as well. We process lumps in "packets" that are based on a
+; power of the stack size, which ensures that uptiering
+; doesn't consume too much dust while processing but also allows
+; for the chunks to process for a considerable time.
+; This also makes for a simple expression that equals 0 when the size
+; is 1 (so that we don't use the last dust), and 1 when the size is 2
+; (so that we do start immediately after that point.)
+
+; The tier variable is a local, so the process can be restarted from
+; the top if it's taking too long.
+
+top:
+
+; Calculate the tier of ore to crush.
+; Since this is computation, import Editor_actions lib to build the operations in lua macros
+:import Editor_actions lib
+{lua(\
+  DustManager = {};\
+  --[[/*\
+    * global table that everything in the global field is appended ontop of\
+    *\
+    * Then, create the names of the variables we can work with\
+  */]]\
+  \
+  local ore_buffer = [[ore_buffer]];\
+  local dust = [["dust"]];\
+  local ore = [["ore"]];\
+  local ingot = [["ingot"]];\
+  \
+  local active = function(machine) return Editor_isMachineActive(machine); end\
+  local mixer = [["mixer"]];\
+  local crusher = [["crusher"]];\
+  \
+  local function ore_count_cond(tier)\
+    --[[This determines if we have enough ore of this tier to crush it]]\
+    local dust_count = Editor_factoryCountItems(dust, tier);\
+    local ore_count = Editor_factoryCountItems(ore, tier);\
+    \
+    --[[/*\
+      * We have enough ore if the max count between ore or ingot is bigger than or equal to\
+      * the minimum between the dust count and the ore buffer\
+    */]]\
+    local min_count = Editor_min(ore_buffer, dust_count);\
+    return Editor_math(ore_count, "<=", min_count);\
+  end\
+  \
+  function DustManager.ore_state()\
+    --[[/*\
+      * The main state calculation. We first calculate whether ore needs to be crushed,\
+      * and if it does not, we possibly increment the current dust that is being mixed.\
+      *\
+      * This is composed of multiple statements, so we're building it from end to the start\
+      *\
+      * Additionally, since this is a nest, I will make all Editor_actions return a table\
+      * instead of a string, and then concatenate it all at the end.\
+    */]]\
+    Editor.output_table = true;\
+    \
+    local dust_inc = Editor_if(active(mixer), 0, 11);\
+    local acc = dust_inc;\
+    for i = 1, 10 do\
+      local cond = ore_count_cond(i);\
+      acc = Editor_if(cond, acc, i);\
+    end\
+    \
+    acc = Editor_if(active(crusher), dust_inc, acc);\
+    --[[Set back to false after we're done]]\
+    if Editor.output_table then\
+      Editor.output_table = false;\
+      return table.concat(acc);\
+    end\
+    return acc;\
+  end\
+)}
+
+#ore_state {lua(return DustManager.ore_state())}
+
+; The dust_tier for mixing and ore_tier for crushing are stored together in state.
+; Mixing will only occur if ore_tier is 0, since crushing takes priority.
+; (Generally the mixing will happen in the next iteration.)
+
+#raw_dust_tier (state / 11)
+;
+#dust_tier ({raw_dust_tier} + 8) % 9
+#dust_tier.current 1 + {dust_tier}
+#dust_tier.next 2 + {dust_tier}
+
+
+#ore_tier (state % 11)
+#has_ore (state % 11 != 0) || count("ingot", {ore_tier}) > 0.0
+
+state = ({raw_dust_tier} * 11 + {ore_state}) % 99
+
+; These expressions calculate how much dust to uptier. It used to be a more
+; complicated expression that calculated everything in T1-equivilant units,
+; (i.e. if you down-converted it all), but that isn't actually needed: Everything
+; works (better actually) if you just make local decisions based on the ratios
+; between the current and next tier.
+; In both cases, Ore Lumps are also counted as dust, so that unmixed lumps don't
+; throw off the calculations. We know that currently processing lumps won't be
+; an issue, because we only craft when the mixer is empty.
+
+#count_dust_and_lumps(count_tier) (count("dust", {count_tier}) + if(\
+  {count_tier} == 1,\
+  0.0,\
+  count("lump", max(1, -1 + {count_tier}))\
+))
+
+; Use arithmetic.double to separate the 2 operations
+; Removes most parentheses and helps (slightly) make the code flow easier
+#needed_by_ratio(ratio_tier) arithmetic.double(\
+  {count_dust_and_lumps({ratio_tier})} * {buffer.get(1 + {ratio_tier})} -\
+  {count_dust_and_lumps(1 + {ratio_tier})} * {buffer.get({ratio_tier})},\
+  "/",\
+  {buffer.get({ratio_tier})} + 8.0 * {buffer.get(1 + {ratio_tier})}\
+)
+
+; We always save one dust on the producing side, so that dust ordering doesn't
+; get messed up in the inventory.
+; We produce lumps in chunks. We consume up to 5% of the destination;
+; this allows for large-ish mixing regardless of stack size, and
+; dynamically adjusts well.
+; Not adding more to the mixer when it's running greatly reduces
+; complications. We just move on to the next tier when it's done,
+; and come back around soon enough.
+; The "+ 0.5" on the consuming side is to adjust for Chemical Lumps.
+; That way, in the terminal case it'll hit the safety target exactly. If you
+; don't have lumps, you'll be up to 3 under the target. However, we always
+; ensure that you'll leave one leftover no matter what.
+
+;
+; Wait for D0S.Factory to stop if it's running.
+; Or if 
+waitwhile(factory_target != 0 || (active("mixer") && active("crusher")))
+
+craft(\
+  "lump",\
+  {dust_tier.current},\
+  if(\
+    {has_ore} || active("mixer"),\
+    0.0,\
+    min(\
+      0.999 * count("dust", {dust_tier.next}) ^ 0.84,\
+      {needed_by_ratio({dust_tier.current})}\
+    ) + 0.5\
+  )\
+)
+
+; try to crush the ammount of ore that'd occupy the crusher for crush_time ammount of seconds
+; This calculation is made with the machine speed, which is 2 ^ (crushter_tier - 1)
+; and ore crushing speed, which is (2t - 1) seconds, where t is the ore tier
+; We mark as `x` the ammount of ore we'll need to crush to achieve this goal
+; x(2t - 1) = crush_time * 2 ^ (crusher_tier - 1)
+; x = (crush_time / (2t - 1)) * 2 ^ (crusher_tier - 1)
+
+produce(\
+  if({has_ore}, "ore", "lump"),\
+  if({has_ore}, {ore_tier}, {dust_tier.current}),\
+  if(\
+    {has_ore},\
+    min(\
+      count("ore", {ore_tier}) - ore_buffer,\
+      powerplant_boost * (2.0 ^ (crusher_tier - 1.0)) * crush_time / (2.0 * i2d({ore_tier}) - 1.0)\
+    ),\
+    count("lump", {dust_tier.current})\
+  ),\
+  if({has_ore}, "crusher", "mixer")\
+)
+
+gotoif(top, isopen("factory"))

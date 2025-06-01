@@ -2,18 +2,22 @@
 ; Easy naming scheme to follow
 
 ; impulse key macros for easy customization
-#state_switch x
-#mode_switch q
+#start x
+#mode q
 #cycling w
+;
+#difficulty d
+;
+; qol impulses
 #restart r
 #exit e
 #stats t
 
 {lua(\
   TowerTest = {};\
+  TowerTest.debug = tru;\
+  --[[Set to true for debugging, set to anything else besides TowerTest for not debugging]]\
   TowerTest.impulse = {};\
-  TowerTest.diff = {};\
-  TowerTest.max_digits = 0;\
   \
   --[[/*\
     * Go through all impulse keys and\
@@ -21,7 +25,7 @@
   */]]\
   local impulse = {};\
   local keys = table.pack(\
-    "{state_switch}", "{mode_switch}", "{cycling}",\
+    "{start}", "{mode}", "{cycling}", "{difficulty}",\
     "{restart}", "{exit}", "{stats}"\
   );\
   for i = 1, #keys do\
@@ -35,9 +39,9 @@
 ; variable macros for improved visibility in the source code
 ; a display var hides the script identifier to make it less likely
 ; that the var gets changed by another script
-; 
+;
 {lua(\
-  local security_prefix = "<size=0>{script_name}</size>";\
+  local security_prefix = "<size=0>C^t@t</size>";\
   \
   --[[/*\
     * Used to add an impulse to the display_var\
@@ -88,15 +92,25 @@
   return TowerTest.display_var([[{name}]], {secured}, [[{impulse}]]);\
 )}
 
+; Returns empty or blank or case false
+#if_debugging(case_false) {lua(\
+  return TowerTest.debug and "" or [[{case_false}]];\
+)}
+
 ; block hider
 ; used to control when the global variables are shown or hidden 
-#hider concat("<size=0>", "Variable hider") . "{script_name}"
-:const string stop_hiding "Stop Hiding"
+#hider concat("{if_debugging(<size=0>)}C^t@t", "Variable hider")
+#hider.get global.string.get({hider})
+#hider.set(value) global.string.set({hider}, {value})
+;
+:const string diff {display_var(Diff, true,)}
+#diff.get global.string.get(diff)
+#diff.set(diff) global.string.set(diff, {diff})
 
 ; the state of the script
-:const string state_var {display_var(Active, true, {state_switch})}
-#state.get global.bool.get(state_var)
-#state.set(value) global.bool.set(state_var, {value})
+:const string status_var {display_var(Active, true, {start})}
+#status.get global.bool.get(status_var)
+#status.set(value) global.bool.set(status_var, {value})
 
 ; if region cycling is enabled or not
 :const string cycle_var {display_var(Region Cycling, true, {cycling})}
@@ -104,7 +118,7 @@
 #region_cycling.set(value) global.bool.set(cycle_var, {value})
 
 ; which mode is selected
-:const string mode_var {display_var(Curent Mode, true, {mode_switch})}
+:const string mode_var {display_var(Curent Mode, true, {mode})}
 #curent_mode.get global.string.get(mode_var)
 #curent_mode.set(mode) global.string.set(mode_var, {mode})
 
@@ -112,62 +126,72 @@
 :const string mode1 "Difficulty>Region"
 :const string mode2 "Region>Difficulty"
 
+; Which direction do I select difficulties in?
+:const string diff_mode "<size=0>C^t@tD$m"
+#diff_mode.get global.string.get(diff_mode)
+#diff_mode.set(mode) global.string.set(diff_mode, {mode})
+
 ; Variable used to tell the user what the AI is doing
-:const string job_status "<size=0>{script_name}Job Status"
+:const string job_status "<size=0>C^t@tJ$S"
 #job.get global.string.get(job_status)
-#job.set(job) global.string.set(job_status, {job_message({job})})
-#job_message(job) "</size>" . {job} . "</size>"
+#job.set(job) global.string.set(job_status, {job})
 ; job_status starts a hiding block, which is ended by the first </size>
 ; and then, it ends the hiding block started by {hider} with the final
 ; </size>
 
-; Detects if there's a building open
-#opened_building {lua(\
-  local acc = {};\
-  local isOpen = [[isopen("%s")]];\
-  local buildings = table.pack(\
-    "towertesting", "tradingpost", "powerplant",\
-    "factory", "laboratory", "shipyard",\
-    "workshop", "arcade", "museum",\
-    "headquarters", "constructionfirm",\
-    "statueofcubos", "mine"\
+; lua macro used to process coordinates and output a difficulty list
+{lua(\
+  --[[y coordinate of all 6 difficulties]]\
+  local difficulties = table.pack(\
+    "290.0", "256.0", "217.0",\
+    "182.0", "145.0", "112.0"\
   );\
-  for i = 1, #buildings do\
-    acc[1 + #acc] = isOpen:format(buildings[i]);\
+  \
+  function TowerTest.diff_list(switch)\
+    if switch == nil or type(switch) ~= "boolean" then\
+      local err_msg = table.pack(\
+        "\n",\
+        "\nSwitch in macro diff_list must be true or false",\
+        "\nValue recieved was ", switch or "nil"\
+      );\
+      error(table.concat(err_msg), 0);\
+    end\
+    \
+    local diff = {};\
+    --[[true = keep order, false = reverse order]]\
+    if switch then\
+      diff = difficulties;\
+    else\
+      for i = #difficulties, 1, -1 do\
+        diff[#diff + 1] = difficulties[i];\
+      end\
+    end\
+    local acc = {};\
+    local pos = 0;\
+    for i = 1, #diff do\
+      local offset = i * 2;\
+      if i == #diff then\
+        pos = 0;\
+      else\
+        pos = pos + 2 + #diff[i]\
+      end\
+      --[[/*\
+        * Encode our coordinates\
+        * We have a length-2 position and the difficulty coord\
+        * the position = where in the list we are\
+        * coord = what y value do we want\
+      */]]\
+      acc[offset - 1] = string.format("%02d", pos);\
+      acc[offset] = diff[i];\
+    end\
+    acc[#acc + 1] = "</size>Diff Order(" .. string.upper("{difficulty}") .. ")="\
+    if switch then\
+      acc[#acc + 1] = "Easy -> Impossible";\
+    else\
+      acc[#acc + 1] = "Impossible -> Easy";\
+    end\
+    return table.concat(acc);\
   end\
-  return table.concat(acc, " || ");\
 )}
 
-; simple lua macro for recording coordinates
-#set_difficulty(coord_y) {lua(\
-  TowerTest.diff[1 + #TowerTest.diff] = {coord_y};\
-  if TowerTest.max_digits < #[[{coord_y}]] then\
-    TowerTest.max_digits = #[[{coord_y}]];\
-  end\
-)}
-
-{set_difficulty(290.0)}
-{set_difficulty(256.0)}
-{set_difficulty(217.0)}
-{set_difficulty(182.0)}
-{set_difficulty(145.0)}
-{set_difficulty(112.0)}
-
-; const variables to make the difficulty logic easier to follow
-:const int coord_size {lua(return TowerTest.max_digits)}
-:const int difficulty_count {lua(return #TowerTest.diff)}
-
-; Simple lua macro that outputs the difficulty list based on
-; the inputed number. Negative number = reversed list and
-; Positive number = normal list
-#diff_list(mode) {lua(\
-  local reversed = {mode};\
-  local diff = TowerTest.diff;\
-  local fmt = string.format("%%0%ds", TowerTest.max_digits);\
-  local diff_list = {};\
-  for i = 1, #diff do\
-    diff_list[i] = reversed and diff[#diff + 1 - i] or diff[i];\
-    diff_list[i] = fmt:format(diff_list[i]);\
-  end\
-  return string.format([["%s"]], table.concat(diff_list));\
-)}
+#diff_list(switch) "{lua(return TowerTest.diff_list({switch}))}"

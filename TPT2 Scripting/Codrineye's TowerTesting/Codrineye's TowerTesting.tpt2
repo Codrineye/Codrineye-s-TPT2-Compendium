@@ -1,204 +1,338 @@
 :import Codrineye's TowerTesting_lib
 :name {script_name}
-:budget_cap max
+:budget_cap 600
 
-; store the y coordinate for the difficulty button
-:local double difficulty
-
-; keep a timer so that the user can make additional_cond exit
-; after a certain ammount of time has passed
-:global double time.real
-:global double time.game
-
-; const string that define in which direction the script can
-; cycle through difficulties
+; Variable definitions
+;
+; Const string to define the direction in which difficulties are cycles through
 ; false = Easy to Impossible
 ; true = Impossible to Easy
-:const string forwards_diff_list {diff_list(false)}
-:const string reversed_diff_list {diff_list(true)}
+:const string diff_mode1 {diff_list(true)}
+:const string diff_mode2 {diff_list(false)}
 
-; QOL macro to determine the direction via the source
-#difficulty_list forwards_diff_list
-
-:local int difficulty_index
-:local int counting
-:local bool can_switch
 :local bool additional_cond
-; 
-; QOL macro that lets you add the additional cond from the source
+; add an additional condition that can lead to exiting
+;
+; Timer variables
+:local double game_time
+:local double end_time
+:local double seconds
+:local double minutes
+:local double hours
+;
+:local int instance
+;
+:local string difficulty_list
+;
+; Macros for configuration in source
 #additional_cond false
 
-game.newround()
-key.{state_switch}()
-key.{mode_switch}()
+key.{start}()
 key.{cycling}()
-key.{restart}()
+key.{mode}()
+key.{difficulty}()
+;
 key.{exit}()
 key.{stats}()
+key.{restart}()
 
-; conditions for user convenience
-; 
-; you get to chose the direction the difficulties are cycled in
-; start with easy and move on to impossible, or
-; start with impossible and move on to easy
-concat("Easy -> Impossible", forwards_diff_list) != \
-concat("Impossible -> Easy", reversed_diff_list)
+close.headquarters()
+; Attempt to hide the UI when leaving HQ
 
-#condition_comment {lua(\
+; Attempt to 
+game.newround()
+;
+; Detects if any of the invalid buildings are open
+#opened_building {lua(\
+  local acc = {};\
+  local isOpen = [[isopen("%s")]];\
+  local buildings = table.pack(\
+    "tradingpost", "powerplant",\
+    "factory", "laboratory", "shipyard",\
+    "workshop", "arcade", "museum",\
+    "constructionfirm", "statueofcubos", "mine"\
+  );\
+  for i = 1, #buildings do\
+    acc[1 + #acc] = isOpen:format(buildings[i]);\
+  end\
+  return table.concat(acc, " || ");\
+)}
+
+; If the impulse is exit, stats or restart, it must be done in towertesting
+contains(\
+  "key.{start}|key.{mode}|key.{cycling}|key.{difficulty}|close.headquarters",\
+  impulse()\
+) || isTowerTesting()
+;
+; Prevent multiple exit() instances being created
+; Only 1 should be made
+impulse() != "key.{exit}" ||\
+{job.get} != "</size><color=#0AFF00>Exit caused by pressing key.{exit}"
+
+;
+; We can only interact with the script if we're in a game of TowerTesting
+; inside of the HQ, in TowerTesting or in of town. Unfortunately, there's no way to ensure
+; we're activated outside of the game Perfect Space.
+isTowerTesting() || not(isBossFight() || {opened_building})
+
+
+; Condition that specifies the line number of the action the user might want to modify
+#condition_comment.info {lua(\
   local msg = table.pack(\
-    "</size>",\
-      "\nadditional_cond is found on line ",\
-      [[" . i2d(additional_cond_pos) . "]],\
-      "\nto change the difficulty direction, modify action ",\
-      [[" . i2d(difficulty_list_pos) . "]],\
+    "</size><br>",\
+      "additional_cond adds an additional condition ",\
+      "that could be met to exit tower testing<br>",\
+      "<br>seconds, minutes and hours reprezent how much time ",\
+      "you want to pass in real world seconds before exiting tower testing",\
+      "<br>Leave all at 0 if you don't want this",\
+    "<size=0>"\
+  );\
+  return table.concat(msg)\
+)}
+
+contains(\
+  concat("click here for line info!<size=0>", "{condition_comment.info}"),\
+  ""\
+)
+#condition_comment.line {lua(\
+  local msg = table.pack(\
+    "</size><br>",\
+      "<br>additional_cond is found on line ",\
+      [[" . additional_cond_pos . "]],\
     "<size=0>"\
   );\
   return table.concat(msg);\
 )}
+
 contains(\
-  concat("click here for line numbers!<size=0>", "{condition_comment}"),\
+  concat("click here for line numbers!<size=0>", "{condition_comment.line}"),\
   ""\
 )
 
 ; Start of code
 
-; I could use this for a jump table if I wanted to
-; local.int.set("restart_lable", restart)
-; local.int.set("exit_lable", exit)
-; local.int.set("stats_lable", stats)
+; Set the seconds, minutes and hours
+; After this time has elapsed, you'll exit towertesting
+seconds = 0.0
+minutes = arithmetic.double(0.0, "*", 60.0)
+hours = arithmetic.double(0.0, "*", 60.0 * 60.0)
 
-gotoif(\
-  if({state.get}, movement_manager, 99), \
-  impulse() == "{script_name}"\
+difficulty_list = if(\
+  {diff_mode.get} == diff_mode2,\
+  if(impulse() == "key.{difficulty}", diff_mode1, diff_mode2),\
+  if(impulse() == "key.{difficulty}", diff_mode2, diff_mode1)\
 )
 
-init:
-global.string.set({hider}, "Start hiding values")
-; makes sure the timers are kept hidden
+; Determine our instance number
+instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 
-time.real = if(impulse() == "game.newround", 0.0, time.real)
-time.game = if(impulse() == "game.newround", 0.0, time.game)
+; Begin the block hider
+; This variable holds the number of instances currently running and the game time
+; There shouldn't ever be more than 2 instances, but this gives room for a max of 90
+{hider.set(instance . if(\
+  impulse() == "game.newround",\
+  "0.0",\
+  sub({hider.get}, 1, 99)\
+))}
+;
+; The difficulty variable holds a counter and the current coordinate
+; The counter is used to decide what we're doing based on the mode.
+; It uses index("ABCDEFGHIJKLMN", sub(hider, 0, 1), 0) + 1 to count up
+; A = 0, B = 1 and N = 14. Thus, I can determine what to do by simply using a contains()
+;
+; How changing difficulty is determined:
+; If we're in mode1, we're always moving to the next difficulty. If we're in mode2, we only move
+; to the next difficulty after we've counted up to 15
+;
+; How changing region is determined:
+; If mode1, we only change the region when our counter is at A. If mode2, we always move to the
+; next region
+;
+:const string counting_string "ABCDEFGHIJKLMN"
+;
+; The hider is shut off with a </size> block if the script is running
+; or if start/cycling/mode were pressed while inside the headquarters/towertesting menu
+{diff.set(\
+  if(\
+    {diff.get} != "" && {status.get} != (impulse() == "key.{start}") &&\
+    impulse() != "game.newround",\
+    sub({diff.get}, 0, 8),\
+    sub(\
+      counting_string,\
+      arithmetic.int(\
+        index(counting_string, sub({diff.get}, 0, 1), 0) + 1,\
+        if({status.get} != (impulse() == "key.{start}"), "mod", ""),\
+        if({curent_mode.get} == mode1, 6, 15)\
+      ),\
+      1\
+    ) . if(\
+      {diff.get} == "" || {curent_mode.get} == mode1 || contains({diff.get}, "N"),\
+      sub(\
+        difficulty_list,\
+        if({status.get} != (impulse() == "key.{start}"), s2i(sub({diff.get}, 1, 2), 0), 0),\
+        7\
+      ),\
+      sub({diff.get}, 1, 7)\
+    )\
+  ) . if(\
+    isopen("headquarters") || isopen("towertesting")\
+    || ({status.get} != (impulse() == "key.{start}")),\
+    "</size>",\
+    "{if_debugging(<line-height=0>)}"\
+  )\
+)}
 
-global.string.set(stop_hiding, if(\
-  not({state.get}) && impulse() == "key.{state_switch}" ||\
-  contains("key.{mode_switch}|key.{cycling}", impulse()) ||\
-  {state.get} && contains("key.{exit}|key.{stats}|key.{restart}|game.newround", impulse()), \
-  concat("Stop Hiding", "</size>"), \
-  "Cods TowerTesting is Hiding"\
-))
-
-; State, region_cycling and curent_mode are toggles
-{state.set({state.get} != (impulse() == "key.{state_switch}"))}
-{region_cycling.set({region_cycling.get} != (impulse() == "key.{cycling}"))}
+;
+{status.set({status.get} != (impulse() == "key.{start}"))}
+{region_cycling.set({region_cycling.get} != (\
+  ({status.get} || isopen("headquarters")) &&\
+  (impulse() == "key.{cycling}")\
+))}
 {curent_mode.set(if(\
-  impulse() == "key.{mode_switch}",\
-  if({curent_mode.get} == mode1, mode2, mode1),\
-  if({curent_mode.get} == mode2, mode2, mode1)\
+  {curent_mode.get} == mode2 && ({status.get} || isopen("headquarters")),\
+  if(impulse() == "key.{mode}", mode1, mode2),\
+  if(impulse() == "key.{mode}", mode2, mode1)\
+))}
+{diff_mode.set(difficulty_list)}
+
+; Set the job status
+; If we're shut down, stop the hiding block
+; If we're running and the user requested an exit, set the `Exit caused` message
+; otherwise, don't change the value
+{job.set(if(\
+  {status.get},\
+  if(\
+    impulse() != "key.{exit}",\
+    {job.get},\
+    "</size><color=#0AFF00>Exit caused by pressing key.{exit}"\
+  ),\
+  "</size>{if_debugging(</line-height>)}</size>"\
 ))}
 
-; Set the job status to itself so interracting with the script doesn't hide the job.
-; Sets itself to an empty job_status if this is the first time it's getting set
-global.string.set(job_status, if({job.get} == "", "</size></size>", {job.get}))
-
-; This gotoif is passed only if we didn't activate the script
-;
-; We exit if we started a new round or if key.{cycling}/key.{mode_switch} was pressed
-; otherwise, if one of the qol impulses were pressed but we're not in towertesting, we exit
-; Otherwise, we perform the qol action that was requested
-gotoif(\
+; Determine where we're going
+; If we're the first instance and we've just started up, we enter the loop
+; Otherwise, we're called for a qol or an irelevant impulse
+; If this is a qol impulse, we must be in towertesting to perform it
+goto(if(\
+  {status.get} && impulse() == "key.{start}" && instance == 1,\
+  if(isTowerTesting(), loop, movement_manager),\
   if(\
-    isTowerTesting() && contains("key.{exit}|key.{stats}|key.{restart}", impulse()),\
+    contains("key.{exit}|key.{stats}|key.{restart}", impulse()) && isTowerTesting(),\
     if(\
       impulse() == "key.{exit}",\
       exit,\
       if(impulse() == "key.{stats}", stats, restart)\
     ),\
-    99\
-  ),\
-  not({state.get}) || impulse() != "key.{state_switch}"\
-)
+    end\
+  )\
+))
 
-; make a copy of yourself for movement_manager
-execute("{script_name}")
-
-{job.set(\
-  "<color=#FAA00F>Waiting for user to close the "\
-  . if({opened_building}, "building", "menu")\
-  . "</color>"\
-)}
-; Sets the job status to a warning.
-; It lets the user know that they need to close
-; whatever building or menu they're in
+quit:
+; We're here only if we shut down. This can't softlock us, because
+; movement_manager ensures we've started a new round
+; This waitwhile is in place to slow us down (intentionally) so that we can exit towertesting
+waitwhile(isopen("towertesting"))
 
 loop:
-waitwhile(isTowerTesting() && {state.get})
-waituntil(isTowerTesting() || not({state.get}))
-
-{job.set("<color=#0AFF00>Waiting to exit tower testing</color>")}
-; Lets the user know that everything is going well and the script
-; is running as intentional
+end_time = now() + 1e7 * (seconds + minutes + hours)
+; Set our end time. If this is just now(), it'll get ignored
+;
+; Update our job
+{job.set(if(\
+  {status.get},\
+  "</size><color=#0AFF00>Waiting to exit Tower Testing</color>",\
+  "</size>{if_debugging(</line-height>)}</size>"\
+))}
 
 in_towertesting:
 waitframe()
 
-; Update our timers
-time.game += time.delta()
-time.real += time.unscaled()
+game_time = s2d(sub({hider.get}, 1, 99), 0.0) + time.delta()
+; Update our game time. The hider stores it after the instance count
+; Do not lose the instance count
+{hider.set(sub({hider.get}, 0, 2) . d2s(game_time))}
 
 additional_cond_pos:
 additional_cond = {additional_cond}
 
-; exit if the script is active, our conditional cond isn't met
-; our tower is alive and if we haven't killed all enemies
-; (if used in normal mode instead of endless)
+; Rather complicated gotoif
+; We stay in towertesting for as long as we're running, not dead and
+; we haven't meat our additional condition
+; If the end_time offset is 0.0 (default), then our end_time will be ignored
+; Otherwise, we'll exit once the time of seconds, minutes and hours summed together is elapsed
 gotoif(\
   in_towertesting,\
-  health(false) > 0.0 && {state.get} && not(additional_cond)\
+  {status.get} && health(false) > 0.0 && not(additional_cond) && (\
+    seconds + minutes + hours == 0.0 ||\
+    now() <= end_time\
+  )\
 )
 
-exit:
-
-{job.set(\
-  "<color=#0AFF00>Exit caused by "\
-  . if(\
-    impulse() == "key.{exit}" ||\
-    {job.get} == "</size>"\
-    . "<color=#0AFF00>Exit caused by pressing key.{exit}</color>"\
-    . "</size>",\
-    "pressing key.{exit}",\
-    if(\
-      additional_cond, \
-      "additional_cond", \
-      if(\
-        isTowerTesting() ||\
-        {job.get} == "</size>"\
-        . "<color=#0AFF00>Exit caused by tower death</color>"\
-        . "</size>",\
-        "tower death",\
-        "an external cause"\
-      )\
-    )\
+; Don't modify the job if we exited because of key.exit
+; Otherwise, mention the reason we ended the run
+{job.set(if(\
+  contains({job.get}, "Exit caused by") || not({status.get}),\
+  {job.get},\
+  "</size><color=#0AFF00>Exit caused by " . if(\
+    additional_cond,\
+    "additional_cond",\
+    if(isTowerTesting(), "tower death", "an external cause")\
   ) . "</color>"\
-)}
+))}
 
+exit:
+wait(time.unscaled() * 1.5)
+; We try to exit.
+; This isn't a fixed value because it depends on the device
+; I've found that this operation results in the best amount of time
+;
+; A waitframe() is too quick and it causes lag
 exit()
-wait(time.unscaled() * 2.0)
 
-goto(if(isTowerTesting(), exit, if(\
-  (impulse() == "key.{exit}") || not({state.get}), \
-  99, \
-  loop\
-)))
+; Keep trying to exit if we're in towertesting.
+; Then, we continue over to the movement manager if we're still running
+goto(if(\
+  isTowerTesting(),\
+  exit,\
+  if({status.get} && impulse() == "key.{start}", movement_manager, end)\
+))
 
-; mode1 means we cycle through our difficulties
-; and change region only after 6 counts
-; mode1 && counting < 6
-:const int base.mode1 6
+movement_manager:
+{job.set(if(\
+  {status.get},\
+  "</size><color=#FAA00F>User must " . if(\
+    isopen("headquarters"),\
+    "exit the headquarters",\
+    "close the window opened in town"\
+  ) . "</color>",\
+  {job.get}\
+))}
+;
+; We can only be activated if in the HQ, town or TT menu
+; The only places where show("towertesting", true) won't work are
+; if we're inside hq, town/infinity perks menus
+; Thus, we must give a warning if we're in HQ or assume that town has an opened window
+waitwhile(not(isopen("towertesting")) && anyopen() && {status.get})
+; This will make us wait for as long as we're running and we're not in towertesting and
+; a window is open. 
 
-; mode2 means we always advance through the region
-; and change difficulty only after 15 repetitions
-; mode2 && counting < 14
-:const int base.mode2 15
+show("towertesting", true)
+; Enter the TT menu
+;
+; Determine if we're able to change regions
+; 
+goto(if(\
+  {status.get},\
+  if(\
+    {region_cycling.get} && (\
+      ({curent_mode.get} == mode1 && contains({diff.get}, "A")) ||\
+      ({curent_mode.get} == mode2 && not(contains({diff.get}, "A")))\
+    ) && end_time > 0.0,\
+    change_region,\
+    enter_towertesting\
+  ),\
+  end\
+))
 
 change_region:
 waitframe()
@@ -206,67 +340,22 @@ waitframe()
 ; click on the arrow to change region
 {click.relative(290.0/800.0, 201.0/450.0, 0.0, 1.0)}
 
-change_difficulty:
-can_switch = true
+enter_towertesting:
+; Click on the difficulty
+{click.relative(395.0/800.0, s2d(sub({diff.get}, 3, 5), 290.0)/450.0, 0.0, 1.0)}
 
-difficulty_list_pos:
-; determine the difficulty we should switch to
-difficulty = s2d(\
-  sub({difficulty_list}, difficulty_index * coord_size, coord_size), \
-  290.0\
-)
-
-; increment the difficulty index if we should switch difficulty
-; this is always done if we're mode1, and if we're mode2 only when
-; we're on the last region before we refresh
-difficulty_index = if(\
-  ({curent_mode.get} == mode2 && counting < 14), \
-  difficulty_index, \
-  (difficulty_index + 1) % difficulty_count\
-)
-
-launch_round:
-; click on the difficulty
-{click.relative(395.0/800.0, difficulty/450.0, 0.0, 1.0)}
-
-; launch a round of towertesting
+; Launch a round of towertesting
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
 
-; try to launch the round if we're not in towertesting and
-; not shut down. If we're shut down, terminate the program.
-gotoif(\
-  if({state.get}, launch_round, 99), \
-  not({state.get} && isTowerTesting())\
-)
+gotoif(if({status.get}, loop, end), isTowerTesting() || not({status.get}))
 
-; increment counting based on our mode
-counting = if(\
-  {curent_mode.get} == mode1, \
-  (counting + 1) % base.mode1,\
-  (counting + 1) % base.mode2\
-)
-
-movement_manager:
-waitwhile({state.get} && (isTowerTesting() || anyopen()))
-show("towertesting", true)
-
-gotoif(\
-  if(\
-    can_switch && {region_cycling.get} && (\
-      ({curent_mode.get} == mode2) || \
-      ({curent_mode.get} == mode1 && counting == 0)\
-    ),\
-    change_region,\
-    change_difficulty\
-  ),\
-  {state.get}\
-)
-; exit script if we're shut down
-; Change region if we can do so, otherwise, change difficulty
+waitframe()
+goto(enter_towertesting)
 
 ; The user requested a restart
 restart:
 restart()
+goto(end)
 
 ; The user requested the stats be shown
 ; This clicks in the general area of the button where
@@ -274,3 +363,7 @@ restart()
 stats:
 waitframe()
 {click.relative(260.0/800.0, 275.0/450.0, 0.5, 0.5)}
+
+end:
+; Subtract 1 from the number of instances, as we've just removed an instance
+{hider.set(i2s(s2i(sub({hider.get}, 0, 1), 0) - 1) . sub({hider.get}, 1, 99))}

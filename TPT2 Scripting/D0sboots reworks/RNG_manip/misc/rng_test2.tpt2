@@ -1,0 +1,118 @@
+:import RNG_manip lib
+
+; Test that attempts to break the 3 line macros into 5 lines
+
+
+:global bool equal_rng
+:global int predicted_rng
+:global int actual_rng
+:budget_cap 100
+
+key.t()
+
+:const string code_table "{lua(\
+  local digits = string.byte("0");\
+  local conv4 = {};\
+  --[[/*\
+    * table holding 4 bits at each index\
+    *\
+    * build up the table, we've got 4 bits meaning 2 ^ 4, which is 16\
+    * i = 15 is our 16th iteration\
+  */]]\
+  for i = 0, 15 do\
+    --[[shift & 1 forces the output to be either 0 or 1]]\
+    local bits = table.pack(\
+      string.char(((i >> 3) & 1) + digits),\
+      string.char(((i >> 2) & 1) + digits),\
+      string.char(((i >> 1) & 1) + digits),\
+      string.char(((i >> 0) & 1) + digits)\
+    );\
+    conv4[i] = table.concat(bits);\
+  end\
+  \
+  local code_table = {};\
+  --[[/*\
+    * Using the bits stored in conv4, we create our code table\
+    *\
+    * We've got 256 cases to build, because 16 * 16 = 256\
+    * i = 255 is our 256th iteration\
+  */]]\
+  for i = 0, 255 do\
+    local hi = i >> 4;\
+    local lo = i & 15;\
+    \
+    --[[/*\
+      * Each iteration adds 3 elements to our code_table\
+      * First, we construct the byte through concatenating the hi_bit to the lo_bit\
+      * Next, we do the same but this time we add an xor in the middle\
+      * Lastly, we xor the high and low bits together.\
+    */]]\
+    \
+    code_table[#code_table + 1] = conv4[hi] .. "xor" .. conv4[lo];\
+    code_table[#code_table + 1] = conv4[hi ~ lo];\
+  end\
+  \
+  return table.concat(code_table);\
+)}"
+
+goto(line_2)
+line_1:
+rng_temp = if(\
+  contains("", {rng_varType}.string.get("1111xor1111")),\
+  0.0,\
+  i2d(rnd(-2147483648, 2147483646)) + 2147483648.0\
+)
+
+phase_1:
+{rng_varType}.double.set(\
+  if(\
+    contains("", {rng_varType}.string.get("1111xor1111")),\
+    "rng_from" . sub(rng_state, 0, 4) . sub(rng_state, 7, 4),\
+    "rng_from00000000"\
+  ),\
+  if(\
+    contains("", {rng_varType}.string.get("1111xor1111")),\
+    i2d(256 - len(rng_state) / 15),\
+    0.0\
+  )\
+)
+
+line_2:
+rng_state = if(\
+  contains("", {rng_varType}.string.get("1111xor1111")),\
+  if(contains("", rng_state), code_table, sub(rng_state, 15, 4000)),\
+  if(\
+    rng_temp == 0.0 || len(rng_state) >= 128,\
+    "",\
+    rng_state . if(\
+      rng_temp * (2.0 ^ i2d(len(rng_state) % 32)) % 2.0 ^ 32.0 >= 2.0 ^ 31.0,\
+      "1",\
+      "0"\
+    )\
+  )\
+)
+
+{rng_varType}.string.set(\
+  if(contains("", {rng_varType}.string.get("1111xor1111")), sub(rng_state, 0, 11), "0000xor0000"),\
+  if(contains("", {rng_varType}.string.get("1111xor1111")), sub(rng_state, 11, 4), "0000")\
+)
+
+goto(if(\
+  contains(rng_state, "xor"),\
+  phase_1,\
+  if(\
+    len(rng_state) == 128,\
+    next,\
+    if(len(rng_state) % 32 == 0, line_1, line_2)\
+  )\
+))
+
+:local string segment
+next:
+
+{rng.next}
+
+predicted_rng = {rng.get_range(-2147483648, 2147483646)}
+actual_rng = rnd(-2147483648, 2147483646)
+
+equal_rng = predicted_rng == actual_rng
