@@ -7,8 +7,8 @@
 ; Const string to define the direction in which difficulties are cycles through
 ; false = Easy to Impossible
 ; true = Impossible to Easy
-:const string diff_mode1 {diff_list(true)}
-:const string diff_mode2 {diff_list(false)}
+:const string order1 {diff_list(true)}
+:const string order2 {diff_list(false)}
 
 :local bool additional_cond
 ; add an additional condition that can lead to exiting
@@ -25,7 +25,7 @@
 :local string difficulty_list
 ;
 ; Macros for configuration in source
-#additional_cond false
+#additional_cond global.bool.get("Pokota:Stop")
 
 key.{start}()
 key.{cycling}()
@@ -117,10 +117,15 @@ seconds = 0.0
 minutes = arithmetic.double(0.0, "*", 60.0)
 hours = arithmetic.double(0.0, "*", 60.0 * 60.0)
 
+; Don't change the difficulty list if diff_mode is set and user didn't request a difficulty change
+; If the user did request a change, only change it if we're in config mode or if we're active
 difficulty_list = if(\
-  {diff_mode.get} == diff_mode2,\
-  if(impulse() == "key.{difficulty}", diff_mode1, diff_mode2),\
-  if(impulse() == "key.{difficulty}", diff_mode2, diff_mode1)\
+  {diff_mode.get} != "" && (\
+    impulse() != "key.{difficulty}" ||\
+    not(isopen("headquarters") ||({status.get} != (impulse() == "key.{start}")))\
+  ),\
+  {diff_mode.get},\
+  if({diff_mode.get} == order2, order1, order2)\
 )
 
 ; Determine our instance number
@@ -137,7 +142,7 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 ;
 ; The difficulty variable holds a counter and the current coordinate
 ; The counter is used to decide what we're doing based on the mode.
-; It uses index("ABCDEFGHIJKLMN", sub(hider, 0, 1), 0) + 1 to count up
+; It uses index("ABCDEFGHIJKLMN", sub(diff, 0, 1), 0) + 1 to count up
 ; A = 0, B = 1 and N = 14. Thus, I can determine what to do by simply using a contains()
 ;
 ; How changing difficulty is determined:
@@ -154,25 +159,47 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 ; or if start/cycling/mode were pressed while inside the headquarters/towertesting menu
 {diff.set(\
   if(\
-    {diff.get} != "" && {status.get} != (impulse() == "key.{start}") &&\
-    impulse() != "game.newround",\
+    {diff.get} != "" && {status.get} != (impulse() == "key.{start}")\
+    && not(contains("key.{difficulty}|key.{mode}|game.newround", impulse())),\
     sub({diff.get}, 0, 8),\
     sub(\
       counting_string,\
       arithmetic.int(\
-        index(counting_string, sub({diff.get}, 0, 1), 0) + 1,\
-        if({status.get} != (impulse() == "key.{start}"), "mod", ""),\
-        if({curent_mode.get} == mode1, 6, 15)\
+        index(counting_string, sub({diff.get}, 0, 1), 0) +\
+        if(impulse() == "game.newround", 1, 0),\
+        if({status.get}, "mod", ""),\
+        if(\
+          {curent_mode.get} == mode1 ||\
+          (impulse() == "key.{mode}" && {curent_mode.get} == mode2), 5, 14)\
       ),\
       1\
-    ) . if(\
-      {diff.get} == "" || {curent_mode.get} == mode1 || contains({diff.get}, "N"),\
-      sub(\
+    ) . sub(\
+      {lua(--[[Determine if we change the difficulty or not]])}\
+      if(\
+        impulse() == "key.{difficulty}" || {diff.get} == "" ||\
+        {curent_mode.get} == mode1 || \
+        (impulse() == "key.{mode}" && {curent_mode.get} == mode2) ||\
+        contains({diff.get}, "N"),\
         difficulty_list,\
-        if({status.get} != (impulse() == "key.{start}"), s2i(sub({diff.get}, 1, 2), 0), 0),\
-        7\
+        {diff.get}\
       ),\
-      sub({diff.get}, 1, 7)\
+      {lua(--[[/*\
+        * Determine the index.\
+        * We change nothing if our impulse is\
+      */]])}\
+      if(\
+        impulse() == "key.{difficulty}" || {diff.get} == "" ||\
+        {curent_mode.get} == mode1 || \
+        (impulse() == "key.{mode}" && {curent_mode.get} == mode2) ||\
+        contains({diff.get}, "N"),\
+        if(\
+          impulse() == "game.newround",\
+          s2i(sub({diff.get}, 1, 2), 0),\
+          index(difficulty_list, sub({diff.get}, 1, 2), 0)\
+        ),\
+        1\
+      ),\
+      7\
     )\
   ) . if(\
     isopen("headquarters") || isopen("towertesting")\
@@ -184,15 +211,23 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 
 ;
 {status.set({status.get} != (impulse() == "key.{start}"))}
+;
+; Only toggle the region_cycling switch if we're running or we're in the HQ
 {region_cycling.set({region_cycling.get} != (\
   ({status.get} || isopen("headquarters")) &&\
   (impulse() == "key.{cycling}")\
 ))}
+
+; Keep the mode unchanged if we're initialized and the user
 {curent_mode.set(if(\
-  {curent_mode.get} == mode2 && ({status.get} || isopen("headquarters")),\
-  if(impulse() == "key.{mode}", mode1, mode2),\
-  if(impulse() == "key.{mode}", mode2, mode1)\
+  {curent_mode.get} != "" && (\
+    impulse() != "key.{mode}" ||\
+    not(isopen("headquarters") || {status.get})\
+  ),\
+  {curent_mode.get},\
+  if({curent_mode.get} == mode2, mode1, mode2)\
 ))}
+
 {diff_mode.set(difficulty_list)}
 
 ; Set the job status
@@ -204,7 +239,7 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
   if(\
     impulse() != "key.{exit}",\
     {job.get},\
-    "</size><color=#0AFF00>Exit caused by pressing key.{exit}"\
+    "</size><color=#0AFF00>Exit caused by pressing key.{exit}</color>"\
   ),\
   "</size>{if_debugging(</line-height>)}</size>"\
 ))}
@@ -250,7 +285,7 @@ waitframe()
 game_time = s2d(sub({hider.get}, 1, 99), 0.0) + time.delta()
 ; Update our game time. The hider stores it after the instance count
 ; Do not lose the instance count
-{hider.set(sub({hider.get}, 0, 2) . d2s(game_time))}
+{hider.set(sub({hider.get}, 0, 1) . d2s(game_time))}
 
 additional_cond_pos:
 additional_cond = {additional_cond}
@@ -312,6 +347,7 @@ movement_manager:
 ; The only places where show("towertesting", true) won't work are
 ; if we're inside hq, town/infinity perks menus
 ; Thus, we must give a warning if we're in HQ or assume that town has an opened window
+
 waitwhile(not(isopen("towertesting")) && anyopen() && {status.get})
 ; This will make us wait for as long as we're running and we're not in towertesting and
 ; a window is open. 
@@ -342,7 +378,8 @@ waitframe()
 
 enter_towertesting:
 ; Click on the difficulty
-{click.relative(395.0/800.0, s2d(sub({diff.get}, 3, 5), 290.0)/450.0, 0.0, 1.0)}
+; diff.get has a 1-character counter, a length-2 position and a 5 character 
+{click.relative(395.0/800.0, s2d(sub({diff.get}, 3, 5), 0.0)/450.0, 0.0, 1.0)}
 
 ; Launch a round of towertesting
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
