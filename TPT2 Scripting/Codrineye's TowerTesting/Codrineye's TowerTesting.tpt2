@@ -25,7 +25,7 @@
 :local string difficulty_list
 ;
 ; Macros for configuration in source
-#additional_cond global.bool.get("Pokota:Stop")
+#additional_cond false
 
 key.{start}()
 key.{cycling}()
