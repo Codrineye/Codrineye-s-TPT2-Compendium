@@ -1,0 +1,10 @@
+#package(name) D0S.Crates:{name}
+
+#benchmark b
+#start o
+
+#trading "<size=20><color=white>trading"
+#trading.get global.string.get({trading})
+#trading.set(msg) global.string.set({trading}, {msg})
+
+#exiting "Exiting</color></size>"
