@@ -82,13 +82,13 @@ cycles = 5
 
 goto(if(\
   contains("{accelerate_budget}|{package(Main)}", impulse()),\
-  if({loops.get} == -1 + traders * cycles, enter_idle, refresh),\
+  if({loops.get} == -1 + traders * cycles, enter_idle, trader),\
   if(contains({status.get}, "trade="), start, end)\
 ))
 
 enter_idle:
 {status.set(if(contains({status.get}, "trade="), {status.get}, "red></color>"))}
-gotoif(end, contains({status.get}, "red><"))
+gotoif(end, contains({status.get}, "d><"))
 
 show("tradingpost", false) ; Exit trading post
 show("towertesting", true) ; Enter towertesting
@@ -101,7 +101,7 @@ start:
 show("towertesting", false) ; Exit towertesting
 show("tradingpost", true)   ; Enter trading post
 
-gotoif(refresh, (time.frame() - {iteration.get}) % 50001 < 50000)
+gotoif(trader, (time.frame() - {iteration.get}) % 50001 < 50000)
 
 ; Wait a frame if we've been running for 50000 frames
 ; This is to prevent a unity bug where work builds up and eventually offloads all at once, which
