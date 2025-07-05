@@ -1,0 +1,108 @@
+; Alternates between idle mode and trading crates.
+;
+; To use this, the air stone must be active, and you must be in
+; Tower Testing or Trading Post, with resources set up in idle mode.
+;
+; Doesn't use Turbo Exec.
+
+#name D0S.Crates:Idler_v3
+:name {name}
+:budget_cap max
+
+; Used to begin the variable hiding block, also counts overall iterations (frames)
+#iter "<size=0>&cr"
+#get_iter gig({iter})
+#set_iter(v) gis({iter}, {v})
+
+:global int loops
+:global string status
+
+:local double last_now
+:local double last_crates
+:local double time_sum
+:local double crates_sum
+
+#status(msg) "</size><size=20>{msg}</color></size>"
+#running {status(<color=white>trading=Press o to stop)}
+#finished "</size>"
+
+isopen("towertesting") || isopen("tradingpost")
+
+key.o()
+
+goto(if(\
+  loops > 1,\
+  trade,\
+  if(loops > 0, to_idle, setup)\
+))
+
+setup:
+{set_iter(0)}
+loops = 0
+status = if(\
+  contains(status, "trading"),\
+  {finished},\
+  if(\
+    budget() < 10000,\
+    {status(<color=red>ERROR=Insufficient budget! Upgrade Server RAM in the HQ.)},\
+    {running}\
+  )\
+)
+goto(if(contains(status, "trading"), main_begin, end))
+
+main:
+; Every 50000 iterations, we wait a frame before trading. Waiting for 0
+; does nothing, while waiting for a positive value waits (at least) a whole frame.
+; This is to prevent a Unity bug where work accumulates due to moving in
+; and out of idle while never displaying a frame that is not in idle mode.
+; When the run is eventually finished, all this work is dispatched, causing
+; a large memory bump that may cause a crash. Instead, we periodically let
+; a "useless" frame render to discharge this work. By hapenning rarely
+; enough, it doesn't impact crates/sec too badly.
+wait(if({get_iter} == 0, 0.00001, 0.))
+
+; Dispatch to ourselves to do the actual trading. Each copy will do 33 trades and then
+; create a new child in turn. The final copy will clean up by returning to idle mode,
+; before the frame finishes.
+loops = 95
+execute("{name}")
+
+waitframe()
+status = if(\
+  contains(status, "trading"),\
+  if(\
+    isopen("towertesting"),\
+    status,\
+    {status(<color=red>ERROR=Failed to return to idle. Do you have too many running scripts?)}\
+  ),\
+  status\
+)
+
+main_begin:
+{set_iter({get_iter} + 1 % 50000)}
+
+show("towertesting", false)
+show("tradingpost", true)
+
+goto(if(contains(status, "trading"), main, end))
+
+to_idle:
+loops = 0
+
+show("tradingpost", false)
+show("towertesting", true)
+
+{click.relative(93.0 / 800.0, 29.0 / 450.0, 0.0, 0.0)}
+goto(end)
+
+trade:
+loops -= 1
+
+trade_loop:
+refresh()
+trade(0, 0.1)
+trade(0, 0.1)
+
+gotoif(trade_loop, budget() > 300)
+execute("{name}")
+end:
