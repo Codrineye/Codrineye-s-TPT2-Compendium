@@ -1,0 +1,78 @@
+:import COD.Trader lib
+:name {package(Benchmarker)}
+:budget_cap 200
+
+:local bool counting_up
+; Determines if the timer is counting up or down
+;
+; Get the seconds, minutes and hours that you want the timer to be running for
+; Ignored if we're counting up
+:local double seconds
+:local double minutes
+:local double hours
+;
+:local double time_sum
+;
+:local double start_time ; The time we started at
+:local double time       ; The time we're at
+
+; Macro definitions
+; Get seconds in relation to time.now()
+#seconds(time) (1e7 * ({time}))
+;
+; Display the tens and ones digit of a number, to display a clock
+#clock(offset) floor(time / {seconds(({offset}) * 10.0)}) % 6.0\
+             . floor(time / {seconds({offset})}) % 10.0
+
+;
+:const string benchmark "<color=#FFF>Benchmark"
+
+;
+key.{benchmark}()
+
+isopen("tradingpost")
+
+; Only make an instance if the status is shut down.
+; This works even if status.get is uninitialized.
+contains("red></color>", {status.get})
+
+counting_up = false
+seconds = 15.0
+minutes = a.d(0.0, "*", 60.0)
+hours = a.d(0.0, "*", 60.0 * 60.0)
+
+start_time = now()
+time_sum = start_time + {seconds(seconds + minutes + hours)}
+execute("{package(Main)}")
+
+loop:
+waitwhile(\
+  contains({status.get}, "trade=") && now() < time + {seconds(1.0)} && (\
+    counting_up ||\
+    now() < time_sum\
+  )\
+)
+
+time = if(counting_up, now() - start_time, time_sum - now())
+global.string.set(benchmark, if(counting_up, "elapsed", "remaining") . "_time:" . if(\
+  time < {seconds(60.0)},\
+  "",\
+  if(time < {seconds(60.0 * 60.0)}, "0", {clock(60.0 * 60.0)}) . ":"\
+) . if(time < {seconds(60.0)}, "0", {clock(60.0)}) . ":" . {clock(1.0)})
+
+{status.set(if(\
+  counting_up || now() < time_sum,\
+  {status.get},\
+  ""\
+))}
+gotoif(loop, contains({status.get}, "trade="))
+
+waituntil({status.get} == "red></color>")
+
+time = now() - start_time
+global.string.set(benchmark, "final_time:" . if(\
+  time < {seconds(60.0)},\
+  "",\
+  if(time < {seconds(60.0 * 60.0)}, "0", {clock(60.0 * 60.0)}) . ":"\
+) . if(time < {seconds(60.0)}, "0", {clock(60.0)}) . ":" . floor(time / {seconds(10.0)}) % 6.0\
+  . (time / {seconds(1.0)}) % 10.0)

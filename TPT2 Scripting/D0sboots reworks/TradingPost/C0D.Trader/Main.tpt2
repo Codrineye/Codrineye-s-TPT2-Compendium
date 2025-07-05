@@ -1,0 +1,152 @@
+:import COD.Trader lib
+:name {package(Main)}
+:budget_cap max
+
+; Variable definitions
+;
+:local bool prioritize_trades
+; Determine if we prioritise trades over crates
+;
+; Variables used to configure number of loops
+:local int traders ; How many instances to create in a cycle
+:local int cycles  ; How many cycles to run in a frame
+
+key.{start}()
+
+; Don't activate if outside of towertesting or tradinpost
+isopen("towertesting") || isopen("tradingpost")
+
+; A comment written in lua.
+; This offers a small TLDR inside of a condition such that the user
+; doesn't have to leave the game if they're confused about anything
+;
+#condition_comment {lua(\
+  local msg = table.pack(\
+    "</size>",\
+      "<br>prioritize_trades changes your priority",\
+        "<br>\ttrue = prioritize trades over crates",\
+        "<br>\tfalse = prioritize crates over trades",\
+      "<br>traders = how many scripts do the trading",\
+      "<br>cycles = how many traders you want to have before leaving trading post",\
+      "<br>",\
+      "<br>",\
+      "<br>more traders = better efficiency",\
+      "<br>more cycles = faster speeds",\
+    "<size=0>"\
+  );\
+  return table.concat(msg);\
+)}
+
+; This is the conditional comment. It checks if a string contains an empty string,
+; which is always true.
+contains(concat("click here for info!<size=0>", "{condition_comment}"), "")
+
+prioritize_trades = false
+
+traders = 20
+cycles = 5
+
+; Initialize our globals
+{iteration.set(if(impulse() == "key.{start}", time.frame(), {iteration.get}))}
+{loops.set(-1 + if(\
+  {loops.get} == 0 || impulse() == "key.{start}",\
+  traders * cycles,\
+  {loops.get}\
+))}
+
+; We need a budget of at least 501 to perform a trade in the worst case scenario.
+; Having less than that would mean that we have cycles * (traders - 1) ammount of trades
+; instead of cycles * traders.
+{status.set(if(\
+  contains("{accelerate_budget}|{package(Main)}", impulse()),\
+  {status.get},\
+  if(\
+    contains({status.get}, "#")\
+    || budget() < 501 || gsg(budget_exec_var) != "</size>" || traders > 99,\
+    "red",\
+    "#FFF"\
+  ) . ">" . if(\
+    budget() > 500 && gsg(budget_exec_var) == "</size>" && traders < 100,\
+    if(contains({status.get}, "#"), "", "trade=Press {start} to stop!"),\
+    "ERROR=" . if(\
+      global.string.get(budget_exec_var) != "</size>",\
+      "{accelerate_budget} IS NOT RUNNING",\
+      if(\
+        budget() < 501,\
+        "INSUFFICIENT BUDGET! Upgrade Server RAM in HQ",\
+        "TOO MANY TRADERS! You can have at most 99 traders"\
+      )\
+    ) . "!"\
+  ) . "</color>"\
+))}
+
+goto(if(\
+  contains("{accelerate_budget}|{package(Main)}", impulse()),\
+  if({loops.get} == -1 + traders * cycles, enter_idle, refresh),\
+  if(contains({status.get}, "trade="), start, end)\
+))
+
+enter_idle:
+{status.set(if(contains({status.get}, "trade="), {status.get}, "red></color>"))}
+gotoif(end, contains({status.get}, "red><"))
+
+show("tradingpost", false) ; Exit trading post
+show("towertesting", true) ; Enter towertesting
+
+; clicks the idle mode button on the towertesting screen
+{click.relative(93.0 / 800.0, 29.0 / 450.0, 0.0, 0.0)}
+waitframe() ; Let our resources build up for the remaning frame
+
+start:
+show("towertesting", false) ; Exit towertesting
+show("tradingpost", true)   ; Enter trading post
+
+gotoif(refresh, (time.frame() - {iteration.get}) % 50001 < 50000)
+
+; Wait a frame if we've been running for 50000 frames
+; This is to prevent a unity bug where work builds up and eventually offloads all at once, which
+; can cause the game to crash.
+; 50000 is just a random value picked by d0sboots a while ago.
+
+waitframe:
+waitframe()
+
+trader:
+gotoif(prevent_waste, impulse() != "{accelerate_budget}" || {loops.get} == -1 + traders * cycles)
+stop("{accelerate_budget}")
+
+prevent_waste:
+execute(if({loops.get} % traders == 0, "{accelerate_budget}", "{package(Main)}"))
+goto(refresh)
+
+; To lower stress on the users device, this operation is unrolled.
+; Otherwise, making a trade() gotoif() would increase the number of operations to process from
+; 11 to 22. Doubling the stress that's already being put on it.
+
+top:
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+trade(1, 0.0)
+
+; We refresh the available trades, so we have 12 available trades once again.
+refresh:
+refresh()
+
+; We take the first trade.
+trade:
+trade(1, 0.0)
+
+; If we're about to use up our last action, or prioritize_trades is active, we
+; go to the top. Otherwise, we refresh.
+goto(if(prioritize_trades || budget() == 100, top, refresh))
+
+
+end:

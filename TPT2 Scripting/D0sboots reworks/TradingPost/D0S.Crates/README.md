@@ -1,0 +1,20 @@
+## D0S.Crates
+
+This is a copy of the original D0S.Crates made by d0sboots kept for archival purposes.<br>
+The version uses TE2.2 and was the best version we could have used at the time.
+
+### Trading Post Crate Spam
+I believe this to use the most efficient crate-gaining strategy currently possible, much better than using the e60 perk. It gets me 5e15 crates/sec from an idle income of 6e56/sec, and scales 10x per e5 of additional resources.
+It uses turbo exec v2.2 to rapidly move between crate trading and idle mode, such that every rendered frame is in idle mode. **Turbo exec v2.2 is required:** (https://github.com/d0sboots/TPT2_scripts/blob/main/common/turbo_exec/README.md)
+
+This requires the Air Stone to be active, and remember to put all your Town Perks into crate gain. Go to Tower Testing and enable 100% for cubes in Idle Mode, then press "o".
+
+**This script is a bit finicky. It is working correctly if you are "staying" in idle mode, but the gains keep jumping around instead of increasing.**
+
+`D0S.Crates:Idler_v2 1 1 22`
+`D0S.Crates:Benchmark 1 1 12`
+```
+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
+```
+
+Also included is a benchmarking utility, useful for tuning the loop constant for your machine (for maximum performance). If you don't care, you can safely delete/disable it with no ill effect. Pressing "b" will run the crate trader for 15 seconds, and display the *exact* amount of time it ran, to let you calculate precise crates/sec. Obviously, you have to record crates before/after to make this work.

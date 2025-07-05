@@ -1,0 +1,215 @@
+; Configuration of the benchmarker
+;
+; Use the determine_stats function to see what gives the best trades and crates/second
+; This is done to plop it into a text editor to view things easier.
+;
+; You have a data string called data. You start by defining the test environment
+; number of traders, number of cycles, count of trades and crates before the tests
+;
+; Every configuration will have 10 tests. First 5 are with prioritise_trades = true
+; Last 5 are with prioritise_trades = false.
+;
+; You start with the number of trades you got, then the number of crates you got and finally
+; the ammount of time it took
+;
+; traders cycles
+; start count of crates
+; start count of trades
+;   trades on test 1
+;   crates on test 1
+;   time on test 1
+;
+;   trades on test 2
+;   crates on test 2
+;   time on test 2
+;
+; after 10 tests. you add a `|` to declair a new configuration
+; Set adding_data to true when you're adding data and to false when you want the output
+
+{lua(\
+  local adding_data = true\
+  local function determine_stats(data_string)\
+    if not data_string:find("|") then\
+      error("\n\nMark a new data set with |", 0)\
+    end\
+    local chunk = {};\
+    \
+    for config in data_string:gmatch("[^|]+") do\
+      local new = {};\
+      new.crates, new.trades, new.time = {}, {}, {};\
+      local counter = 0;\
+      for data in config:gmatch("[^%s+]+") do\
+        \
+        data = tonumber(data);\
+        \
+        if counter == 0 then\
+          new.traders = data;\
+        elseif counter == 1 then\
+          new.cycles = data;\
+        elseif counter % 3 == 2 then\
+          new.crates[#new.crates + 1] = data;\
+        elseif counter == 3 or counter % 3 == 1 then\
+          new.trades[#new.trades + 1] = data;\
+        else\
+          new.time[#new.time + 1] = data;\
+        end\
+        counter = counter + 1;\
+      end\
+      if new.traders ~= nil then\
+        chunk[#chunk + 1] = new;\
+      end\
+    end\
+    local msg = {};\
+    for i = 1, #chunk do\
+      local target = chunk[i];\
+      local text = table.pack(\
+        "\n",\
+        "\nConfig ", i,\
+        "\ntraders = ", target.traders,\
+        "\ncycles = ", target.cycles\
+      );\
+      for word = 1, #text do\
+        msg[#msg + 1] = text[word];\
+      end\
+      for j = 1, #target.time do\
+        text = table.pack(\
+          "\n",\
+          "\nTest ", j, ", prioritise_trades = ", j <=#target.time / 2 and "true" or "false",\
+          "\ntest duration = ", target.time[j],\
+          "\ntrades = ", target.trades[j + 1] - target.trades[j],\
+          "\ntrades / sec = ", (target.trades[j + 1] - target.trades[j]) / target.time[j],\
+          "\ncrates = ", target.crates[j + 1] - target.crates[j],\
+          "\ncrates / sec = ", (target.crates[j + 1] - target.crates[j]) / target.time[j]\
+        );\
+        for word = 1, #text do\
+          msg[#msg + 1] = text[word];\
+        end\
+      end\
+    end\
+    error(table.concat(msg), 0)\
+  end\
+  local data = [[\
+  20 5\
+  2791376028566030000000000000000\
+  575786419\
+    576726547\
+    2792986956747540000000000000000\
+    15.2138496\
+    \
+    577649803\
+    2794561524976010000000000000000\
+    15.1472256\
+    \
+    578581453\
+    2796146386094370000000000000000\
+    15.3313152\
+    \
+    579504709\
+    2797720353187240000000000000000\
+    15.1209216\
+    \
+    580453147\
+    2799319087079480000000000000000\
+    15.129584\
+    \
+    {lua(-- switch to prioritise_trades = false)}\
+    \
+    580942607\
+    2801071869914700000000000000000\
+    15.1803392\
+    \
+    581417082\
+    2802790240354360000000000000000\
+    15.1952512\
+    \
+    581901547\
+    2804539933268360000000000000000\
+    15.1787392\
+    \
+    582391007\
+    2806309085112850000000000000000\
+    15.1235072\
+    \
+    582865482\
+    2808037289317270000000000000000\
+    15.3402624\
+  |\
+  \
+  10 5\
+  2808037289317270000000000000000\
+  582865482\
+    \
+    583309962\
+    2845068782632830000000000000000\
+    15.2086016\
+    \
+    583750248\
+    2882112258090570000000000000000\
+    15.2338176\
+    \
+    584190534\
+    2918916980694460000000000000000\
+    15.164672\
+    \
+    584630820\
+    2955888262403150000000000000000\
+    15.2775488\
+    \
+    585058524\
+    2991803579912580000000000000000\
+    15.1440512\
+    \
+    585290509\
+    3028619208521580000000000000000\
+    15.1865088\
+    \
+    585539959\
+    3068019436287960000000000000000\
+    15.17504\
+    \
+    585784419\
+    3106914707420250000000000000000\
+    15.1992704\
+    \
+    586021394\
+    3144729780652870000000000000000\
+    15.175488\
+    \
+    586263359\
+    3183065893727480000000000000000\
+    15.1019008\
+  |\
+  20 5\
+  3183065893727480000000000000000\
+  586263359\
+    586273349\
+    3183152957436000000000000000000\
+    0.2448512\
+  |\
+  1 1\
+  3183152957436000000000000000000\
+  586273349\
+    586278200\
+    3183153020358770000000000000000\
+    0.1588992\
+  |\
+  20 5\
+  3183153020358770000000000000000\
+  586278200\
+    589216100\
+    3318569381902810000000000000000\
+    60.220979200000002\
+    \
+    590739525\
+    3468381171991390000000000000000\
+    60.2045952\
+    \
+  |\
+  ]];\
+  \
+  if adding_data then\
+    return;\
+  end\
+  determine_stats(data);\
+)}
+
