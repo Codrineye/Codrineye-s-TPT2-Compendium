@@ -1,6 +1,6 @@
 ; Keep naming between the trader and benchmarker consistent
 ; so they're in the same package
-#package(name) C0D.Trader:{name}
+#package(name) C0D.Trader v1.1:{name}
 ;
 
 ; Impulse macros
