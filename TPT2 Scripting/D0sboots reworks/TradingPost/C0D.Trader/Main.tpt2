@@ -103,7 +103,7 @@ show("tradingpost", true)   ; Enter trading post
 
 gotoif(trader, (time.frame() - {iteration.get}) % 25001 < 25000)
 
-; Wait a frame if we've been running for 50000 frames
+; Wait a frame if we've been running for 25000 frames
 ; This is to prevent a unity bug where work builds up and eventually offloads all at once,
 ; which can cause the game to crash.
 ; 25000 is just half of 50000, which was a random value picked by d0sboots a while ago.
