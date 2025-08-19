@@ -6,13 +6,21 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups `data_type`, `buildings`, `resources`, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its coresponding list:
+For space, I've created the groups `data_type`, `buildings`, `factory_machines`, `adventure_entities`, `museum_storage`, `resources`, `elements`, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its coresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
 `buildings` = "arcade", "construction firm", "factory", "headquarters", "laboratory", "mine", "museum", "power plant", "shipyard", "statue of cubos", "trading post", "workshop"
 
+`factory_machines` = "oven", "assembler", "refinery", "crusher", "cutter", "presser", "mixer", "shaper", "boiler"
+
+`adventure_entities` = "Chest", "Bomb", "Rock", "Door", "Enemy", "Elite", "Mimic"
+
+`museum_storage` = "inventory", "loadout", "combinator", "cuboscube"
+
 `resources` = "gameTokens", "town.resources", "gems", "gems.exotic", "powerplant.resources", "mine.resources", "factory.resources", "headquarters.resources", "arcade.resources", "laboratory.resources", "shipyard.resources", "tradingpost.resources", "workshop.resources", "museum.resources", "constructionFirm.resources", "statueofcubos.resources", "halloween.pumpkins", "halloween.souls", "halloween.blood", "christmas.cookies", "christmas.presents", "christmas.reindeers.trained", "christmas.reindeers.milk", "christmas.reindeers.raw", "christmas.milk", "christmas.trees", "christmas.wrappings", "christmas.toys", "christmas.candy", "time.offline"
+
+`elements` = "fire", "water", "earth", "air", "nature", "light", "darkness", "electricity", "universal", "neutral"
 
 `digits` = `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`
 
@@ -25,7 +33,7 @@ There are 4 types of functions:
 - [Impulse functions](#impulse-functions)
 - [Conditional functions](#conditional-functions)
 - [Atomic functions](#atomic-functions)
-- [Fundemental functions](#fundemental-functions)
+- [Fundamental functions](#fundamental-functions)
 
 This post is within its own subject on my [Compendium faq posts](AI%20Functions.md), where you can find the data types and functions in their own separate subjects.
 
@@ -81,14 +89,14 @@ There is a bug in how conditions handle script termination. If a script calls an
 
 ### Boolean
 
-`==`, `=` means equal<br>
+`==` means equal<br>
 `!=` means not equal<br>
 `&&`, `&` means and<br>
 `||`, `|` means or
 
 ### Int/Double
 
-`==`, `=` means equal<br>
+`==` means equal<br>
 `!=` means not equal<br>
 `<` means smaller than<br>
 `<=` means smaller or equal than<br>
@@ -97,7 +105,7 @@ There is a bug in how conditions handle script termination. If a script calls an
 
 ### String
 
-`==`, `=` means equal<br>
+`==` means equal<br>
 `!=` means not equal
 
 ## Conditions
@@ -210,7 +218,7 @@ Returns the lock state of market slot `offer Slot`.
 
 ## Atomic functions
 
-An atomic function is an action with an execution budget of 0.
+An atomic function is an action that consumes 0 from your execution budget.
 
 goto(line number) `[basic: goto type: int]`<br>
 Jumps to specified `line number` of the script. Line 1 is the first action in your script.<br>
@@ -231,13 +239,28 @@ Assigns the inputed `valuse` inside of the local variable `variable name`.
 local.unset("variable name") `[local: unset type: string]`<br>
 Deletes the local variable with the name `variable name`.
 
+
+External Editor syntactic sugar.<br>
+The `line number` inside of goto and gotoif can be replaced with a label.<br>
+A label is an identifier that gets computed to the line number corresponding to the position in your code.<br>
+This is defined as a string that can contain any letter, number, `_` or `.` inside of it and ends once you place a `:` in the string.<br>
+The first character in a label can not be a number or a `.`.
+
+```
+goto(0)
+; is equivalent to
+top:
+goto(top)
+```
+
 ### type: double
 
 Subject is isolated in the section [R Data Type double](./Data%20Types/Type%20Double.md).
 
 External Editor syntactic sugar.<br>
 :const double `var_name`<br>
-Defines a variable with the name "var_name" that can hold the given boolean value.<br>
+Defines a variable with the name "var_name" that can hold the given double value.<br>
+A double is defined as an integer value, followed by a dot `.` and then left empty or followed by another integer value.<br>
 Since this is a const definition, you can not assign a value to this variable if it's been defined.
 
 The value of a const definition cannot be an expression
@@ -256,21 +279,40 @@ test = test
 :local double `var_name`<br>
 Is the same as :global bool `var_name` but instead of a global variable, this defines a local variable.
 
-The lable `var_name` can contain alphabetical values, numeric values and the character `_`.<br>
-The first character of `var_name` can't be a numeric value.
-
 arithmetic.double(value1, "operation", value2) `[arithmetic type: double, type: string, type: double]`<br>
 Performs arithmetic on the inputed values.<br>
 Permited operations are:
 
-- `+` addition
-- `-` subtraction
-- `*` multiplication
-- `/` division
-- `%` `mod` modulo
 - `^` `pow` power
 - `//` `log` logarithm<br>
   a // b = log base b of a
+- `*` multiplication
+- `/` division
+- `%` `mod` modulo
+- `+` addition
+- `-` subtraction
+
+External Editor specifications:<br>
+arithmetic.double is long-form for a.d(). The syntax is the same, however this is shorter.<br>
+I recommend using the long-form for code clarity when you use this primitive function.<br>
+arithmetic.double(value1, "operation", value2) is a primitive.<br>
+Primitive operations do not get pre-computed when exporting the code.
+```
+var1 = arithmetic.double(1.0, "+", 1.0) ; after export var1 = 1.0 + 1.0
+var2 = 1.0 + 1.0 ; after export var2 = 2.0
+```
+Additionally, when assigning a variable, you can use a prefix operation to shorten the expression.
+```
+var1 = var1 + 1.0
+var2 += 1.0
+; both get compiled to the same operation
+```
+However, assignment prefixes are performed last
+```
+var2 = var2 * 2.0 + 1.0
+; can not be converted to
+var2 *= 2.0 + 1.0 ; translates to var2 = var2 * 3.0 because it's treated as var2 = var2 * (2.0 + 1.0)
+```
 
 const.e() `[constant: e]`<br>
 Returns the constant e = 2.7182818284590452.
@@ -278,7 +320,7 @@ Returns the constant e = 2.7182818284590452.
 const.pi() `[constant: pi]`<br>
 Returns the constant PI = 3.1415926535897931.
 
-i2d(val) `[convert: int type: int]`<br>
+i2d(val) `[convert: double type: int]`<br>
 Converts the integer `val` into a double.
 
 s2d(val, fallback) `[convert: string type: string, type: double]`<br>
@@ -451,7 +493,306 @@ Returns the y coordinate of the inputed `vector value`.
 
 Subject is isolated in the section [R data type int](./Data%20Types/Type%20Int.md).
 
+External Editor syntactic sugar.<br>
+:const int `var_name`<br>
+Defines a variable with the name "var_name" that can hold the given integer value.<br>
+Since this is a const definition, you can not assign a value to this variable after it's been defined.
+
+The value of a const definition cannot be an expression.
+
+:global int `var_name`<br>
+Defines a variable with the name "var_name".<br>
+This shortens the assignment and retrieval of the variable.
+```
+:global int test
+global.int.set("test", global.int.get("test"))
+; is long form of
+test = test
+```
+
+:local int `var_name`<br>
+Is the same as :global int `var_name` but instead of a global variable, this defines a local variable.
+
+adventure.armor() `[adventure: armor]`<br>
+Returns the ammount of armor the player has in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.bombs() `[adventure: bombs]`<br>
+Returns the ammount of bombs the player has in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.countEntities("adventure_entities") `[adventure: count entities type: string]`<br>
+Returns the ammount of entities in the current room of the inputed `adventure_entities` entity type.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.<br>
+Valid adventure ID's are defined at the [top of file](#ai-functions)
+
+adventure.emeralds() `[adventure: emeralds]`<br>
+Returns the ammount of emeralds the player has in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.goldenHearts() `[adventure: golden hearts]`<br>
+Returns the number of golden hearts the player has collected in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.hearts() `[adventure: hearts]`<br>
+Returns the ammount of hit points the player has in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.keys() `[adventure: keys]`<br>
+Returns the number of keys the player has collected in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.mana() `[adventure: mana]`<br>
+Returns the ammount of mana the player has in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.manaArmor() `[adventure: mana armor]`<br>
+Returns the ammount of mana armor the player has in the game of adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+adventure.swords() `[adventure: swords]`<br>
+Returns the ammount of damage the player can deal in adventure.<br>
+If the adventure tab in the arcade isn't in focus, this will return 0.
+
+arithmetic.int(value1, "operation", value2) `[arithmetic type: int, type: string, type: double]`<br>
+Performs an arithmetic operation on the inputed values.<br>
+Permited operators are:
+- `^` `pow` power
+- `//` `log` logarithm<br>
+  a // b = log base b of a
+- `*` multiplication
+- `/` division
+- `%` `mod` modulo
+- `+` addition
+- `-` subtraction
+
+External Editor specifications:<br>
+arithmetic.int is long-form for a.i(). The syntax is the same, however this is shorter.<br>
+I recommend using the long-form for code clarity when you use this primitive function.<br>
+arithmetic.int(value1, "operation", value2) is a primitive.<br>
+Primitive operations do not get pre-computed when exporting the code.
+```
+var1 = arithmetic.int(1, "+", 1) ; after export var1 = 1 + 1
+var2 = 1 + 1 ; after export var2 = 2
+```
+Additionally, when assigning a variable, you can use a prefix operation to shorten the expression.
+```
+var1 = var1 + 1
+var2 += 1
+; both get compiled to the same operation
+```
+However, assignment prefixes are performed last
+```
+var2 = var2 * 2 + 1
+; can not be converted to
+var2 *= 2 + 1 ; translates to var2 = var2 * 3 because it's treated as var2 = var2 * (2 + 1)
+```
+
+budget() `[basic: remaining budget]`<br>
+Returns the ammount of execution budget the script has left durring its execution.
+
+d2i(val) `[convert: int type: double]`<br>
+Converts the double `val` into an integer. 
+
+s2i(val, fallback) `[convert: string type: string, type: int]`<br>
+Tries to convert the string `val` into an integer value. If unsucessful, it returns the value in `fallback` instead.
+
+active.count() `[game: active module count]`<br>
+Returns the total number of active modules in the currently active blueprint of the tower. Returns 0 outside of towertesting.
+
+active.index("module id") `[game: active module index type: string]`<br>
+Returns the index of the active module with the inputed id inside the active skills list. If the module is not inside the list or towertesting is not active then it returns 0.
+
+enemies() `[game: number of enemies]`<br>
+Returns the number of enemy units which are currently present on the map. Returns 0 if towertesting is not active or if the game of towertesting has been reset.
+
+max(val1, val2) `[max: int]`<br>
+Returns the larger number between val1 and val2.
+
+min(val1, val2) `[min: int]`<br>
+Returns the smaller number between val1 and val2.
+
+clusters() `[mine: clusters]`<br>
+Returns the total amount of asteroid clusters currently in the list or 0 if the second floor of the mine hasn't been unlocked yet or if the mine isn't open.
+
+museum.freeSlots("museum_storage") `[museum: free slots type: string]`<br>
+Returns the number of free slots in the requested `museum_storage`. If outside of the museum, it returns -1<br>
+Valid ID's are found at [top of file](#ai-functions).
+
+museum.slotTier(offerSlot) `[museum: market tier type: int]`<br>
+Returns the stone tier from slot `offerSlot` within the offshore market.<br>
+Returns 0 if the slot hasn't been unlocked yet or if it's called while not in the museum.
+
+museum.maxTier("element") `[museum: max tier type: string]`<br>
+Returns the maximum tier of the inputed element.<br>
+Returns -1 if it's called while not in the museum or if the element ID is invalid.<br>
+Valid ID's are defined at [top of tile](#ai-functions), with the only exception being element "neutral".
+
+tier("museum_storage", slot) `[museum: powerstone tier type: string, type: int]`<br>
+Returns the tier of the power stone in the selected museum_storage and in the slot.<br>
+Returns -1 if called outside of the museum or if the slot is unoccupied.<br>
+Valid ID's are found at [top of file](#ai-functions).
+
+museum.preferredTier() `[museum: preferred tier]`<br>
+Returns the currently set preferred market tier.<br>
+Returns -1 if called outside of the museum or if the offshore market is locked.
+
+museum.trashTier(trashSlot) `[museum: trash tier type: int]`<br>
+Returns the powerstones tier from the requested trash slot.<br>
+Returns -1 if outside of the museum or if the requested trashSlot is empty.
+
+rnd(minVal, maxVal) `[random: int]`<br>
+Returns a random value between minVal and maxVal, both inclusive. If maxVal is smaller than minVal, it returns minVal.<br>
+This always triggers a call to the internal rng.
+
+height() `[screen: height]`<br>
+Returns the height of the screen in pixels.
+
+width() `[screen: width]`<br>
+Returns the width of the screen in pixels.
+
+index(str, substr, offset) `[string: index of type: string, type: string, type: int]`<br>
+Returns the index of the first occurrence of string `substr` within string `str`. Search starts at index `offset` where 0 represents the beginning of the string.<br>
+Returns -1 if substr could not be found in str at the specified offset.<br>
+Note that substr is case sensitive, so `T` is not the same as `t`.
+```
+index("Text", "", 0) = -1
+index("Text", "T", 0) = 0
+index("Text", "T", 1) = -1
+```
+
+len(str) `[string: length type: string]`<br>
+Returns the number of characters in the string `str`.<br>
+An empty string returns 0.
+
+if(cond, valTrue, valFalse) `[ternary: int type: bool, type: int, type: int]`<br>
+If the condition is true, returns the value in valTrue, otherwise, returns the value of valFalse.
+```
+if(true, 1, 0) = 1
+if(false, 1, 0) = 0
+```
+
+time.frame() `[time: frame]`<br>
+Returns the number of frames that have occoured since starting the game.<br>
+Do note that this value returns back to 0 once you exit and re-enter a save.
+
+negative() `[tower: negative buffs]`<br>
+Returns the total ammount of negative buffs currently present on the tower or 0 if the tower has no negative buffs or does not exist.<br>
+Note that this only counts negative buffs, this does not count positive buffs.
+
+offerCount() `[tradingpost: offer count]`<br>
+Returns the total amount of available offers in the trading post.<br>
+While outside of the tradingpost, this does not get set to 0, but it cannot detect if the number of offers has changed.
+
+worker.group(index) `[worker: group]`<br>
+Returns the group of the worker at the requested index, where 0 is the first worker in the list.<br>
+If you go to settings -> graphics and set color blind mode to no shader, you can see the number correlating to the worker group on the color cube.
+
 ### type: string
+
+Subject is isolated in the section [R data type string](./Data%20Types/Type%20String.md).
+
+External Editor syntactic sugar.<br>
+A string value is a set of characters, numbers and special characters that must be contained in a pair of single quotes `''` or double quotes `""`.<br>
+```
+"test'" and 'test"' are valid
+; however
+"test"" and 'test'' are invalid
+```
+
+:const string `var_name`<br>
+Defines a variable with the name "var_name" that can hold the given string value.<br>
+Since this is a const definition, you can not assign a value to this variable after it's been defined.
+
+The value of a const definition cannot be an expression.
+
+:global string `var_name`<br>
+Defines a variable with the name "var_name".<br>
+This shortens the assignment and retrieval of the variable.
+```
+:global string test
+global.string.set("test", global.string.get("test"))
+; is long form of
+test = test
+```
+
+:local string `var_name`<br>
+Is the same as :global string `var_name` but instead of a global variable, this defines a local variable.<br>
+
+adventure.entityType(position) `[adventure: get entity type type: vector(2d)]`<br>
+Returns the entity type of the tile corresponding to the inputed position.<br>
+The returned value is of `adventure_entities` and also returns an empty string if the entity is a wall or an empty tile.
+
+concat(str, str) `[concat type: string, type: string]`<br>
+Chains the two given strings together.<br>
+External editor specifications.<br>
+concat(str, str) is a primitive that doesn't pre-computed. Its short-form version is `str . str`.
+```
+var1 = concat("test", "test") ; gets exported as var1 = "test" . "test"
+var2 = "test" . "test" ; gets exported as var2 = "testtest"
+```
+
+d2s(val) `[convert: double type: double]`<br>
+Converts the inputed double to a string.
+
+i2s(val) `[convert: int type: int]`<br>
+Converts the inputed integer to a string.
+
+factory.find(name) `[factory: find id type: string]`<br>
+Returns the correct item ID of the item with the closest match to the inputed name (ignores case-sensitivity). This function is very slow. Avoid using it in performance critical sections.<br>
+This function has been made obselete ever since the factory drop-downs were introduced.
+
+machine.item(factory_machines) `[factory: machine input type: string]`<br>
+Returns the id of the item currently inside the factory machine with the inputed ID.<br>
+Accepted ID's are written in factory_machines, found at the [top of file](#ai-functions).
+
+active.id(index) `[game: active module id type: int]`<br>
+Returns the id of the active module in slot `index` in the active modules list where 1 refers to the first module in the list. Returns an empty string if the slot index is invalid or towertesting is not active.
+
+museum.slotElement(offerSlot) `[museum: market element type: int]`<br>
+Returns the element from the requested slot in the offshore market. Returns an empty string if there's no element.
+
+element(museum_storage, slot) `[museum: powerstone element type: string, type: int]`<br>
+Returns the PowerStone element of the requested slot within the desired museum_storage.<br>
+Valid ID's are defined at the [top of file](#ai-functions).
+
+museum.trashElement(trashSlot) `[museum: trash element type: int]`<br>
+Returns the PowerStone element in the requested trashSlot.
+
+impulse() `[script: triggered impulse]`<br>
+Returns the ID of the impulse that triggered this script instance. If the script was triggered by another script then this function will return the name of that script, including the package if present.
+
+software.find(name) `[software: find id type: string]`<br>
+Returns the correct software id of the software with the closest match to the inputed name (ignores case-sensitivity). This function is very slow. Avoid using it in performance critical sections.<br>
+As with factory.find(name), this function has been made obselete ever since the software drop-downs were introduced.
+
+lower(str) `[string: to lower]`<br>
+Converts the inputed string into its lowercase variant.
+
+upper(str) `[string: to upper]`<br>
+Converts the inputed string to its uppercase variant.
+
+sub(str, index, length) `[substring type: string, type: int, type: int]`<br>
+Returns a part of the string `str`, starting from position `index` (0 = first character) and then going a total of `length` steps to the right.
+```
+sub("Test", 0, 3) = "Tes"
+sub("Test", 1, 3) = "est"
+sub("Test", 0, 4) = "Test"
+sub("Test", 0, 0) = ""
+```
+
+if(cond, valTrue, valFalse) `[ternary: string type: bool, type: string, type: string]`<br>
+If the condition is true, returns `valTrue`, otherwise, returns `valFalse`.
+```
+if(true, "foo", "FOO") = "foo"
+if(false, "foo", "FOO") = "FOO"
+```
+
+worker.name(index) `[worker: name type: int]`<br>
+Returns the name of the worker at index `index` (0 is the first worker in the list).
+
+worker.task(workerName) `[worker: task id type: string]`<br>
+Returns the id of the current task of the first worker with the name `workerName`. Returns an empty string if no worker with the given name exists or if there has been no task assigned.
 
 ### type: bool
 
@@ -467,8 +808,7 @@ The value of a const definition cannot be an expression.
 
 :global bool `var_name`<br>
 Defines a variable with the name "var_name".<br>
-This shortens the expressions global.bool.set("var_name", `value`) to `var_name` = `value` and global.bool.get("var_name") to `var_name`.<br>
-
+This shortens the assignment and retrieval of the variable.
 ```
 :global bool test
 global.bool.set("test", global.bool.get("test"))
@@ -479,9 +819,257 @@ test = test
 :local bool `var_name`<br>
 Is the same as :global bool `var_name` but instead of a global variable this defines a local variable
 
-The lable `var_name` can contain alphabetical values, numeric values and the character `_`.<br>
-The first character of `var_name` can't be a numeric value.
-
 ### type: vector(2d)
 
-## Fundemental functions
+Subject is isolated in the section [R data type vector (2D)](./Data%20Types/Type%20Vector%20(2D).md).
+
+External Editor syntactic sugar.<br>
+A vector value is defined as `vec(value_x, value_y)`.<br>
+while value_x and value_y are categorised as double values, they are of data type float, so performing the same operation between 2 double values and 2 vector values can lead to different results.
+
+:const vector `var_name`<br>
+Defines a variable with the name "var_name" that can hold the given vector value.<br>
+Since this is a const definition, you can not assign a value to this variable after it's been defined.
+
+The value of a const definition cannot be an expression.
+
+:global vector `var_name`<br>
+Defines a variable with the name "var_name".<br>
+This shortens the assignment and retrieval of the variable.
+```
+:global vector test
+global.vec2.set("test", global.vec2.get("test"))
+; is long form of
+test = test
+```
+
+:local vector `var_name`<br>
+Is the same as :global vector `var_name` but instead of a global variable, this defines a local variable.
+
+adventure.playerPos() `[adventure: player position]`<br>
+Returns the players current position in Adventure.<br>
+If the arcade is closed or the adventure tab in arcade is not in focus, this returns vec(0.0, 0.0).
+
+adventure.roomCoords() `[adventure: room coordinates]`<br>
+Returns the coordinates of the current room in Adventure.<br>
+If the arcade is closed or the adventure tab in arcade is not in focus, this returns vec(0.0, 0.0).
+
+arithmetic.vec2(val, "operation", val) `[arithmetic type: vector (2D), type: string, type: vector (2D)]`<br>
+Performs arithmetic on the components of the 2 inputed values.<br>
+Permited operators are:
+
+- `*` multiplication
+- `/` division
+- `+` addition
+- `-` subtraction
+
+External Editor specifications:<br>
+arithmetic.vec2 is long-form for a.v(). The syntax is the same, however this is shorter.<br>
+I recommend using the long-form for code clarity when you use this primitive function.<br>
+arithmetic.vec2(value1, "operation", value2) is a primitive.<br>
+Primitive operations do not get pre-computed when exporting the code.
+```
+var1 = arithmetic.vec2(vec(1.0, 0.0), "+", vec(1.0, 0.0)) ; after export var1 = vec(1.0, 0.0) + vec(1.0, 0.0)
+var2 = vec(1.0, 0.0) + vec(1.0, 0.0) ; after export var2 = vec(2.0, 0.0)
+```
+Additionally, when assigning a variable, you can use a prefix operation to shorten the expression.
+```
+var1 = var1 + vec(1.0, 0.0)
+var2 += vec(1.0, 0.0)
+; both get compiled to the same operation
+```
+However, assignment prefixes are performed last
+```
+var2 = var2 * vec(2.0, 1.0) + vec(1.0, 0.0)
+; can not be converted to
+var2 *= vec(2.0, 1.0) + vec(1.0, 0.0) ; translates to var2 = var2 * vec(3.0, 1.0) because it's treated as var2 = var2 * (vec(2.0, 1.0) + vec(1.0, 0.0))
+```
+
+mouse.position() `[mouse: position]`<br>
+Returns the current position of the mouse cursor.
+
+if(cond, valTrue, valFalse) `[ternary: vector (2d) type: bool, type: vector (2d), type: vector (2d)]`<br>
+If cond is true, returns valTrue, otherwise returns valFalse.
+```
+if(true, vec(1.0, 1.0), vec(0.0, 0.0)) = vec(1.0, 1.0)
+if(false, vec(1.0, 1.0), vec(0.0, 0.0)) = vec(0.0, 0.0)
+```
+
+vec(value_x, value_y) `[vector2: from coordinates type: double, type: double]`<br>
+Returns a vector with the inputed value_x and value_y.<br>
+External editor specifications:<br>
+If either value_x or value_y can't be pre-computed, the export uses vector2: from coordinates, otherwise, it uses the simple vector (2D).
+
+## Fundamental functions
+
+A fundamental function is an action that consumes 100 budget from your execution budget.<br>
+These are the actions used to interact with the game.
+
+click(clickPosition) `[basic: click type: vector(2D)]`<br>
+Performs a click in the inputed position. If that position has a button, it will interact with it.
+
+slider(sliderPosition, slide) `[basic: slider type: vector(2D), type: double]`<br>
+Sets the slider at position `sliderPosition` on the screen to `slide`. Where 0.0 is the leftmost and 1.0 is the rightmost end.
+
+scrollbar(scrollbarPosition, horisontal, vertical) `[basic: scrollrect type: vector(2D), type: double, type: double]`<br>
+Scrolls within the scrollable container at `scrollbarPosition` to `horisontal` and `vertical`. Where 0 is the left/lower end and 1 being the right/upper end.<br>
+Using a negative value ignores the axis entirely.
+```
+scrollbar(vec(0.0),  1, -1) ; only scrolls horisontally
+scrollbar(vec(0.0), -1,  1) ; only scrolls vertically
+scrollbar(vec(0.0),  1,  1) ; scrolls both horisontally and vertically
+```
+
+wait(ammount) `[basic: wait type: double]`<br>
+Waits for the inputed ammount of seconds.<br>
+Inputting a negative value acts as tho you inputed 0.<br>
+Inputting any non-0 value will consume the rest of your execution budget.
+
+waituntil(cond) `[basic: wait until type: bool]`<br>
+Waits for as long as the inputed condition `cond` is false.<br>
+Inputting a true condition only consumes 100 budget, inputting a false condition consumes all of your budget.
+
+waitwhile(cond) `[basic: wait while type: bool]`<br>
+Waits for as long as the inputed condition `cond` is true.<br>
+Inputting a false condition only consumes 100 budget, inputting a true condition consumes all of your budget.
+
+waitframe() `[basic: wait frame]`<br>
+Consumes all of your budget.
+
+execute(script_name) `[basic: execute type: string]`<br>
+Executes the script with the name script_name without the called script needing a user impulse.<br>
+The executed script will not be able to run if its script conditions are not met.<br>
+If execute() is used in a package, the scripts within the package will first be checked to see if they match the inputed script_name, if none of them do, the search will continue from the top of the scripts.<br>
+When calling a script from a package that we're not in, script_name must also include the package_name, followed by the `:` marker and then the script_name.
+```
+execute("me") ; executes the script called me within my package first, if none is found, looks at the other scripts
+execute("package:me") ; executes the script called "me" from the package called "package"
+```
+
+executesync(script_name) `[basic: execute (sync) type: string]`<br>
+Equivalent to execute(script_name), however, execution is stopped until the script we called finishes its execution.
+```
+executesync("foo") ; execute the script called "foo" and wait for it to finish execution
+
+:global string status
+status = "finish" ; status will only get set to "finish" after foo finishes execution
+```
+executesync(script_name) has a bug where, if the called script does not start execution because the conditions aren't met, executesync will continue to wait, indefinitely.<br>
+If executesync does not find a valid script to execute, it will just consume 100 budget, however, if it does succeed, it will consume the rest of the budget and then consume an extra 100, leaving you with budget_cap - 100 left, where-as usually, you're left with budget_cap left.
+
+stop(script_name) `[basic: stop type: string]`<br>
+Stops the execution of all scripts and script instances which are named `script_name`.<br>
+This action also clears the execution stack, which is what makes systems such as budget_exec work.
+
+canvas.rect(where, size, color) `[canvas: draw rect type: vector(2d), type: vector(2d), type: string]`<br>
+Function that's added by the software boots.d0s, which lets you draw on the canvas.<br>
+Draws a square starting from the position specified in `where`, to the position correlating to `where` + `size`, of color `color`.<br>
+The color is in hex code, and accepts the formats `#RGB`, `#RGBA`, `#RRGGBB` and `#RRGGBBAA`, representing the values Red Green Blue and Alpha (Opacity).
+
+canvas.clear() `[canvas: clear]`<br>
+Function that's added by the software boots.d0s, which lets you clear the canvas.<br>
+Clears the canvas that's been drawn on through canvas.rect
+
+create(windowID, windowType) `[window: create type: string, type: string]`<br>
+Creates a window with the unique identifier `windowID` (used to address the new instance) of type `windowType` (window name inside of windows list).
+
+text.set(windowID, textElementId, value) `[window: set text type: string, type: string, type: string]`<br>
+Sets the content inside the window with the ID `windowID` of the text label with the id `textElementID` to `value`.
+
+sprite.set(windowID, ElementID, sprite) `[window: set sprite type: string, type: string, type: string]`<br>
+Sets the sprite inside the window with the id `windowID` of the button/image with the id `elementID` to `sprite`.
+
+visibility.set(windowID, isVisible) `[window: set visibility type: string, type: bool]`<br>
+Set the window with id ``windowID` to visible if `isVisible` is true. Otherwise, the window will be hidden.
+
+child.visibility.set(windowID, elementID, isVisible) `[window: set child visibility type: string, type: string, type: bool]`<br>
+Set child with ID `elementID` of window `windowID` to visible if `isVisible` is true. Otherwise, it will be hidden.
+
+position.set(windowID, position) `[window: set position type: string, type: vector (2D)]`<br>
+Changed the position of the window with ID `windowID` to `position` based on the anchor of its root element. Per default, the anchor is set to the genter of the window and 0, 0 represents the center of the screen.
+
+distroy(windowID) `[window: destroy type: string]`<br>
+Destroys the window with the ID `windowID`.
+
+destroy.all() `[window: destroy all]`<br>
+Ddestroys all active windows.
+
+useinstant(spell_index) `[tower: use (instantly) type: int]`<br>
+Uses the spell at slot `spell_index`, where slot 1 refers to the first skill.<br>
+Entering an invalid slot will do nothing.<br>
+If the spell at slot `spell_index` needs a position, useinstant will activate the spell, but you will need to click on the place to cast it.
+
+useposition(spell_index, position) `[tower: use (position) type: int, type: vector(2D)]`<br>
+Uses the spell at slot `spell_index`, where 1 refers to the first skill, at an offset of `position` of its current world position.<br>
+Activate the spell and press f2 in order to get the position.
+
+restart() `[tower: restart]`<br>
+Restarts the current game of towertesting. Can only be executed after 1 second in the game has passed.<br>
+restart() triggers the impulse game.newround(), so it can lead to duplication.<br>
+restart() also sets enemies() to 0, which can't easily happen in endless mode, so it's a reliable way to detect if a restart has happened.
+
+exit() `[tower: exit]`<br>
+Exits the current game of towertesting and puts you back in town.
+
+software.toggle(name, on) `[software: toggle type: string, type: bool]`<br>
+Enables the software `name` if the condition `on` is true or disables it if the condition is false.
+
+pause.set(pause) `[game: set pause type: bool]`<br>
+Pauses towertesting if `pause` is true. Otherwise, it will unpause the game.
+
+pause() `[game: pause]`<br>
+equivalent to `pause.set(true)`.
+
+unpause() `[game: unpause]`<br>
+equivalent to `pause.set(false)`.
+
+disable.era(element) `[era: disable power type: string]`<br>
+Tries to disable the era powers of enemies of the inputed `element` by purchasing the according upgrade using xp.
+
+upgrade.era(divider, ammount) `[era: upgrade divider type: string, type: int]`<br>
+Attempts to upgrade the specified era divider by the inputed ammount by using xp.
+
+disable.inf(moduleID) `[infinity: secure module type: string]`<br>
+Attempts to secure the module with the specified `moduleID` to prevent enemies from mimicking it during the infinity phase.
+
+open(building, open) `[town: open window type: string, type: bool]`<br>
+Opens the `building` window if `open` is true, otherwise it will be closed. Opening or closing windows this way does not play the transition animation.
+
+worker.toggleGroup(group) `[worker: toggle group type: int]`<br>
+Toggles the group state of all workers in group `group`.
+
+worker.pauseGroup(group, pause) `[worker: pause group type: int, type: bool]`<br>
+Sets the paused state of all workers in group `group` to `pause`.
+
+worker.toggleName(name) `[worker: toggle type: string]`<br>
+Toggles the paused state of all workers with the name `name`.
+
+worker.pauseName(name, pause) `[worker: pause type: string, type: bool]`<br>
+Sets the paused state of all workers with the name `name` to `pause`
+
+worker.assignGroup(task, subtask, group) `[worker: assign group type: string, type: int, type: int]`<br>
+Assigns the task with id `task` and optional parameter `subtask` (0 is the leftmost) to all workers in group `group`.
+
+worker.assignName(task, subtask, name) `[worker: assign type: string, type: int, type: string]`<br>
+Assigns the task with id `task` and optional parameter `subtask` (0 is the leftmost) to all workers with the name `name`.
+
+worker.setName(index, name) `[worker: set name type: int, type: string]`<br>
+Sets the name of the worker at index `index` (0 is the first worker) to `name`.
+
+worker.setGroup(index, group) `[worker: set group type: int, type: int]`<br>
+Sets the group of the worker at index `index` (0 is the first worker) to the group with id `group`.
+
+dig(x, y) `[mine: dig type: int, type: int]`<br>
+Digs up the tile at `x` and `y` of the currently selected resource in the mine with (0, 0) being the top left corner.<br>
+Only works if the mine window is active.
+
+newlayer() `[mine: new layer]`<br>
+Generates a new later of the currently selected resources in the mine.<br>
+Only works if the mine window is active.
+
+tab(tab) `[mine: open tab type: int]`<br>
+Opens the mining tab at position `tab`. Position 1 is the first tab (orage) and position 12 is the last tab (black).
+
+remove(cluster) `[mine: delete cluster type: int]`<br>
+Removes the asteroid cluster at list position `cluster` where 1 represents the first cluster in the list.
+
