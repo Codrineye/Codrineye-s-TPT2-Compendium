@@ -257,13 +257,14 @@ goto(top)
 
 Subject is isolated in the section [R Data Type double](./Data%20Types/Type%20Double.md).
 
+A double is any value between -1.7976931348623157E+308 to 1.7976931348623157E+308.
+
 External Editor syntactic sugar.<br>
 :const double `var_name` <double_value><br>
 Defines a variable with the name "var_name" that can hold the given double value.<br>
-A double is defined as an integer value, followed by a dot `.` and then left empty or followed by another integer value.<br>
-Since this is a const definition, you can not assign a value to this variable if it's been defined.
+Since this is a const definition, you can not assign a value to this after it's been defined.
 
-The value of a const definition cannot be an expression
+The value of a const definition cannot be an expression.
 
 :global double `var_name`<br>
 Defines a variable with the name "var_name".<br>
@@ -492,6 +493,8 @@ Returns the y coordinate of the inputed `vector value`.
 ### type: int
 
 Subject is isolated in the section [R data type int](./Data%20Types/Type%20Int.md).
+
+An integer value is any number between -2147483648 to 2147483647.
 
 External Editor syntactic sugar.<br>
 :const int `var_name` <int_value><br>
