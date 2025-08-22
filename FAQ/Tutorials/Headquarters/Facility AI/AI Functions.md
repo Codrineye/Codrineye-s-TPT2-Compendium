@@ -89,24 +89,24 @@ There is a bug in how conditions handle script termination. If a script calls an
 
 ### Boolean
 
-`==` means equal<br>
-`!=` means not equal<br>
-`&&`, `&` means and<br>
-`||`, `|` means or
+- `==`, `=` means equal
+- `!=` means not equal
+- `&&`, `&` means and
+- `||`, `|` means or
 
 ### Int/Double
 
-`==` means equal<br>
-`!=` means not equal<br>
-`<` means smaller than<br>
-`<=` means smaller or equal than<br>
-`>` means larger than<br>
-`>=` means larger or equal than
+- `==`, `=` means equal
+- `!=` means not equal
+- `<` means smaller than
+- `<=` means smaller or equal than
+- `>` means larger than
+- `>=` means larger or equal than
 
 ### String
 
-`==` means equal<br>
-`!=` means not equal
+- `==`, `=` means equal
+- `!=` means not equal
 
 ## Conditions
 
@@ -116,6 +116,29 @@ All conditions are the same values as [R type: bool](#type-bool)
 comparison.*data_type*(*data_type*, "operator", *data_type*)
 `[comparison: `*data_type*`type: `*data_type*`, type: string, type: `*data_type*`]`<br>
 Compares two values of the same *data_type* (excluding vector) based on the selected operator.
+
+External editor specification.<br>
+comparison.*data_type*(*data_type*, "operator", *data_type*) is long-form for c.*data_type*, where data_type in this context means:
+```
+c.b = comparison.bool
+c.d = comparison.double
+c.i = comparison.int
+c.s = comparison.string
+```
+I recommend using the long-form for code clarity when you use this primitive function.<br>
+arithmetic.double(value1, "operation", value2) is a primitive.<br>
+Primitive operations do not get pre-computed when exporting the code.
+```
+var1 = arithmetic.bool(true, "==", true) ; after export var1 = true == true
+var2 = true == true ; after export var2 = true
+```
+
+When in the form that gets pre-computed, you lose the `=` comparison operator.
+```
+var1 = comparison.bool(true, "=", true) ; valid syntax
+var2 = true = true ; syntax error.
+```
+
 
 global.bool.get("variable name") `[global: get (bool) type: string]`<br>
 Returns the value of the global bool variable with the coresponding name.
@@ -287,8 +310,8 @@ Permited operations are:
 - `^` `pow` power
 - `//` `log` logarithm<br>
   a // b = log base b of a
-- `*` multiplication
-- `/` division
+- `*` `x` multiplication
+- `/` `:` division
 - `%` `mod` modulo
 - `+` addition
 - `-` subtraction
@@ -313,6 +336,12 @@ However, assignment prefixes are performed last
 var2 = var2 * 2.0 + 1.0
 ; can not be converted to
 var2 *= 2.0 + 1.0 ; translates to var2 = var2 * 3.0 because it's treated as var2 = var2 * (2.0 + 1.0)
+```
+
+When in a form that gets pre-computed, you lose the operators `pow`, `log`, `x`, `:` and `mod`
+```
+var1 = arithmetic.double(2.0, "x", 5.0) ; valid syntax
+var2 = 2.0 x 5.0 ; invalid syntax
 ```
 
 const.e() `[constant: e]`<br>
@@ -563,8 +592,8 @@ Permited operators are:
 - `^` `pow` power
 - `//` `log` logarithm<br>
   a // b = log base b of a
-- `*` multiplication
-- `/` division
+- `*` `x` multiplication
+- `/` `:` division
 - `%` `mod` modulo
 - `+` addition
 - `-` subtraction
@@ -589,6 +618,12 @@ However, assignment prefixes are performed last
 var2 = var2 * 2 + 1
 ; can not be converted to
 var2 *= 2 + 1 ; translates to var2 = var2 * 3 because it's treated as var2 = var2 * (2 + 1)
+```
+
+In a form that gets pre-computed, you lose the operators `pow`, `log`, `x`, `:` and `mod`.
+```
+var1 = arithmetic.int(10, "pow", 2) ; valid syntax
+var2 = 10 pow 2 ; syntax error
 ```
 
 budget() `[basic: remaining budget]`<br>
