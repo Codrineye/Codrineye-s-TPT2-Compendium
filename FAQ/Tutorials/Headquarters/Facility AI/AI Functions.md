@@ -258,7 +258,7 @@ goto(top)
 Subject is isolated in the section [R Data Type double](./Data%20Types/Type%20Double.md).
 
 External Editor syntactic sugar.<br>
-:const double `var_name`<br>
+:const double `var_name` <double_value><br>
 Defines a variable with the name "var_name" that can hold the given double value.<br>
 A double is defined as an integer value, followed by a dot `.` and then left empty or followed by another integer value.<br>
 Since this is a const definition, you can not assign a value to this variable if it's been defined.
@@ -494,7 +494,7 @@ Returns the y coordinate of the inputed `vector value`.
 Subject is isolated in the section [R data type int](./Data%20Types/Type%20Int.md).
 
 External Editor syntactic sugar.<br>
-:const int `var_name`<br>
+:const int `var_name` <int_value><br>
 Defines a variable with the name "var_name" that can hold the given integer value.<br>
 Since this is a const definition, you can not assign a value to this variable after it's been defined.
 
@@ -700,7 +700,7 @@ A string value is a set of characters, numbers and special characters that must 
 "test"" and 'test'' are invalid
 ```
 
-:const string `var_name`<br>
+:const string `var_name` <string_value><br>
 Defines a variable with the name "var_name" that can hold the given string value.<br>
 Since this is a const definition, you can not assign a value to this variable after it's been defined.
 
@@ -827,7 +827,7 @@ External Editor syntactic sugar.<br>
 A vector value is defined as `vec(value_x, value_y)`.<br>
 while value_x and value_y are categorised as double values, they are of data type float, so performing the same operation between 2 double values and 2 vector values can lead to different results.
 
-:const vector `var_name`<br>
+:const vector `var_name` <vector_value><br>
 Defines a variable with the name "var_name" that can hold the given vector value.<br>
 Since this is a const definition, you can not assign a value to this variable after it's been defined.
 
