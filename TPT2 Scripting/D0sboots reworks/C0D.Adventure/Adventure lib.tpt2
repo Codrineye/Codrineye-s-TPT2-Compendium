@@ -1,0 +1,70 @@
+; Name for the package
+#package(name) C0D.Adventure:{name}
+
+; Key assignments
+;
+; start/stop the script
+#start r
+; Tries to kill all enemies in the room
+; Tries to perform the farm-keys sequence
+#kill k
+
+; Don't compile the script if key.start would be the same as key.kill
+{lua(\
+  if "{start}" == "{kill}" then\
+    local err_msg = table.pack(\
+      "\n",\
+      "\nImpulses must be different!",\
+      "\nkey.{start} for start cannot be the same as key.{kill} for kill!"\
+    );\
+    error(table.concat(err_msg), 0)\
+  end\
+)}
+
+; Variable definitions
+;
+; Scripts status determines if we're shut down or not
+; It also communicates with the user
+:const string status "<size=0>A^qSt"
+#status.get global.bool.get(status)
+#status.set(toggle) global.bool.set(status, {toggle})
+;
+; The path variable holds the path we follow.
+:const string path "A^qPh"
+#path.get global.string.get(path)
+#path.set(path) global.string.set(path, {path})
+;
+; The scripts target positions.
+; This is a list that holds the direction of the exit we must take to reach our target room
+:const string target_positions "A^qTn"
+#target.get global.string.get(target_positions)
+#target.set(position) global.string.set(target_positions, {position})
+;
+; Lastly, the encoding.
+; This string holds a list of everything that's in the room.
+:const string room "A^qEc<color"
+#room.get global.string.get(room)
+#room.set(room) global.string.set(room, {room})
+; The room encoding stops the hiding block and acts as a UI for the script.
+; Since this is also used for UI, it has the start of a <color block that'll get finished
+; when we set its value.
+;
+
+; Macros for processing data
+;
+; operations to determine the next direction to move into
+; Uses the UDLR direction to determine what value to return
+; Returns vec(0.0, 0.0) if an invalid direction is given
+; 
+#nextX(dir) s2d(sub(" 0 0 1-1", index("U D L R", {dir}, 0), 2), 0.0)
+#nextY(dir) s2d(sub(" 1-1 0 0", index("U D L R", {dir}, 0), 2), 0.0)
+#nextDir(dir) vec({nextX({dir})}, {nextY({dir})})
+;
+; Determine the current difficulty we're at
+#curr_diff(inc) min(\
+  x(adventure.roomCoords()),\
+  254.0 - x(adventure.roomCoords())\
+) + min(\
+  y(adventure.roomCoords()),\
+  254.0 - y(adventure.roomCoords())\
+) - (254.0 - {inc})

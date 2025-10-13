@@ -1,0 +1,91 @@
+:import Adventure lib
+:name {package(Main)}
+
+:local bool has_mastered
+
+:local double max_diff
+:local double player_attack
+
+:local int i
+:local int jump_target
+
+:local string target_dir
+;
+:local vector cur_pos
+:local vector target_pos
+
+; Impulses
+
+key.{start}()
+key.{kill}()
+
+; Conditions
+
+;
+; Only start the AI if we're in an active game of adventure
+adventure.playerHealth() > 0
+
+; Actions
+
+;
+; Toggle the script on/off. Shut down the script if we're triggered by key.kill
+{status.set(not({status.get}) && impulse() != "key.{kill}")}
+; This also starts a hiding block
+
+{path.set({path.get})} ; Do not overrite the value of path
+{target.set({target.get})} ; Do not overrite the value of our target positions
+
+;
+; End our hiding block.
+; This is used to encode the room we're in, so its value always changes
+; If we're here because of key.kill, we'll change our value to display "Killing Enemies" in red
+; Otherwise, if we're shutting down, we write "Shutting Down..." in white and if we're starting
+; up, we write "Starting Up..." in blue
+; The color block gets broken once we're running and have the room encoded
+{room.set(concat(\
+  if(impulse() == "key.{kill}", "red", if({status.get}, "#0DF", "#FFF")) . ">",\
+  "</size>" . if(\
+    impulse() == "key.{kill}",\
+    "Killing Enemies",\
+    if({status.get}, "Starting Up", "Shutting Down") . "..."\
+  ) . "</color>"\
+))}
+
+goto(if({status.get}, top, if(impulse() == "key.{start}", end, 99)))
+
+; --- Start Loop ---
+
+top:
+; Sets the player attack.
+; Used to determine how much damage is actually dealt
+player_attack = ceil(i2d(adventure.playerAttack()) * if(adventure.hasItem("impaler"), 1.1, 1.0))
+
+; Determine if we have a master item
+has_mastered = has_mastered || adventure.hasItem("masterSword") || adventure.hasItem("masterArmor")
+
+; Get the maximum difficulty we can reach
+; Important to note that this is not always our target difficulty
+#offsets 11120111210111210121201
+max_diff = if(\
+  has_mastered,\
+  255.0,\
+  floor(max(\
+    i2d(adventure.playerArmor()) / 0.39,\
+    (player_attack - 1.0) / 0.46 + s2d(sub("{offsets}", d2i(player_attack % 23.0), 1), 0.0)\
+  ))\
+)
+
+
+
+build_target:
+; Determine what our target room is and build towards it
+; 
+
+loop:
+
+gotoif(top, {status.get} && adventure.playerHealth() > 0)
+
+{status.set(false)} ; deactivate the script if adventure is no longer active
+
+end:
+{room.set("red></size></color>")}

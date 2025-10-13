@@ -1,0 +1,58 @@
+:name minef2 coords
+:local double ui
+:budget_cap 10000
+
+key.x()
+
+; click on mine f2 stairs | click(vec(216.0, 30.0)) ; completed
+; {click.relative(215.0 / 800.0, 1.0 / 450.0, 0.0, 0.0)}
+;
+; click on clusters tab | click(vec(542.0, 380.0)) ; completed
+; {click.relative(550.0 / 800.0, 380.0 / 450.0, 0.5, 1.0)}
+;
+; click on first cluster | click(vec(478.0, 305.0)) ; completed
+; {click.relative(550.0 / 800.0, 300.0 / 450.0, 0.5, 1.0)}
+;
+; click on asteroids tab | click(vec(400.0, 374.0)) ; completed
+; {pos.relative(400.0 / 800.0, 380.0 / 450.0, 0.4, 1.0)}
+;
+; click on scan | click(vec(422.0, 17.0)) ; completed
+; {click.relative(400.0 / 800.0, 10.0 / 450.0, 0.0, 0.0)}
+;
+; click on claim all | click(vec(781.0, 323.0)) ; completed
+; {click.relative(775.0 / 800.0, 320.0 / 450.0, 0.5, 0.5)}
+;
+; Mine a tile on the cluster | incomplete
+; click(vec(563.0, 47.0))  ; 2 tiles away from left edge
+; click(vec(363.0, 237.0)) ; 1 tile away from bottom
+;
+; Tile maps bounds
+; Top = 348.0
+; Bottom = 15.0
+; Left = 315.5
+; Right = 797.0
+; tile = 58 * ui.size
+;
+
+canvas.rect(\
+  {pos.relative(315.5 / 800.0, 15.0 / 450.0, 0.5, 0.5)},\
+  {pos.relative((797.0 - 315.5) / 800.0, (348.0 - 15.0) / 450.0, 0.0, 0.0)},\
+  "#FFFD"\
+)
+
+goto(99)
+
+#rel_vec(x, y, a1, a2) vec(\
+  min(width.d(), height.d() * 16.0 / 9.0) * ui * (({x}) - ({a1})) + width.d() * ({a1}),\
+  min(height.d(), width.d() * 9.0 / 16.0) * ui * (({y}) - ({a2})) + height.d() * ({a2})\
+)
+
+ui = 0.5;
+loop:
+canvas.rect(\
+  {rel_vec(400.0 / 800.0, 380.0 / 450.0, 0.5, 1.0)},\
+  vec(5.0, 5.0),\
+  "#000"\
+)
+ui += 0.01
+gotoif(loop, ui <= 1.0)

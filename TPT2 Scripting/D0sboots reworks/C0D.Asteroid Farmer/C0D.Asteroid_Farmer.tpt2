@@ -1,0 +1,30 @@
+; Claims and deletes the first asteroid, and then scans for another.
+; Meant to be used on some kind of timer-loop.
+:name C0D.Asteroid_Farmer
+:budget_cap 10000
+
+
+; click on mine f2 stairs | click(vec(216.0, 30.0)) ; completed
+; {click.relative(215.0 / 800.0, 1.0 / 450.0, 0.0, 0.0)}
+;
+; click on clusters tab | click(vec(542.0, 380.0)) ; completed
+; {click.relative(550.0 / 800.0, 380.0 / 450.0, 0.5, 1.0)}
+;
+; click on first cluster | click(vec(478.0, 305.0)) ; completed
+; {click.relative(550.0 / 800.0, 300.0 / 450.0, 0.5, 1.0)}
+;
+; click on asteroids tab | click(vec(400.0, 374.0)) ; completed
+; {pos.relative(400.0 / 800.0, 380.0 / 450.0, 0.4, 1.0)}
+;
+; click on scan | click(vec(422.0, 17.0)) ; completed
+; {click.relative(400.0 / 800.0, 10.0 / 450.0, 0.0, 0.0)}
+;
+; click on claim all | click(vec(781.0, 323.0)) ; completed
+; {click.relative(775.0 / 800.0, 320.0 / 450.0, 0.5, 0.5)}
+
+key.a()
+isopen("mine")
+
+; Don't activate the script if there aren't any clusters for us to mine
+clusters() > 0
+

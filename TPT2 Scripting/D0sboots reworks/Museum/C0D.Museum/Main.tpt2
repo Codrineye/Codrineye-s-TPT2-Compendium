@@ -1,0 +1,215 @@
+:import COD.Museum lib
+:name {package(Main)}
+:budget_cap 10000
+
+; The main script of the script.
+; This is responsible for updating the scripts UI, filling up the users inventory with stones
+; and for combining the stones together.
+;
+; The UI is controlled by the global "museum_status", which tells the user what the script is doing
+; and also stops the hiding block started by our script status defined in the lib
+
+:import budget exec_lib
+; Import budget exec_lib so we can accelerate our budget
+
+:local double museum_time
+
+:global int museum_slot ; target slot in the loadout
+:global int museum_tier ; tier of stones we have in our inventory
+:global int target_tier ; tier we're trying to uptier to
+:global int instances   ; number of instances created
+;
+:local int offer_idx ; index of offer in the offshore market we're analyzing
+;
+:global string offer_tiers ; string holding the offer tiers
+:global string museum_status
+
+
+;|======================================================================|
+;|-----------------------------START MACROS-----------------------------|
+;|======================================================================|
+
+; Macro-substitution for the museum timer,
+; allows mocking it out easily for testing.
+#timer museum.timer()
+
+; Normally we would take the ceiling of the time remaining,
+; because that's how timers work.
+; (You show 1 second left until the time hits 0.0)
+; However, the display timer in the museum uses floor,
+; and we want to match that, so we use floor too.
+; The parameter is a divisor, to make dealing with minutes easier.
+#time_floor(offset) floor({timer} / ({offset} * 10.0)) % 6.0\
+                  . floor({timer} / {offset}) % 10.0
+
+
+; Turn an element string into an index.
+; The base version is defined in the lib macros.
+#element_to_index(offset) {element_to_index_base(\
+  museum.slotElement(offer_idx), \
+  {offset}\
+)}
+
+;|======================================================================|
+;|-----------------------------START SCRIPT-----------------------------|
+;|======================================================================|
+
+; try to show the UI when facility AI activates
+wakeup()
+
+; Update the UI when we enter the museum
+open.museum()
+close.museum()
+
+; Toggle the script state
+key.{start}()
+
+; start the hiding block and toggle our state
+global.bool.set({status}, global.bool.get({status}) != (impulse() == "key.{start}"))
+
+top:
+instances = 0
+
+museum_tier = -1
+museum_slot = -1
+target_tier = -1
+
+; 01 for all elements
+; -1 for universal as it can only be bought from the offshore market
+offer_tiers = "0101010101010101-1"
+
+; Time for some ugly math!
+; When we set preferred tier to "pref", we set stones in the range [pref - 10, pref], at uniform.
+; We want our best stone to be in that range minus the one that we can *just* afford to do
+; +14 levels from. Stones smaller than that fall off at a rate of 1 tier/level, and stones
+; higher fall off at a rate of (18 log 3 - 1) ~1.63 tiers/level.
+; To maximize the potential of the range, we want the top and bottom of the range to have
+; equally high max_tiers, so max_tier(pref - 10.5) = max_tier(pref + 0.5).
+;
+; The halves make the range of size 11, which is needed
+; to propperly match the actual integer-sized range
+;
+; Key points:
+; We allocate 1% budget to every stone
+; The formula to calculate the cost to buy a tier from the offshore market = `2000 * 18 ^ tier`
+; Thus, we'll need a budget of 2000 * 100 * 18 ^ (tier - 1) to uptier from that tier
+; We uptier from tier 1
+; Substituting gives:
+; K = 2e5 / 18
+; pref - 10.5 + 14 = log_3((budget / K) / 18 ^ (pref + 0.5)) + pref + 0.5
+; pref - pref + 14 - 10.5 - 0.5 = log_3((budget / K) / 18 ^ (pref + 0.5))
+; 0 + 3 = log_3((budget / K) / 18 ^ (pref + 0.5))
+; log_3(3 ^ 3) = log_3((budget / K) / 18 ^ (pref + 0.5))
+; 27 = (budget / K) / 18 ^ (pref + 0.5)
+; 18 ^ (pref + 0.5) = (budget / K) / 27
+; log_18(18 ^ (pref + 0.5)) = log_18((budget / K) / 27)
+; pref + 0.5 = log_18((budget / K) / 27)
+; pref = log_18((budget / K) / 27) - 0.5
+; pref = log_18((budget / K) / 27 / 18 ^ 0.5)
+; pref = log_18(budget * 18 ^ 0.5 / 27 * K)
+; pref = log_18(budget * 18 ^ 0.5 / (27 * 2e5 / 18))
+; pref = log_18(budget * 18 ^ 0.5 / 54e5)
+;
+museum.setPreferredTier(max(1, min(\
+  50,\
+  d2i((resource("museum.resources") * ((18.0 ^ 0.5) / 54e5)) // 18.0)\
+)))
+
+; click to enter the Artifacts menu
+{click.relative(150.0 / 800.0, 280.0 / 450.0, 0.0, 1.0)}
+
+update_status:
+; Stop the hiding block
+; If we got an error, don't let us through
+museum_status = if(\
+  contains(museum_status, "ERROR="),\
+  museum_status,\
+  "</size>" . if(\
+    global.bool.get({status}) || (\
+      global.string.get(budget_exec_var) == "</size>" &&\
+      (museum_slot != -1 && freeSlots("inventory") == 30) &&\
+      museum_slot == -1 && budget() >= 98000\
+    ),\
+    "museum=" . if(\
+      global.bool.get({status}),\
+      "<color=#FF0>Combining... [" . museum_slot + 1 . "]</color>",\
+      ""\
+    ) . "<br><color=#2F4>{start}</color> <color=#0DF>" . if(\
+      global.bool.get({status}),\
+      "stops",\
+      "begins"\
+    ),\
+    "<color=red>ERROR=" . if(\
+      global.string.get(budget_exec_var) != "</size>",\
+      "{accelerate_budget} " . if(\
+        global.string.get(budget_exec_var) == "",\
+        "IS NOT RUNNING!",\
+        "HAS AN UNKNOWN STATUS!<br>An active script has modified it!"\
+      ),\
+      if(\
+        museum_slot != -1 && freeSlots("inventory") < 30,\
+        "Script cannot be run!<br>Inventory must have 30 slots!",\
+        "Insufficient Budget!<br>Upgrade Server RAM in HQ!"\
+      )\
+    )\
+  ) . "</color>"\
+)
+
+; shut down the script if we got an error
+global.bool.set({status}, global.bool.get({status}) && not(contains(museum_status, "ERROR=")))
+
+; unset if the museum isn't open
+; Move to the next slot if we're active or terminate the program if we're shut down
+goto(if(\
+  isopen("museum"),\
+  if(global.bool.get({status}), next_slot, 99),\
+  unset\
+))
+
+start_waiting:
+; Click to enter the Power Stones menu
+{click.relative(150.0 / 800.0, 325.0 / 450.0, 0.0, 1.0)}
+
+waiting:
+; Start the waiting loop
+; This is entered when museum_slot becomes 130 and is reset
+
+museum_time = max(1.0, if(isopen("museum"), {timer}, 0.0)) - 1.0
+museum_status = "</size>museum=<color=#2F4>{start}</color> <color=#0DF>" . if(\
+  global.bool.get({status}),\
+  "stops</color><br><color=#FFF>Waiting "\
+  . {time_floor(60.0)} . ":"\
+  . {time_floor(1.0)},\
+  "starts"\
+) . "</size>"
+
+waitwhile({timer} > museum_time)
+
+; 
+goto(if(\
+  isopen("museum"),\
+  if(global.bool.get({status}) && museum_time > 0.0, waiting, top),\
+  unset\
+))
+
+next_slot:
+
+; Try to swap the tile we've just uptiered
+; If we didn't uptier a tile, we do nothing outside of using up 100 budget
+museum.swap(\
+  "inventory",\
+  0,\
+  if(tier("inventory", 0) == -1, "inventory", "loadout"),\
+  museum_slot\
+)
+
+; Make space in our inventory and move to the next slot
+clear("inventory")
+museum_slot += 1
+
+get_offers:
+
+
+skip_offers:
+unset:
+museum_status = ""

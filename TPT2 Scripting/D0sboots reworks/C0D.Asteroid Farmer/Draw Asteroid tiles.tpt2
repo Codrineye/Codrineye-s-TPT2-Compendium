@@ -1,0 +1,52 @@
+:name Draw Asteroid tiles
+:budget_cap 10000
+:local double tile
+:global vector grid_size
+:global vector grid_size2
+:global vector tile_size
+:global vector tile_size2
+
+key.x()
+
+canvas.rect(vec(0.0, 0.0), vec(width.d(), height.d()), "#FFF")
+canvas.rect(\
+  {pos.relative(631.0 / 1600.0, 30.0 / 900.0, 0.5, 0.5)},\
+  {pos.relative((1593.0 - 631.0) / 1600.0, (694.0 - 30.0) / 900.0, 0.0, 0.0)},\
+  "#000D"\
+)
+
+tile_size = (\
+  {pos.relative(1151.0 / 1600.0, 219.0 / 900.0, 0.0, 0.0)} -\
+  {pos.relative(1106.0 / 1600.0, 174.0 / 900.0, 0.0, 0.0)}\
+)
+
+tile_size = vec(floor(x(tile_size)), floor(y(tile_size)))
+
+grid_size = (\
+  {pos.relative(1593.0 / 1600.0, 694.0 / 900.0, 0.0, 0.0)} -\
+  {pos.relative(631.0 / 1600.0, 30.0 / 900.0, 0.0, 0.0)}\
+) / tile_size
+
+grid_size = vec(floor(x(grid_size)), floor(y(grid_size))) - vec(2.0, 2.0)
+
+loop:
+canvas.rect(\
+  {pos.relative(\
+    (631.0 + x(tile_size) * (tile % floor(x(grid_size)))) / 1600.0,\
+    (30.0 + y(tile_size) * floor(tile / x(grid_size))) / 900.0,\
+    0.5,\
+    0.5\
+  )},\
+  tile_size,\
+  "#FFFF000F"\
+)
+
+tile += 1.0
+gotoif(loop, tile < x(grid_size) * y(grid_size))
+
+; draw collect all
+canvas.rect(\
+  {pos.relative(1532.0 / 1600.0, 614.0 / 900.0, 0.5, 0.5)},\
+  {pos.relative((1592.0 - 1532.0) / 1600.0, (674.0 - 614.0) / 900.0, 0.0, 0.0)},\
+  "#FFFF00F0"\
+)

@@ -1,0 +1,56 @@
+; Header for the factory assembly
+; Used to define the macros I'll be interacting with to make my life easier
+;
+; Since this is assembling data internally, everything is done within lua macros
+{lua(\
+  Factory = {}; --[[Global table for C0D.Factory]]\
+  --[[/*\
+    * Stub function that'll be re-defined in the assembly file\
+    * method is used to determine what functionality we're interacting with\
+  */]]\
+  function Factory.macro_body(method, arg1, arg2, arg3, arg4, craft_type)\
+  end\
+)}
+
+; Defines a factory item.
+; Helper macro used to make more definitions
+#item(name, tiers, cost, game_name, craft_type) {lua(\
+  Factory.macro_body("define", "{name}", {tiers}, "{cost}", {game_name}, {craft_type});\
+)}
+;
+; Define an item obtained through craft()
+#craft(name, tiers, cost, game_name) {item({name}, {tiers}, {cost}, {game_name}, "craft")}
+;
+; Define an item obtained through produce()
+#produce(name, tiers, game_name) {item({name}, {tiers}, 0.0, {game_name}, "produce")}
+;
+; Define a special item that Facility AI can't obtain through Factory specific functions alone
+#special(name, tiers, game_name) {item({name}, {tiers}, 0.0, {game_name}, "special")}
+
+;
+; Define a category to place items inside of
+#category(name, default, first, last) {lua(\
+  Factory.macro_body("category", "{name}", "{default}", "{first}", "{last}");\
+)}
+
+;
+; Define a group of items that'll be made at once
+#group(name, tiers) {lua(Factory.macro_body("group", "{name}", {tiers}))}
+
+;
+; Specify the item whose recipe we're defining
+#recipe(name) {lua(Factory.macro_body("recipe", {name}))}
+;
+; Specify a component of its crafting recipe
+#component(name, tiers, count) {lua(Factory.macro_body("recipe", {name}, "{tiers}", "{count}"))}
+;
+; Specify how the produce()'d item is made
+#make(item, source, mult, machine) {lua(\
+  Factory.macro_body("recipe", {item}, {source}, {mult}, {machine});\
+)}
+
+;
+; Get the item queue ID
+; Needed because the {item(name, tiers, cost, game_name, craft_type)} macro doesn't return
+; a :const anymore. This const is what originally reprezented the items id
+#queue(item, tier) {lua(return Factory.macro_body("queue", "{item}", {tier}))}

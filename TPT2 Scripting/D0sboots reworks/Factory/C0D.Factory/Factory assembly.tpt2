@@ -1,0 +1,49 @@
+:import Factory assembly hdr
+
+{lua(\
+  Factory.items = {};\
+  Factory.item_names = {};\
+  \
+  function Factory.add_item(item_name, item_tiers, item_cost, game_name, craft_type)\
+    local item = {};\
+    item.id = #Factory.items + 1;\
+    \
+    local input = table.pack(item_name, item_tiers, item_cost, game_name, craft_type);\
+    local params = "item_name item_tiers item_cost game_name craft_type";\
+    local inc = 1;\
+    for param in params:gmatch("[%w_]+") do\
+      if input[inc] == nil then\
+        error("Parameter " .. param .. " is empty!");\
+      end\
+      item[param] = input[inc];\
+      inc = inc + 1;\
+    end\
+    Factory.items[item.id] = item;\
+    Factory.item_names[item_name] = item;\
+  end\
+  \
+  Factory.categories = {};\
+  function Factory.add_category(name, default, first, last)\
+    local category = {};\
+    category.name = name;\
+    local names = table.pack("default", "first", "last");\
+    local params = table.pack(default, first, last);\
+    for i = 1, 3 do\
+      local trimmed = params[i]:gsub("^ +", "");\
+      local item = Factory.item_names[trimmed];\
+      if not item then\
+        error("Can't find item '" .. trimmed .. "'");\
+      end\
+      category[names[i]] = item.id;\
+    end\
+    Factory.categories[#Factory.categories + 1] = category;\
+  end\
+  \
+  Factory.recipes = {};\
+  function Factory.define_recipe(recipe_table)\
+    local recipe_target = recipe_table[1];\
+    if Factory.recipes[recipe_target] then\
+      error("Duplicate recipe of item " .. recipe_target);\
+    end\
+  end\
+)}

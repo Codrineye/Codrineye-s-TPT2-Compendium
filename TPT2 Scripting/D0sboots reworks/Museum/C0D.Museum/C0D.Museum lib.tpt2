@@ -1,0 +1,75 @@
+; Standardized package naming accross all scripts
+#package(name) C0D.Museum v1.0:{name}
+
+; Key to toggle the script on and off
+#start m
+
+
+; scripts status, a boolean that starts a hiding block
+; true if we're active
+; false if we're idle
+#status "<size=0>%ms#"
+
+; how many characters are used to reprezent an element?
+#element_size 2
+{lua(\
+  --[[list of all elements]]\
+  local elements = table.pack(\
+    "light",    "electricity", "fire",\
+    "darkness", "nature",      "air",\
+    "water",    "earth",       "universal"\
+  );\
+  \
+  local element_format = "%-{element_size}s";\
+  local elems;\
+  do\
+    local acc = {};\
+    for i = 1, #elements do\
+      local element = element_format:format(elements[i]);\
+      acc[i] = element:sub(1, {element_size});\
+    end\
+    --[[builds our elements list in the array acc]]\
+    elems = table.concat(acc);\
+  end\
+  \
+  Museum = {};\
+  function Museum.offset_elems(offset)\
+    local size = #elems + offset;\
+    local fmt = [["%]] .. size .. [[s"]];\
+    return string.format(fmt, elems);\
+  end\
+)}
+
+; Turn an element string into an index. For our purpose, all the indexes
+; need to be multiplied by two, so we look for the index of the first two
+; characters of the element.
+; The "offset" number allows us to concatenate on a string and thus add a
+; constant offset to the result.
+#element_to_index_base(ele, offset) index(\
+  {lua(return Museum.offset_elems({offset}))}, \
+  sub({ele}, 0, {element_size}), \
+  0\
+)
+
+; Determine the number of tiers we can boost given our budget
+; and stones of "in_tier"
+; We allocate 1% of budget for each stone. Based on the tier of stones
+; we can buy, they cost 2000 * 18 ^ in_tier / 18 each
+; (We ignore the extra cost of universal stones.)
+; This determines how many stones we can buy, and thus the max tier.
+; The floor and the extra division by 9 mean that, if the level
+; can't be raised by at least 2 levels, the quantity in the log will
+; be rounded down to 0, and thus, the log will result in -infinity.
+; We add back the 2 levels on the outside.
+#up_tiers(in_tiers) 2.0 + floor(\
+  resource("museum.resources") / (2e5 * 9.0 / 18.0) / (18.0 ^ ({in_tiers}))\
+) // 3.0
+
+; The top tier that can be achieved, given input stones of "in_tier".
+; Capped either at +14 levels, or by the budget function in up_tiers.
+; If we can't reach +2 levels, up_tiers returns -inf,
+; which will result in -1 from this function.
+#top_tier(in_tier) min(50.0, max(-1.0, ({in_tier}) + min(\
+  14.0,\
+  {up_tiers({in_tier})}\
+)))

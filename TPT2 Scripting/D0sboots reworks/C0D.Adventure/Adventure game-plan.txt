@@ -1,0 +1,73 @@
+; How to AI Adventure
+;
+; The script needs to move by using adventure.move(vec()), with the vector being
+; vec(0, 1/-1) or vec(1/-1, 0), as vec(0, 0) doesn't move anywhere and we can't move diagonally
+;
+; Making only 1 move and then re-evaluating the game map is slow, so I create a list of
+; every move that I'll do. Since we can only move Up Down Left and Right, we can easily
+; use the characters UDLR to indicate where to move. Our other options are to place a bomb
+; and to wait, so Bomb can be denoted as B and Wait can be W. This gives us a dictionary of
+; UDLRWB = Up Down Left Right Wait Bomb
+;
+; When we clear a room, we must first kill all enemies and then pick our chests
+; If we don't have the phase boots unlocked, we prioritise chests furthest away from the exit.
+; If we do have the phase boots, we grab the last chest that's closest to our entrance so that
+; the furthest chest requires the minimum ammount of deviation
+;
+;
+; The key idea is to have a target room that we're trying to reach.
+; If we're at room 127, 127 and want to reach room 150, 90. We'd want to go diagonally until
+; we reached 150, 104 and then go down until we've reached 150, 90. Important to note is that
+; I'll prioritize moving on the x axis over moving on the y axis unless moving on the x axis
+; will cause us to enter an already cleared room and moving on the y axis will not.
+;
+; Picking rooms via a targetting system as apposed to a distance from center system helps
+; add full map completion to the script while also removing user interraction. If we cannot
+; survive the destination, we don't make it our target.
+;
+;
+; Every room will be encoded using a string after they're cleared of elites and enemies.
+; at this moment in time, kill enemies remains unchanged.
+; This encoding string will use the characters EWDRC to mean
+; Empty Wall Door Rock and Chest respectively
+; Each of the exits will also be encoded with the numbers 1234 for UDLR
+; And the Player will be called "P"
+;
+;
+; Target difficulty is calculated to guarantee that the player doesn't lose hp
+; This means that we use the player stats to determine the maximum difficulty we can reach
+;
+; We must fulfill one of 2 conditions
+; playerAttack >= enemyHealth + enemyArmor
+; Which is, at its base, floor((attack - 1) / (0.38 + 0.08)) + offset
+; where the offset is added because of the round() of both enemy health and enemy armor
+; this offset is a 23 array of the numbers 11120111210111210121201 that's indexed by attack % 23
+;
+; playerArmor >= enemyAttack
+; Which is floor(armor / 0.39)
+{lua(\
+  local throw_error = false;\
+  local function ceil(value)\
+    local val = math.floor(value * 100);\
+    return math.ceil(val / 100);\
+  end\
+  local player = {};\
+  player.att = ceil(50 * 1.1);\
+  player.arm = 39;\
+  player.str = {};\
+  local i = 0;\
+  for word in string.gmatch("11120111210111210121201", "%d") do\
+    player.str[i] = tonumber(word);\
+    i = i + 1;\
+  end\
+  local err_msg = table.pack(\
+    "\n",\
+    "\nAtt = ", player.att, " and Att diff = ", math.floor((player.att - 1.0) / 0.46) +\
+    player.str[player.att % 23],\
+    \
+    "\nArm = ", player.arm, " and Arm diff = ", math.floor(player.arm / 0.39)\
+  );\
+  if throw_error then\
+    error(table.concat(err_msg), 0);\
+  end\
+)}

@@ -1,0 +1,15 @@
+; The goal is to try an uptier all stones in the loadout
+;
+; We use museum_slot to traverse the loadout (which is indexed by 0)
+; Once we find a slot with a stone, we clear our inventory and place it in slot 0 of the inventory
+; The inventory has 30 slots and it takes 3 stones of the same tier to combine in 1 tier higher
+; Thus, we have (30 - 1) free slots and divide them by (3 - 1) stones to uptier = 29 / 2
+; 29 / 2 = 14.5 = 14 uptiers (since the stone tier is an integer)
+;
+; the function combine requires the user to unlock the skill `quick combine`
+; Combine starts from slot 0 and looks for the next 3 stones of the same tier,
+; then it combines them and places the result at the empty slot in the inventory, thus
+; we can guarantee that the highest tier stone is in slot 0
+;
+;
+; The primary goal is to fill our inventory 

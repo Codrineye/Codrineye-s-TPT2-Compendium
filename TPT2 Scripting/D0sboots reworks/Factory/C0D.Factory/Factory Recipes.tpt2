@@ -1,0 +1,36 @@
+:import Factory assembly hdr
+; Define the recipe for all items
+;
+; For items obtained via {craft(item, tier, cost, "game_name")}
+; You start by specifying the item whose recipe you're defining
+{recipe(item_name)}
+; Then, you add its components as follows:
+{component(comp1, list_of_counts, list_of_tiers)}
+;
+; For instance, the crafting recipe for a town producer is as follows:
+; t1 = 
+; screw(2) plate(2)
+; plate(2) screw(2)
+; t2 =
+; screw(3) plate(3) screw(3)
+; chip(1) town_prod(1) chip(1)
+; screw(3) plate(3) screw(3)
+;
+; To define this, you'd have
+{craft(town_producer, 2, 0 25, "producer.town")}
+{recipe(town_producer)}
+{component(screw, 2 4, 2 3)}
+{component(plate, 2 4, 2 2)} ; which you can simplify to {component(plate, 2 4, 2)}
+{component(chip, 0 2, 0 1)} ; which you can simplify to {component(chip, 2, 0 1)}
+{component(town_producer, 0 1, 0 1)} ; which is simplified to {component(town_producer, 1, -1)}
+; having list_of_tier be -1 means that the recipe of tier x will have count x of tier x - 1
+;
+; For items obtained via {produce(item, tier, "game_name")}
+; You use {make(item_you_obtain, item_you_use, outputed_ammount, required_machine)}
+; So, to get screws, you put 1 rod into the cutter and get 4 in return
+; `screw` requires `rod` and you get `4` by using the cutter
+{make(screw, rod, 4, cutter)}
+
+:import Factory items
+; import Factory items to get access to the defined items
+; 

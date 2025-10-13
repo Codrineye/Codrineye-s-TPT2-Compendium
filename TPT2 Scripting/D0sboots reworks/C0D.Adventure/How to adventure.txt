@@ -1,0 +1,93 @@
+;
+; Adventure is composed of 3 parts:
+; The rooms
+; The enemies/player
+; The loot
+;
+; Rooms are a 19x19 square with 4 exits/entrances 
+; The tiles are indexed by 0 and start from the bottom right corner
+; Exits:
+; R = 00, 09
+; U = 09, 18
+; L = 18, 09
+; D = 09, 00
+;
+; The tiles spanning 01,01 -> 17,17 hold a maze that must be traversed 
+; This maze consists of different tiles:
+; Empty tiles can be traversed through 
+; Wall tiles cannot be moved through. You need to clear the room and have the Phase Boots item
+; Rock and Gate tiles are like Wall tiles, but these can be destroyed by using a bomb
+;
+; Apart from tiles, the room also contains entities 
+; The player is the entity you control. You move into entity tiles to turn them into Empty tiles
+; if you have the right item. Moving into an entity tile pushes the player back, so 2 entity tiles
+; will never overlap.
+; 1. Chests require no item to be opened. All chests from a room must become empty tiles
+;    for a room to be considered cleared.
+; 2. Gates require 1 key to be opened. They are placed before chests, so it's required to
+;    open all gates to reach all chests.
+; 3. Rocks require the Hammer item to be broken. They are the same as Gates.
+;
+; The final entities are enemies. These are directly linked to the rooms distance
+; Rooms are controlled by distance
+; d0 = room 127,127
+; d1 = rooms 128,127 + 127,128 + 126,127 + 127,126
+; all the way up to d255 = 0,255 + 255,255 + 255,0 + 0,0 (the 4 corners of the map)
+;
+; 255 + 255 = 0 + 255 = 0 + 0 = 255 + 0 = 255
+; so the distance is calculated as max(x, 254 - x) + max(y, 254 - y) - 254
+; with the only wrinkle being that 255, 255 = d256, but the game only goes up to 255
+
+;
+; There are 3 types of enemies:
+; "Enemy" is found from d1.
+; Number in room = round(distance * 0.1 + 3.0)
+; Health = min(round(difficulty * 0.38 + 1.0), 99)
+; Attack = min(ceil(difficulty * 0.39), 99)
+; Armor = min(round(difficulty * 0.08), 99)
+;
+;
+; "Elite" is found from d80.
+; Number in room = floor(distance * 0.01) + 1.0
+; Health = min(ceil(round(difficulty * 0.38 + 1.0) * 1.8), 99)
+; Attack = min(ceil(ceil(difficulty * 0.39) * 1.5), 99)
+; Armor = min(round(difficulty * 0.08), 99)
+;
+;
+; "Mimic" is found from d101.
+; There are `n` chests in any given room, every chest has a chance to be a mimic
+; Health = min(ceil(round(distance * 0.38 + 1.0) / 1.2), 99)
+; Attack = min(ceil(ceil(distance * 0.39) * 1.2), 99)
+; Armor = min(floor(round(distance * 0.8) * 2.0 + 1.0), 99)
+
+;
+;
+; "Enemy"s have a 25% chance to drop a key once killed 
+;
+; Elites have a 0.05% chance to spawn but always spawn in the same number.
+; They are the 24th roll in any given room.
+; Additionally, killing an elite will guarantee a bomb drop
+;
+; Mimics are disguised as chests and become mimics after casting IdentifyRoom or interacting 
+; with the mimic. This is the chance that a chest is a mimic (d - 100) * 0.003 + 0.05
+;
+;
+; Chests are guaranteed to spawn in every room except for the starting room
+; Starting from d1, every room has 1 chest in it
+; Starting from d3, every room has 2 chests in it
+; From d5, rnd(2, 3) chests
+; d9 = rnd(2, 4) chests
+; d16 = rnd(3, 6) chests
+; d31 = rnd(4, places_of_interest) chests
+; d129 = maximum number of chests
+;
+; Chests always have 3 walls around them, so there can only ever be 1 obstacle in your way
+; from d0, if `0.32 < rnd(0.0, 1.0)` then an obstacle spawns
+; from d16, if `0.65 < rnd(0.0, 1.0)` then an obstacle spawns
+; from d100, there's always an obstacle spawns
+;
+; If an obstacle spawns, if rock_chance > 0.8 then a rock is spawned, otherwise, a gate spawns.
+; from d0, rock_chance is 0
+; from d16, rock_chance is rnd(0.0, 1.0)
+; from d100, rock_chance is rnd(0.6, 1.0)
+; from d128, rock_chance is 1

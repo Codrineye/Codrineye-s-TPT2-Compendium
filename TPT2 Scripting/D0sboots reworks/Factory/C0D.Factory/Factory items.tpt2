@@ -1,0 +1,53 @@
+:import Factory assembly hdr
+; Define all items in the factory using the following macros:
+;
+; this item is obtained through craft()
+{craft(name, max_tier, list of cost in recources, "name of item used ingame")}
+;
+; This item is obtained through produce()
+{produce(name, max_tier, "name used ingame")}
+;
+; This item can't be obtained through craft() nor produce()
+{special(name, max_tier, "name used ingame")}
+;
+; This places items in categories
+{category(category_name, default_item_in_category, first_item_in_category, last_item_in_category)}
+;
+; And this defines a group of items
+; Item groups can use a category if you want to make all the items in that category
+{group(group_name, max_tier)}
+; Keep in mind that you're defining the maximum tier that's allowed in this group
+; If you had
+{craft(test, 5, 1.0, "test")}
+{group(tester, 2)}
+; If group tester contained the item test, you wouldn't be able to make tiers 3 4 and 5 of test
+; using this group
+;
+; If you were to make
+{group(tester, 7)}
+; and test is part of the group. Making tester of tiers 6 or 7 would only make test of tier 5
+
+:import Factory assembly
+; import the Factory assembly so that the macros can actually define our items
+; 
+; Define producers
+; Keep them in alphabetical order
+{craft(town_producer,              5,    0   25   150  3350   2e4, "producer.town")}
+{craft(factory_producer,           5,    0  100   225   5e3  35e3, "producer.factory")}
+{craft(mine_producer,              5,    0   75   300   4e3   3e4, "producer.mine")}
+{craft(workshop_producer,          5,    0   80   200  7500   2e5, "producer.workshop")}
+{craft(construction_firm_producer, 5,    0  150  2500   1e3   1e5, "producer.constructionFirm")}
+{craft(laboratory_producer,        5,   20  150   9e3 125e3  25e5, "producer.laboratory")}
+{craft(headquarters_producer,      5,   20  250 12500 175e3   5e6, "producer.headquarters")}
+{craft(powerplant_producer,        5,   20  300 17500 275e3  75e5, "producer.powerplant")}
+{craft(arcade_producer,            5,  120  3e3  25e3   3e5   1e7, "producer.arcade")}
+{craft(tradingpost_producer,       5,  120 3150 27500 315e3 115e5, "producer.tradingpost")}
+{craft(shipyard_producer,          5,  500  5e3   5e4   5e5   5e7, "producer.shipyard")}
+{craft(museum_producer,            5,  500  5e3   5e4   5e5   5e7, "producer.museum")}
+{craft(statue_of_cubos_producer,   5,  500  5e3   5e4   5e5   5e7, "producer.statueofcubos")}
+{craft(gem_producer,               1, 2e11                       , "producer.gems")}
+{craft(exotic_producer,            1, 1e14                       , "producer.exoticgems")}
+{craft(pumpkin_producer,           1,    0                       , "pumpkin.producer")}
+
+; Boosters
+{craft(production_booster,         3, 5e10 1e40 1e50, "pumpkin.producer")}
