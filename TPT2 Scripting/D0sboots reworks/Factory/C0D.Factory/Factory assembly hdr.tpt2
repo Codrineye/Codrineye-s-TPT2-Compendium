@@ -8,30 +8,32 @@
     * Stub function that'll be re-defined in the assembly file\
     * method is used to determine what functionality we're interacting with\
   */]]\
-  function Factory.macro_body(method, arg1, arg2, arg3, arg4, craft_type)\
+  function Factory.macro_body(method, arg1, arg2, arg3, arg4)\
   end\
 )}
 
-; Defines a factory item.
-; Helper macro used to make more definitions
-#item(name, tiers, cost, game_name, craft_type) {lua(\
-  Factory.macro_body("define", "{name}", {tiers}, "{cost}", {game_name}, {craft_type});\
+; Define an item that's obtained through the craft() action
+#craft(name, max_tier, game_name) {lua(\
+  Factory.macro_body("craft", "{name}", {max_tier}, "{game_name}");\
 )}
-;
-; Define an item obtained through craft()
-#craft(name, tiers, cost, game_name) {item({name}, {tiers}, {cost}, {game_name}, "craft")}
-;
-; Define an item obtained through produce()
-#produce(name, tiers, game_name) {item({name}, {tiers}, 0.0, {game_name}, "produce")}
-;
-; Define a special item that Facility AI can't obtain through Factory specific functions alone
-#special(name, tiers, game_name) {item({name}, {tiers}, 0.0, {game_name}, "special")}
+
+; Defines an item that's obtained through the produce() action
+#produce(name, max_tier, game_name) {lua(\
+  Factory.macro_body("produce", "{name}", {max_tier}, "{game_name}");\
+)}
+
+; Defines an item that can't be produced or crafted, but that still exists
+#special(name, max_tier, game_name) {lua(\
+  Factory.macro_body("special", "{name}", {max_tier}, "{game_name}");\
+)}
 
 ;
 ; Define a category to place items inside of
 #category(name, default, first, last) {lua(\
   Factory.macro_body("category", "{name}", "{default}", "{first}", "{last}");\
 )}
+; Hopefully removed in actual script, but needed for testing
+
 
 ;
 ; Define a group of items that'll be made at once
@@ -39,18 +41,15 @@
 
 ;
 ; Specify the item whose recipe we're defining
-#recipe(name) {lua(Factory.macro_body("recipe", {name}))}
+#recipe(name) {lua(Factory.macro_body("recipe", "{name}"))}
 ;
-; Specify a component of its crafting recipe
-#component(name, tiers, count) {lua(Factory.macro_body("recipe", {name}, "{tiers}", "{count}"))}
-;
-; Specify how the produce()'d item is made
-#make(item, source, mult, machine) {lua(\
-  Factory.macro_body("recipe", {item}, {source}, {mult}, {machine});\
+; Define a component of the recipe needed for crafting
+#make(tier, name, ammount) {lua(\
+  Factory.macro_body("make", "{name}", "{ammount}", "{tier}");\
 )}
+; Specify the cost in resources it takes to craft that item
+#price(price) {lua(Factory.macro_body("add_price", "{price}"))}
 
 ;
 ; Get the item queue ID
-; Needed because the {item(name, tiers, cost, game_name, craft_type)} macro doesn't return
-; a :const anymore. This const is what originally reprezented the items id
 #queue(item, tier) {lua(return Factory.macro_body("queue", "{item}", {tier}))}

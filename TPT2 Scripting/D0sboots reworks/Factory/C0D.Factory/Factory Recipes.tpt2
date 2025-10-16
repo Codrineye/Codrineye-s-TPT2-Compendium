@@ -1,36 +1,425 @@
 :import Factory assembly hdr
 ; Define the recipe for all items
 ;
-; For items obtained via {craft(item, tier, cost, "game_name")}
-; You start by specifying the item whose recipe you're defining
+; The recipe definition starts with the macro
 {recipe(item_name)}
-; Then, you add its components as follows:
-{component(comp1, list_of_counts, list_of_tiers)}
+;
+; If the item is obtained through {craft(name, max_tier, game_name)}
+; you add its components as follows:
+{make(comp1, list_of_number_of_items_in_recipe, list_of_tiers_of_items_in_recipe)}
 ;
 ; For instance, the crafting recipe for a town producer is as follows:
 ; t1 = 
 ; screw(2) plate(2)
 ; plate(2) screw(2)
 ; t2 =
-; screw(3) plate(3) screw(3)
-; chip(1) town_prod(1) chip(1)
-; screw(3) plate(3) screw(3)
+; screw(3) plate(3)     screw(3)
+; chip(1)  town_prod(1) chip(1)
+; screw(3) plate(3)     screw(3)
 ;
 ; To define this, you'd have
-{craft(town_producer, 2, 0 25, "producer.town")}
+{craft(town_producer, 2, producer.town)}
+;
 {recipe(town_producer)}
-{component(screw, 2 4, 2 3)}
-{component(plate, 2 4, 2 2)} ; which you can simplify to {component(plate, 2 4, 2)}
-{component(chip, 0 2, 0 1)} ; which you can simplify to {component(chip, 2, 0 1)}
-{component(town_producer, 0 1, 0 1)} ; which is simplified to {component(town_producer, 1, -1)}
+{make(screw, 2 4, 2 3)}
+{make(plate, 2 4, 2 2)} ; which you can simplify to {make(plate, 2 4, 2)}
+{make(chip, 0 2, 0 1)} ; which you can simplify to {make(chip, 2, 0 1)}
+{make(town_producer, 0 1, 0 1)} ; which is simplified to {make(town_producer, 1, -1)}
 ; having list_of_tier be -1 means that the recipe of tier x will have count x of tier x - 1
 ;
-; For items obtained via {produce(item, tier, "game_name")}
-; You use {make(item_you_obtain, item_you_use, outputed_ammount, required_machine)}
+; For items obtained via {produce(item, tier, game_name)}, the approach is different.
+; the macro {produce(item, tier, game_name)} now becomes {produce(source_item, sum, machine)}
 ; So, to get screws, you put 1 rod into the cutter and get 4 in return
-; `screw` requires `rod` and you get `4` by using the cutter
-{make(screw, rod, 4, cutter)}
+; `screw` requires `rod` and you get `4` by using the `cutter`
+{recipe(screw)} ; Adding recipe here redefines what function produce leads to.
+{produce(rod, 4, cutter)}
+;
+; If an item can be made through more methods, like how you can get dust by crushing ore, ingots
+; mixing ore lumps or boiling dust, you can just define multiple {produce(source, sum, machine)}
+; one after another.
 
 :import Factory items
-; import Factory items to get access to the defined items
-; 
+; import Factory items to get access to the defined items and define the macros
+;
+
+; Recipes of special items
+{recipe(boilable_dust)}
+{recipe(crushable_ore)}
+{recipe(ore)}
+{recipe(mixable_lump)}
+{recipe(pumpkin)}
+{recipe(rubber)}
+{recipe(void_essence)}
+
+; Items made through produce()
+;
+{recipe(circuit)}        {produce(cable,           1, assembler)}
+;
+{recipe(anti_pumpkin)}   {produce(pumpkin,         1, boiler)}
+{recipe(dense_block)}    {produce(block,           1, boiler)}
+{recipe(dust)}           {produce(boilable_dust,   4, boiler)}
+;
+{recipe(carved_pumpkin)} {produce(pumpkin,         1, cutter)}
+{recipe(screw)}          {produce(rod,             4, cutter)}
+;
+{recipe(dust)}           {produce(ingot,           1, crusher)}
+                         {produce(crushable_ore,   2, crusher)}
+                         {produce(mixable_lump,    2, mixer)}
+;
+{recipe(ingot)}          {produce(ore,             1, oven)}
+{recipe(rainbow_ingot)}  {produce(rainbow_dust,    1, oven)}
+;
+{recipe(pumpkin_plate)}  {produce(stacked_pumpkin, 1, presser)}
+{recipe(rainbow_plate)}  {produce(rainbow_ingot,   1, presser)}
+{recipe(plate)}          {produce(ingot,           1, presser)}
+{recipe(dense_plate)}    {produce(stacked_plate,   1, presser)}
+{recipe(rubber_plate)}   {produce(rubber,          1, presser)}
+;
+{recipe(rod)}            {produce(ingot,           2, shaper)}
+{recipe(pipe)}           {produce(plate,           1, shaper)}
+{recipe(ring)}           {produce(rod,             1, shaper)}
+;
+{recipe(cable)}          {produce(ingot,           2, refinery)}
+{recipe(board)}          {produce(plate,           1, refinery)}
+{recipe(wire)}           {produce(cable,           1, refinery)}
+;
+;
+; Craftable items. defined for craft()
+;
+{recipe(town_producer)}              {make(2 3 5 7 9, screw, 2 4 4 4 4)}
+                                     {make(2 0 0 0 0, plate, 2 0 0 0 0)}
+                                     {make(0 3 5 7 9, board, 0 2 2 2 6)}
+                                     {make(-1,        chip,  0 2 2 2 4)}
+                                     {make(-1,        town_producer, 1)}
+
+{recipe(factory_producer)}           {make(1 3 5 7 9, wire,        1 4 4 4 4)}
+                                     {make(2 0 0 0 0, screw,       1 0 0 0 0)}
+                                     {make(0 3 5 7 9, board,       0 1 1 1 3)}
+                                     {make(2 3 5 0 0, plate,       2 2 2 0 0)}
+                                     {make(0 0 0 7 9, dense_plate, 0 0 0 2 4)}
+                                     {make(1 1 2 3 4, chip,        2 1 1 1 3)}
+                                     {make(-1,        factory_producer, 1)}
+
+{recipe(mine_producer)}              {make(2 3 5 7 9, screw,       2 2 2 4 4)}
+                                     {make(1 2 4 6 8, wire,        2 3 2 5 5)}
+                                     {make(2 0 5 7 9, plate,       1 0 1 2 2)}
+                                     {make(0 3 5 7 9, dense_plate, 0 2 2 2 2)}
+                                     {make(1 1 2 3 4, chip,                1)}
+                                     {make(-1,        mine_producer,       1)}
+
+{recipe(workshop_producer)}          {make(0 2 4 6 8, wire,      0 4 2 8 8)}
+                                     {make(1 3 5 7 9, wire,      4 2 2 2 2)}
+                                     {make(2 3 5 7 9, plate,     1 2 2 2 2)}
+                                     {make(1 0 2 3 4, chip,      1 0 2 2 2)}
+                                     {make(-1,        workshop_producer, 1)}
+
+{recipe(construction_firm_producer)} {make(2 4 6 8 10, rod,             3 4 10 10 10)}
+                                     {make(2 4 6 8 10, plate,                      2)}
+                                     {make(1 1 2 3 4,  chip,               1 2 2 2 2)}
+                                     {make(-1,         construction_firm_producer, 1)}
+
+{recipe(laboratory_producer)}        {make(0 3 5 7 9,  pipe,      0 3 5 10 14)}
+                                     {make(2 4 6 8 10, motor,               1)}
+                                     {make(1 3 5 7 9,  dense_plate, 2 2 4 4 6)}
+                                     {make(0,          chip,        3 2 4 4 6)}
+                                     {make(-1,         laboratory_producer, 1)}
+
+{recipe(headquarters_producer)}      {make(1 3 5 7 9,  wire, 2 4 8 8 12)}
+                                     {make(2 4 6 8 10, motor, 1 2 2 2 2)}
+                                     {make(0,          chip, 3 2 4 4 6)}
+                                     {make(-1,         headquarters_producer, 1)}
+
+{recipe(powerplant_producer)}        {make(1 3 5 7 9,  insul_cable, 2 2 4 4 6)}
+                                     {make(2 4 6 8 10, motor,               1)}
+                                     {make(0 3 5 7 9,  block,      0 3 5 5 14)}
+                                     {make(0,          chip,        3 2 4 4 6)}
+                                     {make(-1,         powerplant_producer, 1)}
+
+{recipe(arcade_producer)}            {make(2 4 6 8 9,  insul_cable, 4 6 6 6 6)}
+                                     {make(2 4 6 8 10, pipe,        4 4 4 4 8)}
+                                     {make(0,          chip,        4 4 4 4 6)}
+                                     {make(-1,         arcade_producer,     1)}
+
+{recipe(tradingpost_producer)}       {make(2 4 6 8 10, ring,        6 8 8 8 12)}
+                                     {make(2 4 6 8 10, plate,                4)}
+                                     {make(0,          chip,         2 2 2 2 4)}
+                                     {make(-1,         tradingpost_producer, 1)}
+
+{recipe(shipyard_producer)}          {make(2 4 6 8 10, insul_cable, 6 8 8 8 12)}
+                                     {make(1 3 5 7 9,  block,                4)}
+                                     {make(0,          chip,         2 2 2 2 4)}
+                                     {make(-1,         shipyard_producer,    1)}
+
+{recipe(museum_producer)}            {make(3 5 7 9 10, insul_cable, 6 7 7 7 9)}
+                                     {make(2 4 6 8 10, block,       4 5 5 5 7)}
+                                     {make(0,          chip,        2 2 2 2 4)}
+                                     {make(-1,         museum_producer,     1)}
+
+{recipe(statue_of_cubos_producer)}   {make(1 3 5 7 9,  dense_block, 4 5 5 5 7)}
+                                     {make(2 4 6 8 10, motor, 2)}
+                                     {make(2 4 6 8 10, pipe, 2)}
+                                     {make(2 4 6 8 10, pump, 2 3 3 3 5)}
+                                     {make(0,          chip, 2 2 2 2 4)}
+                                     {make(-1,         statue_of_cubos_producer, 1)}
+
+{recipe(gem_producer)}               {make( 5,  chip,        10)}
+                                     {make( 4,  chip,        10)}
+                                     {make(10,  insul_cable,  2)}
+                                     {make( 1,  dense_block,  1)}
+                                     {make( 2,  dense_block,  1)}
+                                     {make( 3,  dense_block,  1)}
+                                     {make( 4,  dense_block,  1)}
+                                     {make( 5,  dense_block,  1)}
+                                     {make( 6,  dense_block,  1)}
+                                     {make( 7,  dense_block,  1)}
+                                     {make( 8,  dense_block,  1)}
+                                     {make( 9,  dense_block,  1)}
+                                     {make(10,  dense_block,  1)}
+
+{recipe(exotic_producer)}            {make( 5, chip,        10)}
+                                     {make(10, insul_cable,  2)}
+                                     {make(10, dense_block, 10)}
+                                     {make(10, assembly,     1)}
+                                     {make(10, boiler,       1)}
+                                     {make(10, crusher,      1)}
+                                     {make(10, cutter,       1)}
+                                     {make(10, mixer,        1)}
+                                     {make(10, oven,         1)}
+                                     {make(10, presser,      1)}
+                                     {make(10, refiner,      1)}
+                                     {make(10, shaper,       1)}
+                                     {make(10, belt,         1)}
+
+{recipe(acceleration_booster)}       {make(2 3 5, chip,             1 4 6)}
+                                     {make(4,     plate,            4 0 0)}
+                                     {make(1,     rainbow_plate,    0 2 4)}
+                                     {make(4 8 0, circuit,          4 8 0)}
+                                     {make(10,    dense_block,     0 0 12)}
+                                     {make(1,     void_essence,     0 0 4)}
+                                     {make(-1,    acceleration_booster, 2)}
+
+{recipe(machine_booster)}            {make(2 3 5,  chip,              2)}
+                                     {make(4 7 10, pipe,              4)}
+                                     {make(4,      wire,          2 0 0)}
+                                     {make(0 7 10, dense_block,   0 2 2)}
+                                     {make(8,      dense_plate,   0 6 0)}
+                                     {make(1,      rainbow_plate, 0 0 4)}
+                                     {make(1,      void_essence,  0 0 2)}
+                                     {make(4,      circuit,       1 0 0)}
+                                     {make(-1,     machine_booster,   1)}
+
+{recipe(production_booster)}         {make(1 3 0,  chip,               4 4 0)}
+                                     {make(2 7 0,  plate,              4 6 0)}
+                                     {make(2 7 10, circuit,            1 4 4)}
+                                     {make(10,     dense_block,       0 0 12)}
+                                     {make(1,      void_essence,       0 0 4)}
+                                     {make(-1,     production_booster, 0 1 4)}
+
+{recipe(resource_booster)}           {make(3,      plate,            6 0 0)}
+                                     {make(1,      rainbow_plate,    0 0 2)}
+                                     {make(1 3 4,  chip,             2 2 6)}
+                                     {make(4 8 0,  circuit,          1 2 0)}
+                                     {make(0 7 10, block,            0 4 4)}
+                                     {make(1,      void_essence,     0 0 1)}
+                                     {make(-1,     resource_booster, 0 1 2)}
+
+{recipe(tree_booster)}               {make(7,     block,          0 2 0)}
+                                     {make(2 0 5, chip,           1 0 2)}
+                                     {make(5 7 0, screw,          6 2 0)}
+                                     {make(5,     ring,           2 0 0)}
+                                     {make(7,     plate,          0 2 0)}
+                                     {make(7,     pipe,           0 2 0)}
+                                     {make(1,     rainbow_plate,  0 0 2)}
+                                     {make(1,     rubber_sapling, 6 0 0)}
+                                     {make(1,     void_sapling,   0 0 6)}
+                                     {make(1,     void_essence,  0 0 10)}
+                                     {make(-1,    tree_booster,       1)}
+
+{recipe(pumpkin_producer)}           {make(0, carved_pumpkin, 6)}
+                                     {make(0, anti_pumpkin,   6)}
+                                     {make(0, pumpkin_plate, 20)}
+
+{recipe(oven)}                       {make(0,  plate,       4 6 8 8 8 8 8 8 8 8)}
+                                     {make(0,  insul_cable, 2 2 3 3 3 4 4 4 4 4)}
+                                     {make(0,  block,       0 0 0 0 0 2 2 2 2 2)}
+                                     {make(-1, oven,                          1)}
+
+{recipe(presser)}                    {make(1,                   hammer, 2 0 0 0 0 0 0 0 0 0)}
+                                     {make(0,                   plate,  4 5 7 7 7 9 9 9 9 9)}
+                                     {make(0,                   wire,   1 1 2 2 2 3 3 3 3 3)}
+                                     {make(0,                   block,  0 0 0 0 4 5 5 5 5 5)}
+                                     {make(1 1 1 2 2 2 3 3 4 4, chip,                     2)}
+                                     {make(-1,                  presser,                  1)}
+
+{recipe(assembly)}                   {make(0, pipe, 1 1 1 1 1 2 2 2 2 2)}
+                                     {make(0, dense_plate, 6 5 8 8 8 10 10 10 12 12)}
+                                     {make(0, motor, 1 1 1 1 1 1 1 1 2 2)}
+                                     {make(1 1 1 2 2 2 3 3 4 4, chip, 1 1 1 1 1 1 1 1 1 2)}
+                                     {make(-1, assembly, 1)}
+
+{recipe(refiner)}                    {make(0,                   block, 0 0 0 0 0 0 5 5 5 7)}
+                                     {make(0,                   dense_plate,             4)}
+                                     {make(0,                   motor, 1 1 1 1 2 2 2 2 2 4)}
+                                     {make(0,                   ring,  1 2 2 2 3 3 3 3 3 5)}
+                                     {make(0,                   pump,  1 2 2 2 3 3 3 3 3 5)}
+                                     {make(1 1 2 2 2 2 3 4 4 5, chip,                    2)}
+                                     {make(-1,                  refiner,                 1)}
+
+{recipe(mixer)}                      {make(0, dense_plate, 5 4 4 5 5 6 6 6 6 6)}
+                                     {make(0, motor, 2)}
+                                     {make(0, pump, 1 1 1 2 2 3 3 3 3 3)}
+                                     {make(1 1 1 2 2 2 2 3 4 4, chip, 1 1 1 2 2 3 3 3 3 3)}
+                                     {make(-1, mixer, 1)}
+
+{recipe(crusher)}                    {make(0, dense_plate, 7 8 8 8 8 8 8 9 9 9)}
+                                     {make(0, motor, 1 1 1 1 1 1 1 2 2 2)}
+                                     {make(1 1 1 2 2 2 2 2 4 4, chip, 1 2 2 2 2 2 2 3 3 3)}
+                                     {make(-1, crusher, 1)}
+
+{recipe(belt)}                       {make(1, rubber, 3 4 4 4 4 0 0 0 0 0)}
+                                     {make(1, rubber_plate, 0 0 0 0 0 4 5 5 5 5)}
+                                     {make(0, motor, 3 3 3 3 3 3 4 4 4 4)}
+                                     {make(0, insul_cable, 3 4 4 4 4 4 5 5 5 5)}
+                                     {make(0 0 0 1 2 2 3 3 4 4, chip, 0 0 0 4 4 4 5 5 5 5)}
+                                     {make(-1, belt, 1)}
+
+{recipe(cutter)}                     {make(0, plate, 2 2 2 2 2 2 2 0 0 0)}
+                                     {make(0, dense_plate, 3 3 3 3 3 4 4 2 2 2)}
+                                     {make(0, block, 0 0 0 0 0 0 0 4 4 6)}
+                                     {make(0, motor, 3 4 4 4 4 5 5 5 5 7)}
+                                     {make(-1, cutter, 1)}
+
+{recipe(shaper)}                     {make(0, plate, 4 4 4 4 4 4 4 4 4 0)}
+                                     {make(0, dense_plate, 0 0 0 0 0 0 0 0 0 4)}
+                                     {make(0, screw, 1 2 2 2 2 3 3 3 3 3)}
+                                     {make(0, block, 1 2 2 2 2 3 3 3 3 0)}
+                                     {make(0, dense_block, 0 0 0 0 0 0 0 0 0 5)}
+                                     {make(0, motor, 2)}
+                                     {make(0, insul_cable, 1 1 1 1 1 2 2 2 2 4)}
+                                     {make(-1, shaper, 1)}
+
+{recipe(boiler)}                     {make(0, wire, 2 2 2 3 3 3 3 3 4 5)}
+                                     {make(0, dense_plate, 2 2 2 3 3 3 3 3 4 5)}
+                                     {make(0, block, 4 7 7 8 8 8 8 8 9 10)}
+                                     {make(0, motor, 1 1 1 2 2 2 2 2 3 4)}
+                                     {make(0, screw, 2)}
+                                     {make(0, pump, 1)}
+                                     {make(-1, boiler, 1)}
+
+{recipe(rainbow_dust)}               {make(1, dust, 1)}
+                                     {make(2, dust, 1)}
+                                     {make(3, dust, 1)}
+                                     {make(4, dust, 1)}
+                                     {make(5, dust, 1)}
+                                     {make(6, dust, 1)}
+                                     {make(7, dust, 1)}
+                                     {make(8, dust, 1)}
+                                     {make(9, dust, 1)}
+                                     {make(10, dust, 1)}
+
+{recipe(chip)}                       {make(1 3 5 7 9,  circuit,         2)}
+                                     {make(2 4 6 8 10, circuit, 2 4 4 2 2)}
+                                     {make(1 3 5 7 9,  board,   1 4 4 6 8)}
+                                     {make(2 4 6 8 10, board,   1 2 2 6 8)}
+                                     {make(-1,         chip,  0 4 8 12 12)}
+
+{recipe(insul_cable)}                {make(0, cable,        1 1 1 2 3 4 5 10 12 16)}
+                                     {make(1, rubber,       1 2 0 0 0 0 0 0 0 0)}
+                                     {make(1, rubber_plate, 0 0 2 4 6 8 10 10 12 16)}
+
+{recipe(stacked_plate)}              {make(0, plate, 9)}
+
+{recipe(stacked_pumpkin)}            {make(0, pumpkin, 9)}
+
+{recipe(motor)}                      {make(0, plate,  4)}
+                                     {make(0, screw,  1)}
+                                     {make(0, rod,    2)}
+                                     {make(0, wire,   1)}
+                                     {make(1, rubber, 1)}
+
+{recipe(pump)}                       {make(0, plate,        2)}
+                                     {make(0, motor,        1)}
+                                     {make(0, ring,         2)}
+                                     {make(1, rubber_plate, 4)}
+
+{recipe(hammer)}                     {make(2, ingot, 6)}
+                                     {make(2, rod,   1)}
+
+{recipe(block)}                      {make(0, dense_plate, 8 8 8 8 8 8 12 12 12 12)}
+
+{recipe(rubber_sapling)}             {make(0, rubber, 8)}
+                                     {make(9, ore,    1)}
+
+{recipe(void_sapling)}               {make(1, rainbow_dust,   8)}
+                                     {make(1, rubber_sapling, 1)}
+
+{recipe(producers)}                  {make(0, town_producer,              1)}
+                                     {make(0, factory_producer,           1)}
+                                     {make(0, mine_producer,              1)}
+                                     {make(0, workshop_producer,          1)}
+                                     {make(0, construction_firm_producer, 1)}
+                                     {make(0, laboratory_producer,        1)}
+                                     {make(0, headquarters_producer,      1)}
+                                     {make(0, powerplant_producer,        1)}
+                                     {make(0, arcade_producer,            1)}
+                                     {make(0, tradingpost_producer,       1)}
+                                     {make(0, shipyard_producer,          1)}
+                                     {make(0, museum_producer,            1)}
+                                     {make(0, statue_of_cubos_producer,   1)}
+
+{recipe(machines)}                   {make(0, oven,     1)}
+                                     {make(0, presser,  1)}
+                                     {make(0, assembly, 1)}
+                                     {make(0, refiner,  1)}
+                                     {make(0, mixer,    1)}
+                                     {make(0, crusher,  1)}
+                                     {make(0, belt,     1)}
+                                     {make(0, cutter,   1)}
+                                     {make(0, shaper,   1)}
+                                     {make(0, boiler,   1)}
+
+{recipe(parts)}                      {make(0, insul_cable,                      1)}
+                                     {make(0, stacked_plate,                    1)}
+                                     {make(0, motor,                            1)}
+                                     {make(0, pump,                             1)}
+                                     {make(1, hammer,         0 1 0 0 0 0 0 0 0 0)}
+                                     {make(0, block,                            1)}
+                                     {make(0, ingot,                            1)}
+                                     {make(0, plate,                            1)}
+                                     {make(0, dense_plate,                      1)}
+                                     {make(0, dense_block,                      1)}
+                                     {make(0, pipe,                             1)}
+                                     {make(0, cable,                            1)}
+                                     {make(0, wire,                             1)}
+                                     {make(0, rod,                              1)}
+                                     {make(0, ring,                             1)}
+                                     {make(0, screw,                            1)}
+                                     {make(0, board,                            1)}
+                                     {make(0, circuit,                          1)}
+                                     {make(0, rubber_plate,   1 0 0 0 0 0 0 0 0 0)}
+                                     {make(1, rubber_sapling, 0 0 0 0 0 0 0 0 1 0)}
+
+{recipe(chips)}                      {make(1, chip, 1)}
+                                     {make(2, chip, 1)}
+                                     {make(3, chip, 1)}
+                                     {make(4, chip, 1)}
+                                     {make(5, chip, 1)}
+
+{recipe(chip_and_prods)}             {make(0, chip,      1)}
+                                     {make(0, producers, 1)}
+
+{recipe(all)}                        {make(0, chip,      1 1 1 1 1 0 0 0 0 0)}
+                                     {make(0, producers, 1 1 1 1 1 0 0 0 0 0)}
+                                     {make(0, oven,                        1)}
+                                     {make(1, presser,   0 1 0 0 0 0 0 0 0 0)}
+                                     {make(0, presser,   0 1 1 1 1 1 1 1 1 1)}
+                                     {make(0, assembly,                    1)}
+                                     {make(0, refiner,                     1)}
+                                     {make(0, mixer,                       1)}
+                                     {make(0, crusher,                     1)}
+                                     {make(0, belt,                        1)}
+                                     {make(0, cutter,                      1)}
+                                     {make(0, shaper,                      1)}
+                                     {make(0, boiler,                      1)}
+                                     {make(0, parts,                       1)}
+

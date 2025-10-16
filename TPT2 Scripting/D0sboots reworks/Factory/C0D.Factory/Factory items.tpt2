@@ -2,13 +2,13 @@
 ; Define all items in the factory using the following macros:
 ;
 ; this item is obtained through craft()
-{craft(name, max_tier, list of cost in recources, "name of item used ingame")}
+{craft(name, max_tier, name of item used ingame)}
 ;
 ; This item is obtained through produce()
-{produce(name, max_tier, "name used ingame")}
+{produce(name, max_tier, name used ingame)}
 ;
 ; This item can't be obtained through craft() nor produce()
-{special(name, max_tier, "name used ingame")}
+{special(name, max_tier, name used ingame)}
 ;
 ; This places items in categories
 {category(category_name, default_item_in_category, first_item_in_category, last_item_in_category)}
@@ -18,7 +18,7 @@
 {group(group_name, max_tier)}
 ; Keep in mind that you're defining the maximum tier that's allowed in this group
 ; If you had
-{craft(test, 5, 1.0, "test")}
+{craft(test, 5, test)}
 {group(tester, 2)}
 ; If group tester contained the item test, you wouldn't be able to make tiers 3 4 and 5 of test
 ; using this group
@@ -29,25 +29,147 @@
 
 :import Factory assembly
 ; import the Factory assembly so that the macros can actually define our items
-; 
-; Define producers
-; Keep them in alphabetical order
-{craft(town_producer,              5,    0   25   150  3350   2e4, "producer.town")}
-{craft(factory_producer,           5,    0  100   225   5e3  35e3, "producer.factory")}
-{craft(mine_producer,              5,    0   75   300   4e3   3e4, "producer.mine")}
-{craft(workshop_producer,          5,    0   80   200  7500   2e5, "producer.workshop")}
-{craft(construction_firm_producer, 5,    0  150  2500   1e3   1e5, "producer.constructionFirm")}
-{craft(laboratory_producer,        5,   20  150   9e3 125e3  25e5, "producer.laboratory")}
-{craft(headquarters_producer,      5,   20  250 12500 175e3   5e6, "producer.headquarters")}
-{craft(powerplant_producer,        5,   20  300 17500 275e3  75e5, "producer.powerplant")}
-{craft(arcade_producer,            5,  120  3e3  25e3   3e5   1e7, "producer.arcade")}
-{craft(tradingpost_producer,       5,  120 3150 27500 315e3 115e5, "producer.tradingpost")}
-{craft(shipyard_producer,          5,  500  5e3   5e4   5e5   5e7, "producer.shipyard")}
-{craft(museum_producer,            5,  500  5e3   5e4   5e5   5e7, "producer.museum")}
-{craft(statue_of_cubos_producer,   5,  500  5e3   5e4   5e5   5e7, "producer.statueofcubos")}
-{craft(gem_producer,               1, 2e11                       , "producer.gems")}
-{craft(exotic_producer,            1, 1e14                       , "producer.exoticgems")}
-{craft(pumpkin_producer,           1,    0                       , "pumpkin.producer")}
+;
+; Define recipes. Keep order alphabetical
 
+; Special items
+; Don't show on the UI
+{special(boilable_dust, 10, dust)} ; Dust that can be put in the boiler
+{special(crushable_ore, 10, ore)} ; Ore that can be crushed
+{special(ore,           10, ore)} ; Ore that's used in the recipe
+{special(mixable_lump,   9, lump)} ; Ore lump that can be used in the mixer
+{special(pumpkin,        1, pumpkin)} ; Can only be gotten through the Halloween event
+{special(rubber,         1, rubber)} ; Can only be made from rubber saplings
+{special(void_essence,   1, essence.void)} ; Can only be made from void saplings
+;
+; Producers
+{craft(arcade_producer,            5, producer.arcade)}
+{craft(construction_firm_producer, 5, producer.constructionFirm)}
+{craft(exotic_producer,            1, producer.exoticgems)}
+{craft(factory_producer,           5, producer.factory)}
+{craft(gem_producer,               1, producer.gems)}
+{craft(headquarters_producer,      5, producer.headquarters)}
+{craft(laboratory_producer,        5, producer.laboratory)}
+{craft(mine_producer,              5, producer.mine)}
+{craft(museum_producer,            5, producer.museum)}
+{craft(powerplant_producer,        5, producer.powerplant)}
+{craft(pumpkin_producer,           1, pumpkin.producer)}
+{craft(shipyard_producer,          5, producer.shipyard)}
+{craft(statue_of_cubos_producer,   5, producer.statueofcubos)}
+{craft(town_producer,              5, producer.town)}
+{craft(tradingpost_producer,       5, producer.tradingpost)}
+{craft(workshop_producer,          5, producer.workshop)}
+;
 ; Boosters
-{craft(production_booster,         3, 5e10 1e40 1e50, "pumpkin.producer")}
+{craft(acceleration_booster, 3, booster.acceleration)}
+{craft(machine_booster,      3, booster.machines)}
+{craft(production_booster,   3, booster.production.regular)}
+{craft(resource_booster,     3, booster.resource.drops)}
+{craft(tree_booster,         3, booster.trees)}
+;
+{category(prod, town_producer, arcade_producer, resource_booster)}
+;
+;
+; Machines, tiers 1-10
+{craft(assembly,  10, machine.assembler)}
+{craft(belt,      10, machine.transportbelt)}
+{craft(boiler,    10, machine.boiler)}
+{craft(crusher,   10, machine.crusher)}
+{craft(cutter,    10, machine.cutter)}
+{craft(mixer,     10, machine.mixer)}
+{craft(oven,      10, machine.oven)}
+{craft(presser,   10, machine.presser)}
+{craft(refiner,   10, machine.refinery)}
+{craft(shaper,    10, machine.shaper)}
+;
+{category(mach, belt, assembly, shaper)}
+;
+;
+; Various crafted parts
+{craft(block,          10, block)}
+{craft(chip,            5, chip)}
+{craft(hammer,          1, hammer)}
+{craft(insul_cable,    10, cable.insulated)}
+{craft(lump,            9, lump)}
+{craft(motor,          10, motor)}
+{craft(pump,           10, pump)}
+{craft(rainbow_dust,    1, dust.rainbow)}
+{craft(rubber_sapling,  1, sapling.rubber)}
+{craft(stacked_plate,  10, plate.stack)}
+{craft(stacked_pumpkin, 1, pumpkin.stack)}
+{craft(void_sapling,    1, sapling.void)}
+;
+{category(crft, chip, block, void_sapling)}
+;
+;
+; Items made through produce()
+{produce(anti_pumpkin,   1, pumpkin.anti)}
+{produce(board,         10, plate.circuit)}
+{produce(cable,         10, cable)}
+{produce(carved_pumpkin, 1, pumpkin.carved)}
+{produce(circuit,       10, circuit)}
+{produce(dense_block,   10, block.dense)}
+{produce(dense_plate,   10, plate.dense)}
+{produce(dust,          10, dust)}
+{produce(ingot,         10, ingot)}
+{produce(pipe,          10, pipe)}
+{produce(plate,         10, plate)}
+{produce(pumpkin_plate,  1, pumpkin.plate)}
+{produce(rainbow_ingot,  1, ingot.rainbow)}
+{produce(rainbow_plate,  1, plate.rainbow)}
+{produce(ring,          10, ring)}
+{produce(rod,           10, rod)}
+{produce(rubber_plate,   1, plate.rubber)}
+{produce(screw,         10, screw)}
+{produce(wire,          10, wire)}
+;
+{category(part, circuit, anti_pumpkin, wire)}
+;
+;
+; ----- SCANNABLE ITEM GROUPS -----
+; These are not real items, but rather groups of items that will be made
+; together if you select one of these names. They are meant for use with
+; the Crafter, to crank out sets of items to scan quickly.
+; You will want to set the quantity to 1000.
+
+; Notes on using item groups:
+; * SCAN YOUR ORES FIRST! The factory can and will consume your ore
+;     to make stuff, and it takes a long time to get 1000 T10 ore.
+; * The quantity works a little differently than normal items. Instead
+;     of making 1000 items each time, running it again will top off
+;     everything to be *at* the quantity of 1000 items.
+; * If you craft a higher tier after a lower tier, it will consume the
+;     results of the first craft to make the higher tier.
+;     Scan all the items first, before moving on to the next tier!
+; * None of these groups include Gem Producers or Exotic Producers. They
+;     are too expensive in comparison to other things, craft them on your
+;     own when you judge the time is right.
+
+; Makes *everything* (expect special producers and lumps) of the given tier.
+; This is the combination of "chips_and_prods", "machines", and "parts".
+; Requires x10 and high processing speed to have a hope of completing in a
+; reasonable amount of time for T5 and T10.
+; You need Quantum Warehouse to have enough space for this at higher tiers!
+{group(all, 10)}
+
+; All the tiers of chips. Warning: Expensive. Input this as tier 1.
+{group(chips, 1)}
+
+; Producers + the chip of the corresponding tier. This is everything that
+; exists in tier range 1-5, for convenience.
+{group(chip_and_prods, 5)}
+
+; All machines. Tiers 1-10
+{group(machines, 10)}
+
+; All ingredients and parts. Tiers 1-10. Doesn't include ore (scan that before starting)
+; or lumps (due to technical limitations).
+; Includes rubber plates at tier 1 and hammers at tier *2*.
+; Rubber trees are at tier 9 because of their ore.
+{group(parts, 10)}
+
+; All producers, except for special producers. Tiers 1-5
+{group(producers, 5)}
+
+{category(grup, all, all, producers)}
+

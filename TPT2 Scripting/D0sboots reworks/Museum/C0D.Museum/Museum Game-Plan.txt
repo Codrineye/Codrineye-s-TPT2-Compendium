@@ -1,0 +1,27 @@
+; How to museum
+;
+; The script will only ever buy stones from the offshore market (if unlocked).
+; The formula to calculate the cost to buy a tier from the offshore market = `2000 * 18 ^ tier`
+;
+; Since we can now have the exact number of museum resources on hand, we no longer have to wait
+; because of a lack of budget, as it can simply uptier the ammount that it needs.
+;
+;
+; Similar to the original script by d0sboots. We need to keep a list of offer tiers, but this time
+; since we no longer have to include that lack of budget fail state, the offer_tiers list will
+; need to hold more tiers.
+; The new encoding would be stone element, followed by a length-1 0 through 9 marker that represents
+; how many offers we found for that element (n - 1), and then
+; n-1 length-2 chunks that hold the offer tiers.
+; If no such offers were found, the entry will not exist.
+;
+; We'll need to order these lists from highest to lowest, so that we can get the highest to lowest
+; prices. Since we also want to minimise the number of global variables created, these must all be
+; within the same variable.
+;
+; For the sake of efficiency, there'll also need to be a cutoff point, where it'd be more beneficial
+; to buy a lower tier stone instead of a higher tier stone. Idealy, this would only need to happen
+; when we can't buy enough of the highest tier to uptier for a higher combination, but buying
+; a lower tier could also just make things worse.
+;
+; For future work, it'd be the best to determine if clearing the inventory would still be needed.
