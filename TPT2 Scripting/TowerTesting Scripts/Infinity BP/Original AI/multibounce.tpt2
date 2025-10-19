@@ -1,0 +1,7 @@
+isTowerTesting()
+
+; script handling multibounce
+
+useinstant(active.index("spell.multishot"))
+useinstant(active.index("spell.superbounce"))
+goto(1)

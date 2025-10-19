@@ -1,0 +1,10 @@
+isTowerTesting()
+
+; script that secures modules from being copied by infinity enemies
+
+waituntil(xp() >= disable.inf.cost())
+disable.inf("burst.infinity")
+disable.inf("attack.infinity")
+disable.inf("energy.basic")
+disable.inf("resistance.abs")
+gotoif(1, disable.inf.cost() <= 10000000000000.0)

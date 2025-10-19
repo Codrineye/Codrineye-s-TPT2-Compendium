@@ -1,0 +1,82 @@
+:import INF ?? lib
+:name {package(modules)}
+; Script that handles everything that partains to module usage.
+
+:budget_cap 1400
+; Budget_cap for 1400 to handle every action in 1 frame
+
+:local string modules
+:local int spell
+:global double t
+; variables `modules` and `spell` are used for activation encoding
+; global t is the ticker variable used for spell execution
+
+isTowerTesting()
+
+gotoif(multibounce, impulse() == "{package(modules)}")
+execute("{package(modules)}") ; execute self to activate multibounce sequence
+
+loop:
+; Massive assignment used to remove actions and minimise execution stress, if you believe it XD
+; this script works in 2 phases, phase 1 involves encoding our spells, phase 2 means using spells
+;
+; We check for which phase we're in by looking at the value of `spell`
+; If spell == 0 and modules is empty, that means we're in phase 1, where we encode the active index
+; of the spells we're going to be using.
+; Then, for as long as `modules` isn't empty, and spell is less than 9, we move to the next
+; active module to encode. This is accomplished with index(), since each module name ends with the
+; character `|`.
+;
+; Then, if we finish phase 1, phase 2 will encode the spells we want to use
+; if(t % 44.0 <= 1.0) use focus.fire and focus.neutral
+; if(t % 19.0 <= 1.0) use spell.fracture
+; if health is less than 0.48%, use advanceheal
+; if health is higher than 0.69%, use dark sacrifice
+modules = if(\
+  modules != "",\
+  sub(modules, if(spell < 9, index(modules, "|", 0), 0) + 1, 99),\
+  if(\
+    spell == 0,\
+    "focus.fire|focus.neutral|spell.fracture|spell.advancedheal|sacrifice.dark|",\
+    if(t % 44.0 <= 1.0, "01", "") . if(t % 19.0 <= 1.0, "2", "") .\
+    if(health(true) < 0.48, "3", if(health(true) >= 0.69, "4", ""))\
+  )\
+)
+
+
+local.int.set("spell" . spell, active.index(sub(modules, 0, index(modules, "|", 0))))
+; create a variable that holds the active index of our spell, and give it an encoding based on spell
+; This creates the local int called `spell0` hold the active index of `focus.fire`
+;
+; Then, the incrementation of spell. Because integers have a limit to how big of a value it can hold
+; we stop our counting once spell is bigger than 99, otherwise, if spell < 5, we have to encode
+; more modules, so we increment by 1, and finally, if spell == 5, we increment by 99
+spell += if(spell > 99, 0, if(spell < 5, 1, 99))
+
+; And here, we use our spells given our encoding.
+; there is 1 edge case here which makes "spell" . sub(modules, 0, 1) return "spell",
+; and local.int.get("spell") just retrieves the value of spell, so, to prevent that index
+; from actually existing, we set spell to be at 104, which is far above the maximum number of active
+; spells a tower can have.
+useinstant(local.int.get("spell" . sub(modules, 0, 1)))
+gotoif(loop, modules != "" || disable.inf.cost() > 1e13 || xp() < disable.inf.cost())
+; Then, we loop things over here.
+; If our modules string is empty and we haven't secured 4 infinity modules and we can afford
+; securing the next module, we enter this block, which tries to secure as many modules it can
+;
+; To prevent wasting execution budget, we don't bother with entering this block after we've reached
+; 4 secured modules.
+disable.inf("burst.infinity")
+disable.inf("attack.infinity")
+disable.inf("energy.basic")
+disable.inf("resistance.abs")
+goto(loop)
+
+multibounce:
+useinstant(active.index("spell.multishot"))
+useinstant(active.index("spell.superbounce"))
+; multibounce loop. This loop just spams multishot and superbounce continually
+waitframe() ; to reduce even further the minimal lag this block causes, this waitframe
+; will make it only run 1 time in a frame, since the cooldown of these modules
+; is higher than 1 frame 
+goto(multibounce)

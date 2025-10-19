@@ -1,0 +1,58 @@
+:import INF ?? lib
+:name {package(init)}
+; init script used to summon the other scripts.
+
+:budget_cap 400
+; Budget cap of 400 so that the framebreak only happens after the scripts are executed
+
+:local int instance ; local helper variable for restart detection
+
+wakeup()
+game.newround()
+isTowerTesting()
+
+; Hidden script status variable used for restart detection.
+; It's hidden to prevent global variable clutter
+; ?I%p? is the variables identifier, used to protect it against accidental use by other scripts
+
+:const string status "<size=0>?I%p?"
+#status.get global.string.get(status)
+#status.set(status) global.string.set(status, {status})
+; getter and setter macros
+
+
+instance = 1 + s2i(sub({status.get}, 0, 1), 0) ; determine what instance we have
+loop:
+; status holds the instance count 0 1 or 2
+; 0 means nothing, 1 is the main running loop, 2 means a restart was detected
+{status.set(i2s(instance) . "</size>")}
+
+; Stop our running scripts. This does nothing in the main loop, but a restart should
+; stop the entire process instantly
+stop("{package(bluecat)}")
+stop("{package(modules)}")
+
+; Terminate the script instance if it was made made by a restart or if the tower died
+gotoif(end, instance > 1 || health(false) == 0.0)
+
+execute("{package(bluecat)}") ; Start our scripts. These contain infinite loops;
+execute("{package(modules)}")
+
+; This waitwhile condition lets the budget_cap be 400 instead of 500
+; Since restart cannot happen in the first few frames of towertesting starting up, it's
+; ok for the frame-break to happen after we execute the script called `modules`, because
+; we can guarantee that by the next frame, we won't have detected a restart, and that
+; the tower hasn't died. Even if the tower does die before this waitwhile, it's fine to wait
+; for a frame to pass.
+waitwhile(contains({status.get}, i2s(instance)) && health(false) > 0.0)
+
+; Wait while our tower is alive and a restart hasn't been detected.
+; Go back to the top of the loop. We're here either because a restart happened or we died.
+goto(loop)
+end:
+{status.set(i2s(instance - if(instance == 1, 1, 0)) . "</size>")}
+; Decrement the status ONLY if we're the main running status.
+; This needs to be like this because of how the execution stack works.
+;
+; The script summoned because of a restart will be put after the main instance of init
+; If we were to decrement the instance here, we wouldn't know that a restart even happened.

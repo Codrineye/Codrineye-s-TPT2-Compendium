@@ -1,0 +1,5 @@
+execute("INF ?? BP:multibounce")
+execute("INF ?? BP:multibounce")
+execute("INF ?? BP:multibounce")
+
+; set up 3 instances of multibounce

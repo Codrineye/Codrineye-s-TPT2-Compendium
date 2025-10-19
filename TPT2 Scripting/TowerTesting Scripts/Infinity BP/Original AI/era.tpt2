@@ -1,0 +1,15 @@
+isTowerTesting()
+
+; Skip that handles era upgrades and element disables
+
+upgrade.era("damage", 50)
+upgrade.era("health", 50)
+gotoif(1, (xp() >= disable.cost("earth")) && (era() < 1.0))
+disable.era("earth")
+gotoif(1, xp() <= disable.cost("nature"))
+disable.era("nature")
+gotoif(1, xp() <= disable.cost("neutral"))
+disable.era("neutral")
+gotoif(1, xp() <= disable.cost("fire"))
+disable.era("fire")
+goto(1)

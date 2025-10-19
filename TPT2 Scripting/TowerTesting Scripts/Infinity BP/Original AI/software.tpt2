@@ -1,0 +1,41 @@
+:global double t
+:local int securityIndex
+:local int softwareIndex
+:local string securityList
+:local string softwareList
+:local int security
+
+wakeup()
+
+contains("Thanks and credit to: blueturbo47#3710 (bluecat)", " ")
+
+; Script that toggles software on and off
+
+security = 1
+softwareList = ";software.autoskip;software.wavestreaming;software.wavesurge;software.criticalWavejump;software.wavemomentum;software.wavestorm;software.wavepersistence;software.waveinstability;software.wavevortex;software.wavecatalyst;software.waveendurance;software.newbounds;software.wavemarathon;software.wavecompression;software.erasurge;software.eraburst;software.eraswirl;software.wavehorizon;software.nobounds;software.eratunneling;software.wavebreach;software.wavefloor;software.erafloor;software.erahorizon;software.waverestart;software.infinityhorizon;"
+securityList = ";1;1;1;0;1;1;1;1;1;1;1;1;1;1;0;0;1;1;0;0;1;0;0;0;0;1;"
+
+loop1:
+software.toggle(sub(softwareList, index(softwareList, ";", softwareIndex) + 1, index(softwareList, ";", softwareIndex + 1) - (softwareIndex + 1)), security <= s2i(sub(securityList, index(securityList, ";", securityIndex) + 1, index(securityList, ";", securityIndex + 1) - (securityIndex + 1)), 0))
+securityIndex = index(securityList, ";", securityIndex + 1)
+softwareIndex = index(softwareList, ";", softwareIndex + 1)
+gotoif(loop1, sub(softwareList, index(softwareList, ";", softwareIndex) + 1, index(softwareList, ";", softwareIndex + 1) - (softwareIndex + 1)) != "")
+gotoif(99, isTowerTesting() == false)
+gotoif(skip_accel_farm, software.enabled("software.wavebreach"))
+waituntil(waveAcceleration() >= 2500000000000.0)
+
+skip_accel_farm:
+waituntil(t >= 30.0)
+lu("securityIndex")
+lu("softwareIndex")
+securityList = ";1;1;1;0;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;"
+
+; enable all software
+
+activate_all:
+software.toggle(sub(softwareList, index(softwareList, ";", softwareIndex) + 1, index(softwareList, ";", softwareIndex + 1) - (softwareIndex + 1)), security <= s2i(sub(securityList, index(securityList, ";", securityIndex) + 1, index(securityList, ";", securityIndex + 1) - (securityIndex + 1)), 0))
+securityIndex = index(securityList, ";", securityIndex + 1)
+softwareIndex = index(softwareList, ";", softwareIndex + 1)
+gotoif(activate_all, sub(softwareList, index(softwareList, ";", softwareIndex) + 1, index(softwareList, ";", softwareIndex + 1) - (softwareIndex + 1)) != "")
+waitwhile(infinity() < 1.0)
+software.toggle("software.criticalWavejump", true)

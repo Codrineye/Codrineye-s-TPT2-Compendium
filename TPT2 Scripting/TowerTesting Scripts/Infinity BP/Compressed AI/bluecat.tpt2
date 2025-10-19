@@ -1,0 +1,56 @@
+:import INF ?? lib
+:name {package(bluecat)}
+; Script that handles all fundemental actions perfected by bluecat
+;
+:budget_cap 3200
+; Budget_cap of 3200 since there are
+; 4 era elements to disable + 26 software to toggle + 2 era dividor upgrades
+; The budget_cap can go higher than 3200, but 3200 is the absolute minimum needed for everything
+; in this script to happen in 1 frame
+;
+:global double t ; global ticker variable
+
+isTowerTesting()
+
+gotoif(software_toggle_loop, impulse() == "{package(bluecat)}")
+execute("{package(bluecat)}") ; create a new instance that actually executes this script
+; This first instance is in charge of running the ticker.
+t = 0.0 ; because of the execution budget, we no longer need 2 tickers running at a time
+; so this can just be set to 0.0, instead of time.delta() * 2.0
+
+tick:
+t += time.delta()
+waitframe() ; Simple ticker loop. Count the time that's passed, wait a frame, return to tick
+goto(tick)
+
+; This is where things get confusing, but without it here, things would become even more confusing.
+; watercat lines 1 2 and 3 are macros defined in The Blueprint Compactor that's imported in
+; INF ?? Software Config, which we import through INF ?? lib
+; These 3 lines are in charge of turning all the softwares on/off, given the security level
+; In this case, the security level is 0.
+{watercat_line1(0)}
+{watercat_line2}
+{watercat_line3}
+
+
+{set_priority(earth)} {set_priority(nature)} {set_priority(neutral)} {set_priority(fire)}
+
+; Then, the `set_priority` macro sets the priority in which era element ability we want to
+; disable. In this case, earth will be disabled before nature, which itself is disabled before
+; neutral, which is disabled before fire. No other elements will be disabled.
+earth_cat:
+disable.era({disable.era})
+; These 2 lines use macros that abstract what's actually going on.
+; If you want to see what they're doing, put a character like `|` at the start of the respective
+; line.
+; disable.era is a long if chain that checks if this element isn't disabled, disable it, otherwise
+; try to disable the next.
+; disable_era is a sumation operation that's used to check if all our elements have been disabled
+gotoif(earth_cat, {disable_era})
+
+; Lastly, the upgrade.era loop. This is a continuous loop that upgrades the
+; damage and health dividors for enemies.
+upgrade.era:
+upgrade.era("damage", 50)
+upgrade.era("health", 50)
+goto(upgrade.era)

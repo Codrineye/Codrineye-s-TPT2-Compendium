@@ -1,0 +1,6 @@
+:global double t
+
+; script performing the ticker
+
+t = t + time.delta()
+goto(1)

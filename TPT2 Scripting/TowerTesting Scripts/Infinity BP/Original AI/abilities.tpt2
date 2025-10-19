@@ -1,0 +1,24 @@
+:global double t
+
+isTowerTesting()
+; Script that activates spells
+
+
+gotoif(skip_focus, (t % 44.0) > 1.0)
+useinstant(active.index("focus.fire"))
+useinstant(active.index("focus.neutral"))
+
+skip_focus:
+gotoif(skip_fracture, (t % 19.0) > 1.0)
+useinstant(active.index("spell.fracture"))
+
+skip_fracture:
+gotoif(skip_heal, health(true) >= 0.48)
+useinstant(active.index("spell.advancedheal"))
+
+skip_heal:
+gotoif(skip_sacrifice, health(true) < 0.69)
+useinstant(active.index("sacrifice.dark"))
+
+skip_sacrifice:
+goto(0)

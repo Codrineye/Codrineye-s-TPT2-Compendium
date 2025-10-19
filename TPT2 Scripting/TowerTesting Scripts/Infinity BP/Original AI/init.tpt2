@@ -1,0 +1,31 @@
+:global bool running
+
+wakeup()
+game.newround()
+
+isTowerTesting()
+
+; init script that activates all relevant scripts
+
+gotoif(11, running)
+running = true
+execute("INF ?? BP:winemast")
+execute("INF ?? BP:abilities")
+execute("INF ?? BP:multibounce init")
+execute("INF ?? BP:era")
+execute("INF ?? BP:disables")
+execute("INF ?? BP:software")
+gotoif(9, isTowerTesting())
+gu("running")
+stop("INF ?? BP:abilities")
+stop("INF ?? BP:multibounce")
+stop("INF ?? BP:era")
+stop("INF ?? BP:disables")
+stop("INF ?? BP:software")
+stop("INF ?? BP:tick")
+execute("INF ?? BP:winemast")
+execute("INF ?? BP:abilities")
+execute("INF ?? BP:multibounce init")
+execute("INF ?? BP:era")
+execute("INF ?? BP:disables")
+execute("INF ?? BP:software")

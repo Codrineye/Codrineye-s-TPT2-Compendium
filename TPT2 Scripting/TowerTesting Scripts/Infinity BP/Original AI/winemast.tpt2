@@ -1,0 +1,9 @@
+:global double t
+
+isTowerTesting()
+
+; script initialising the ticker
+
+t = time.delta() * 2.0
+execute("INF ?? BP:tick")
+execute("INF ?? BP:tick")

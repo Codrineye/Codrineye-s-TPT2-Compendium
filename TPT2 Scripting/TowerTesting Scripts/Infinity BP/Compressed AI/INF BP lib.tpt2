@@ -1,0 +1,5 @@
+:import INF ?? Software Config
+#package(name) INF ?? BP:{name}
+
+; Library file of the script that would typically hold more macros.
+; This blueprint doesn't require much interaction, so the macros are just defined when needed.
