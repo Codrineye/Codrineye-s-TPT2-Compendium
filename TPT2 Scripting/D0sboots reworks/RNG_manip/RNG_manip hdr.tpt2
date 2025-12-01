@@ -61,7 +61,17 @@
 ; If you need to do math that accurately mimics single-precision game math, keep that in
 ; mind (you may need to use the vector type to keep the behavior consistent.)
 
-; This simpulates the same behaviour as the rnd() function.
-#rng.get_range(min, max) {lua(return RNG.macro_body("get_range", [[{min}]], [[{max}]]))}
+; This simulates the same behaviour as the rnd() function.
+#rng.get_range.int(min, max) {lua(return RNG.macro_body("get_range.int", [[{min}]], [[{max}]]))}
 ; The range is inclusive, so we can also return the values in `min` and in `max`.
 ; Just like with {rng.get_int}, {rng.next} needs to be called before this is valid.
+
+; This simulates the same behaviour as the rnd() function for double values
+#rng.get_range.double(min, max) {lua(\
+  return RNG.macro_body("get_range.double", [[{min}]], [[{max}]]);\
+)}
+
+; This simulates internal UnityEngine.Random$$Range() calls used for more complex things
+#rng.get_range.float(min, max) {lua(\
+  return RNG.macro_body("get_range.float", [[{min}]], [[{max}]]);\
+)}

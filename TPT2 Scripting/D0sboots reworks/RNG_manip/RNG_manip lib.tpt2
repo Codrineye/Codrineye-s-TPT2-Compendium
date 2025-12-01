@@ -75,13 +75,11 @@
       local lo = i & 15;\
       \
       --[[/*\
-        * Each iteration adds 3 elements to our code_table\
+        * Each iteration adds 2 elements to our code_table\
         * First, we construct the byte through concatenating the hi_bit to the lo_bit\
-        * Next, we do the same but this time we add an xor in the middle\
         * Lastly, we xor the high and low bits together.\
       */]]\
       \
-      code_table[#code_table + 1] = conv4[hi] .. conv4[lo];\
       code_table[#code_table + 1] = conv4[hi] .. "xor" .. conv4[lo];\
       code_table[#code_table + 1] = conv4[hi ~ lo];\
     end\
@@ -90,8 +88,10 @@
   end\
   --[[/*\
     * Now, we construct the code for {rng.line_1}, {rng.line_2} and {rng.line_3()} macros.\
-    * The code for these is truly awful, because what should be ~7 lines has been crammed into\
+    * The code for these is truly awful, because what is 5 lines has been crammed into\
     * the minimum possible of 3 lines to save space in user code.\
+  */]]\
+  --[[/*\
     *\
     * At a high level, {rng.line_1} is a local.int.set, {rng.line_2} is a local.string.set\
     * and {rng.line_3()} is a goto. Each of these performs multiple different functions, depending\
@@ -141,14 +141,14 @@
     cache.line_1 = [==[\
       rng.line_1: {rng_varType}.double.set(\
         if(\
-          contains({rng_varType}.string.get("1111xor1111"), "0"),\
-          "rng_temp",\
-          concat("rng_from", sub(rng_state, 0, 8))\
+          contains("", {rng_varType}.string.get("1111xor1111")),\
+          concat("rng_from", concat(sub(rng_state, 0, 4), sub(rng_state, 7, 4))),\
+          "rng_temp"\
         ),\
         if(\
-          contains({rng_varType}.string.get("1111xor1111"), "0"),\
-          i2d(rnd(-2147483648, 2147483646)) + 2147483648.0,\
-          i2d(256 - len(rng_state) / 23)\
+          contains("", {rng_varType}.string.get("1111xor1111")),\
+          i2d(256 - len(rng_state) / 15),\
+          i2d(rnd(-2147483648, 2147483646)) + 2147483648.0\
         )\
       )\
     ]==];\
@@ -181,37 +181,34 @@
           contains("", rng_state),\
           "rng_state",\
           if(\
-            contains({rng_varType}.string.get("1111xor1111"), "0"),\
-            "rng_state",\
+            contains("", {rng_varType}.string.get("1111xor1111")),\
             if(\
-              contains("", {rng_varType}.string.get(sub(rng_state, 8, 11))),\
-              sub(rng_state, 8, 11),\
+              contains("", {rng_varType}.string.get(sub(rng_state, 0, 11))),\
+              sub(rng_state, 0, 11),\
               "rng_state"\
-            )\
+            ),\
+            "rng_state"\
           )\
         ),\
         if(\
-          contains({rng_varType}.string.get("1111xor1111"), "0"),\
+          contains("", {rng_varType}.string.get("1111xor1111")),\
           if(\
-            rng_temp == 0.0 || len(rng_state) >= 128,\
-            "",\
-            concat(\
-              rng_state,\
-              if(\
-                rng_temp * (2.0 ^ i2d(len(rng_state) % 32)) % (2.0 ^ 32.0) >= 2.0 ^ 31.0,\
-                "1",\
-                "0"\
-              )\
-            )\
-          ),\
-          if(\
-            contains("", {rng_varType}.string.get(sub(rng_state, 8, 11))),\
+            contains("", {rng_varType}.string.get(sub(rng_state, 0, 11))),\
             if(\
               contains("", rng_state),\
               "CODE_TABLE",\
-              sub(rng_state, 19, 4)\
+              sub(rng_state, 11, 4)\
             ),\
-            sub(rng_state, 23, 999999)\
+            sub(rng_state, 15, 999999)\
+          ),\
+          if(\
+            rng_temp == 0.0 || len(rng_state) >= 128,\
+            "",\
+            concat(rng_state, if(\
+              rng_temp * (2.0 ^ i2d(len(rng_state) % 32)) % (2.0 ^ 32.0) >= 2.0 ^ 31.0,\
+              "1",\
+              "0"\
+            ))\
           )\
         )\
       )\
@@ -239,7 +236,7 @@
       goto(if(\
         contains(rng_state, "xor"),\
         if(\
-          contains("", {rng_varType}.string.get(sub(rng_state, 8, 11))),\
+          contains("", {rng_varType}.string.get(sub(rng_state, 0, 11))),\
           rng.line_1,\
           rng.line_2\
         ),\
@@ -268,19 +265,14 @@
 ; Import Editor_actions lib to form parsable code through lua macros with more ease
 
 {lua(\
-  --[[/*\
-    * Control variable from Editor_actions lib\
-    * false means nothing happens\
-    * true means we can pass in an to Editor.assemble_error() and it throw an error\
-    * that's a formatted version of the action\
-  */]]\
-  Editor.format_error_message = false;\
-  \
   local rng_varType = "{rng_varType}";\
   \
   --[[Shortened version to perform double to int conversion]]\
   local function d2i(input)\
     return Editor_convertDoubleToInt(input);\
+  end\
+  local function i2d(input)\
+    return Editor_convertIntToDouble(input);\
   end\
   \
   --[[/*\
@@ -343,9 +335,10 @@
     cache.get_uniform = Editor_vec(cache.get_uniform, 0.0);\
     do\
       local mult = Editor_vec("1.192093e-7", 0.0);\
-      cache.get_uniform = Editor_math(cache.get_uniform, "*", mult)\
+      cache.get_uniform = Editor_math(cache.get_uniform, "*", mult);\
+      cache.get_uniform_vec = cache.get_uniform;\
     end\
-    cache.get_uniform = Editor_vector_xCoord(cache.get_uniform)\
+    cache.get_uniform = Editor_vector_xCoord(cache.get_uniform);\
   end\
   \
   do\
@@ -575,25 +568,112 @@
     cache.next = "rng_state = sub(rng_state, 32, 96) . " .. table.concat(result, " . ");\
   end\
   \
-  function RNG.get_range(min, max)\
-    local min_nr = tonumber(min);\
-    local max_nr = tonumber(max);\
-    local range;\
-    if min_nr and max_nr then\
-      range = string.format("%.1f", max_nr + 0.0 - min_nr + 1);\
-    else\
-      range = string.format([[(i2d(%s) - i2d(%s) + 1.0)]], max, min);\
+  function RNG.get_range(tag, min, max)\
+    if tag ~= "int" and tag ~= "double" and tag ~= "float" then\
+      local err_msg = table.pack(\
+        "\n",\
+        "\nUnrecognised get_range tag encountered!",\
+        "\nExpected tags are 'int', 'double' and 'float', but got ", tag\
+      );\
+      error(table.concat(err_msg), 0);\
     end\
     \
-    local modulus = Editor_math(RNG.code_cache.get_double, "%", range);\
-    if min_nr then\
-      if min_nr == 0 then\
-        return "d2i(" .. modulus .. ")";\
+    local min_num = tonumber(min);\
+    local max_num = tonumber(max);\
+    \
+    local range;\
+    if tag == "double" then\
+      if min_num and max_num then\
+        range = math.max(min_num, max_num) - min_num;\
+      else\
+        range = Editor_max(min, max);\
+        range = Editor_math(range, "-", min);\
       end\
-      return string.format("d2i(%.1f + %s)", min_nr, modulus);\
+      range = Editor_encase_value(range);\
+      range = Editor_math(RNG.code_cache.get_uniform, "*", range);\
+      if not min_num or min_num ~= 0 then\
+        range = Editor_math(range, "-", min);\
+      end\
+      return range;\
+    \
+    elseif tag == "float" then\
+      local uniform = RNG.code_cache.get_uniform_vec;\
+      \
+      if max_val and max_val == 0 then\
+        range = "vec(0.0, 0.0)";\
+      else\
+        range = Editor_math("vec(1.0, 0.0)", "-", uniform);\
+        range = Editor_encase_value(range);\
+        max_val = Editor_vec(max, 0.0);\
+        range = Editor_math(range, "*", max_val);\
+      end\
+      \
+      if not min_val or min_val ~= 0 then\
+        min_val = Editor_vec(min, 0.0);\
+        min_val = Editor_math(min_val, "*", uniform);\
+        if range == "vec(0.0, 0.0)" then\
+          range = min_val;\
+        else\
+          range = Editor_math(range, "+", min_val);\
+        end\
+      end\
+      \
+      return Editor_vector_xCoord(range);\
+    \
+    \
+    elseif tag == "int" then\
+      if max_num and min_num then\
+        local max_nr = max_num + 1;\
+        min_num = min_num + 0.0;\
+        range = math.max(max_nr - min_num, min_num - max_nr);\
+      else\
+        local left_arg, right_arg;\
+        \
+        if max_num then\
+          local max_nr = max_num + 1;\
+          left_arg = Editor_math(max_nr, "-", min);\
+          right_arg = Editor_math(min, "-", max_nr);\
+        elseif min_num then\
+          local min_nr = min_num - 1;\
+          left_arg = Editor_math(max, "-", min_nr);\
+          right_arg = Editor_math(min_nr, "-", max);\
+          min_num = min_num + 0.0;\
+        else\
+          local max_nr = Editor_math(max, "+", 1);\
+          left_arg = Editor_math(max_nr, "-", min);\
+          right_arg = Editor_math(min, "-", max_nr);\
+        end\
+        \
+        range = Editor_max(left_arg, right_arg);\
+        range = i2d(range);\
+      end\
+      \
+      range = Editor_math(RNG.code_cache.get_double, "%", range);\
+      \
+      if max_num and min_num then\
+        if min_num ~= 0.0 or max_num < min_num then\
+          range = Editor_math(min_num, min_num < max_num and "+" or "-", range);\
+        end\
+        \
+        range = d2i(range);\
+      else\
+        local cond = Editor_math(min, "<", max);\
+        local op = Editor_if(cond, [["-"]], [["+"]]);\
+        \
+        if min_num then\
+          range = Editor_primitive_arithmetic(min_num, op, range);\
+          range = d2i(range);\
+        else\
+          range = d2i(range);\
+          range = Editor_primitive_arithmetic("int", min, op, range);\
+        end\
+      end\
+      return range;\
     end\
-    return string.format([[d2i(i2d(%s) + %s)]], min, modulus);\
+    \
   end\
+  \
+  local get_range_size = string.len("get_range.");\
   \
   --[[/*\
     * Return the appropriate code (macro body) given the passed in "id".\
@@ -612,8 +692,9 @@
       RNG.cache_next(cache);\
       RNG.cache_get_int(cache);\
     end\
-    if id == "get_range" then\
-      return RNG.get_range(arg1, arg2);\
+    \
+    if id:sub(1, get_range_size) == "get_range." then\
+      return RNG.get_range(id:sub(get_range_size + 1), arg1, arg2);\
     end\
     local res = cache[id];\
     if arg1 then\
@@ -621,4 +702,8 @@
     end\
     return res;\
   end\
+)}
+
+{lua(\
+  Editor.format_error_message = false;\
 )}

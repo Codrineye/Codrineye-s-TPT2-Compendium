@@ -15,7 +15,7 @@
 
 {lua(\
   TowerTest = {};\
-  TowerTest.debug = tru;\
+  TowerTest.debug = false;\
   --[[Set to true for debugging, set to anything else besides TowerTest for not debugging]]\
   TowerTest.impulse = {};\
   \
@@ -100,12 +100,8 @@
 ; block hider
 ; used to control when the global variables are shown or hidden 
 #hider concat("{if_debugging(<size=0>)}C^t@t", "Variable hider")
-#hider.get global.string.get({hider})
-#hider.set(value) global.string.set({hider}, {value})
-;
-:const string diff {display_var(Diff, true,)}
-#diff.get global.string.get(diff)
-#diff.set(diff) global.string.set(diff, {diff})
+#diff.get global.string.get({hider})
+#diff.set(diff) global.string.set({hider}, {diff})
 
 ; the state of the script
 :const string status_var {display_var(Active, true, {start})}

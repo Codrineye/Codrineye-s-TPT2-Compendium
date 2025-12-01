@@ -1,0 +1,71 @@
+:import RNG_manip lib
+:name rng.show calls
+:budget_cap 200
+;
+:local bool c_hit
+:local bool hit
+;
+:global double rolls
+:global double rng_val
+:global double target_val
+;
+:global int frame_difference
+:global int hit_frame
+;
+:local int i
+:local int start_frame
+:local int target
+:local string state_0
+:local string state_1
+
+key.t()
+
+rng_val = 0.0
+target_val = 0.0
+rolls = 0.0
+start_frame = time.frame()
+target = guess
+
+{rng.line_1}
+{rng.line_2}
+{rng.line_3(guess)}
+
+start:
+rng_state = state_0
+
+loop:
+rolls += 1.0
+frame_difference = time.frame() - start_frame
+guess:
+{rng.next}
+c_hit = hit
+; if hit is true, we won't roll the rng again
+hit = hit || rnd(-2147483648, 2147483646) != {rng.get_range.int(-2147483648, 2147483646)}
+global.double.set(if(i == 1, "target", "rng") . "_val", {rng.get_uniform})
+goto(if(\
+  not(c_hit),\
+  if(hit, guess, waitframe),\
+  if(\
+    state_1 == "",\
+    init,\
+    if(\
+      target_val == rng_val,\
+      99,\
+      if(rolls % 1e3 == 0.0, waitframe, loop)\
+    )\
+  )\
+))
+
+init:
+local.string.set("state_" . i, rng_state)
+i = (i + 1) % 2
+target = loop
+goto(if(\
+  i == 0,\
+  start,\
+  rng.line_2\
+))
+
+waitframe:
+waitframe()
+goto(target)

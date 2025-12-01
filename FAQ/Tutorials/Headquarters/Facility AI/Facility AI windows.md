@@ -1,12 +1,12 @@
 # What is a Custom AI Overlay
 
-![Facility AI Interface Visual](../../../Images/Facility%20AI%20Interface%20Visual.webp)
+![Facility AI Interface Visual](Facility%20AI%20Interface%20Visual.webp)
 A custom AI Overlay is a "window" you can create to provide a visual interface to the actions being performed by an AI.<br>
 To access your created windows, you have to move to the "Visual" tab, which is found next to the settings icon at the top right of the Facility AI interface.
 
 ## The AI Overlay Builder
 
-![AI Overlay Builder](../../../Images/AI%20Overlay%20Builder.webp)
+![AI Overlay Builder](AI%20Overlay%20Builder.webp)
 
 By hitting `NEW`, you open up the AI Overlay Builder. <br>
 Inside this editor you can click the title `AI Overlay Builder: title` to change the name of the window or add new components to your window.
@@ -85,5 +85,14 @@ The button color is `#FFFFFF` by default, but you could think that it'd be bette
 
 ## Use Containers
 
-Containers are great components for organization, but if you use them well, they can be used to remove a lot of attributes.<br>
+Containers are great components for organization, and if you use them well, they can be used to remove a lot of attributes.<br>
+The `spacing` + `Content Size fitter` properties for containers let you decrease the number of characters if you're making something big enough by giving you the option to ignore a size constraint. If you have 5 elements that all need to be 25x25 squares, you'll already be using a container, and you can simply define the size beforehand. In this case, letting you remove a bunch of characters. Even if you don't fall under this case, you can still use a horisontal container to ignore the y value, or a vertical container to ignore the x value.
 
+## Break it appart
+
+This is really hard to do. I'm making a tool that should let me do this, but that'll be a long process, but you could do it easily.<br>
+Simply break appart your window into its repeating parts. If you've got a repetitive sequence, simply make another window that handles that part. This means your window is now composed of 2 windows, doubling the number of characters, but you'll still only have at maximum 25 windows to work with. And if everybody does this, the user can quickly run out of window space, so don't go wild with this.<br>
+That 25 window limitation is for me to fix with my tool, but you should be able to ignore it.
+
+How do you make something like this work? Through your script.<br>
+You could even make the root of your window a button to create a window in focus if you must reuse the same impulse. But you can get as creative with it as you'd like.

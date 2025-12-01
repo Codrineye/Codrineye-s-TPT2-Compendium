@@ -1,6 +1,8 @@
 :import RNG_manip lib
 :budget_cap 100
-
+;
+:global bool equal_rng
+;
 :global int predicted_rng
 :global int actual_rng
 
@@ -13,5 +15,7 @@ goto(rng.line_2)
 
 guess:
 {rng.next}
-predicted_rng = {rng.get_range(0, 1)}
-actual_rng = rnd(0, 1)
+predicted_rng = {rng.get_range.int(0, 10000)}
+actual_rng = rnd(0, 10000)
+
+equal_rng = predicted_rng == actual_rng

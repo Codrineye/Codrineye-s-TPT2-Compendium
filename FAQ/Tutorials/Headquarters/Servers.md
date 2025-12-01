@@ -13,4 +13,4 @@ RAM determines the maximum execution budget you can run AIs at.
 Higher CPU levels mean faster software installation.
 
 # Server Representation
-![Server Representation](../../Images/Server%20Display.webp)
+![Server Representation](Server%20Display.webp)

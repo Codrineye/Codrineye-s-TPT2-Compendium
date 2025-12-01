@@ -14,7 +14,6 @@
 ; add an additional condition that can lead to exiting
 ;
 ; Timer variables
-:local double game_time
 :local double end_time
 :local double seconds
 :local double minutes
@@ -37,7 +36,8 @@ key.{stats}()
 key.{restart}()
 
 close.headquarters()
-; Attempt to hide the UI when leaving HQ
+close.towertesting()
+; Attempt to hide the UI when leaving HQ or towertesting menu
 
 ; Attempt to 
 game.newround()
@@ -60,14 +60,14 @@ game.newround()
 
 ; If the impulse is exit, stats or restart, it must be done in towertesting
 contains(\
-  "key.{start}|key.{mode}|key.{cycling}|key.{difficulty}|close.headquarters",\
+  "key.{start}|key.{mode}|key.{cycling}|key.{difficulty}|close.headquarters|close.towertesting",\
   impulse()\
 ) || isTowerTesting()
 ;
 ; Prevent multiple exit() instances being created
 ; Only 1 should be made
 impulse() != "key.{exit}" ||\
-{job.get} != "</size><color=#0AFF00>Exit caused by pressing key.{exit}"
+{job.get} != "</size><color=#0AFF00>Exit caused by pressing key.{exit}</color>"
 
 ;
 ; We can only interact with the script if we're in a game of TowerTesting
@@ -122,24 +122,18 @@ hours = arithmetic.double(0.0, "*", 60.0 * 60.0)
 difficulty_list = if(\
   {diff_mode.get} != "" && (\
     impulse() != "key.{difficulty}" ||\
-    not(isopen("headquarters") ||({status.get} != (impulse() == "key.{start}")))\
+    not(\
+      isopen("headquarters") || isopen("towertesting")\
+      || ({status.get} != (impulse() == "key.{start}"))\
+    )\
   ),\
   {diff_mode.get},\
   if({diff_mode.get} == order2, order1, order2)\
 )
 
-; Determine our instance number
-instance = s2i(sub({hider.get}, 0, 1), 0) + 1
+instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 
-; Begin the block hider
-; This variable holds the number of instances currently running and the game time
-; There shouldn't ever be more than 2 instances, but this gives room for a max of 90
-{hider.set(instance . if(\
-  impulse() == "game.newround",\
-  "0.0",\
-  sub({hider.get}, 1, 99)\
-))}
-;
+; This starts the block hider
 ; The difficulty variable holds a counter and the current coordinate
 ; The counter is used to decide what we're doing based on the mode.
 ; It uses index("ABCDEFGHIJKLMN", sub(diff, 0, 1), 0) + 1 to count up
@@ -155,17 +149,17 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 ;
 :const string counting_string "ABCDEFGHIJKLMN"
 ;
-; The hider is shut off with a </size> block if the script is running
+; We shut off the hider with a </size> block if the script is running
 ; or if start/cycling/mode were pressed while inside the headquarters/towertesting menu
 {diff.set(\
-  if(\
+  i2s(instance) . if(\
     {diff.get} != "" && {status.get} != (impulse() == "key.{start}")\
     && not(contains("key.{difficulty}|key.{mode}|game.newround", impulse())),\
-    sub({diff.get}, 0, 8),\
+    sub({diff.get}, 1, 8),\
     sub(\
       counting_string,\
       arithmetic.int(\
-        index(counting_string, sub({diff.get}, 0, 1), 0) +\
+        index(counting_string, sub({diff.get}, 1, 1), 0) +\
         if(impulse() == "game.newround", 1, 0),\
         if({status.get}, "mod", ""),\
         if(\
@@ -174,7 +168,7 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
       ),\
       1\
     ) . sub(\
-      {lua(--[[Determine if we change the difficulty or not]])}\
+      {lua(--Determine if we change the difficulty or not)}\
       if(\
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
         {curent_mode.get} == mode1 || \
@@ -183,10 +177,15 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
         difficulty_list,\
         {diff.get}\
       ),\
-      {lua(--[[/*\
-        * Determine the index.\
-        * We change nothing if our impulse is\
-      */]])}\
+      {lua(--/*\
+        * Determine the offset.\
+        * If we're not reading from difficulty_list, we have an offset of 1\
+        * Otherwise, if we're changing difficulty, we move to the difficulty corresponding\
+        * to our current position in the list.\
+        * If we're at E->I on difficulty Hard and the user changes to I->E, we are now\
+        * considered to be at difficulty Insane.\
+        * Otherwise, if we're here for a game.newround, get the starting 2 bits for the position\
+      */)}\
       if(\
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
         {curent_mode.get} == mode1 || \
@@ -194,10 +193,10 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
         contains({diff.get}, "N"),\
         if(\
           impulse() == "game.newround",\
-          s2i(sub({diff.get}, 1, 2), 0),\
-          index(difficulty_list, sub({diff.get}, 1, 2), 0)\
+          s2i(sub({diff.get}, 2, 2), 1),\
+          index(difficulty_list, sub({diff.get}, 2, 2), 0)\
         ),\
-        1\
+        2\
       ),\
       7\
     )\
@@ -214,7 +213,7 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 ;
 ; Only toggle the region_cycling switch if we're running or we're in the HQ
 {region_cycling.set({region_cycling.get} != (\
-  ({status.get} || isopen("headquarters")) &&\
+  ({status.get} || isopen("headquarters") || isopen("towertesting")) &&\
   (impulse() == "key.{cycling}")\
 ))}
 
@@ -222,10 +221,10 @@ instance = s2i(sub({hider.get}, 0, 1), 0) + 1
 {curent_mode.set(if(\
   {curent_mode.get} != "" && (\
     impulse() != "key.{mode}" ||\
-    not(isopen("headquarters") || {status.get})\
+    not(isopen("headquarters") || isopen("towertesting") || {status.get})\
   ),\
   {curent_mode.get},\
-  if({curent_mode.get} == mode2, mode1, mode2)\
+  if({curent_mode.get} == mode1, mode2, mode1)\
 ))}
 
 {diff_mode.set(difficulty_list)}
@@ -269,8 +268,8 @@ quit:
 waitwhile(isopen("towertesting"))
 
 loop:
-end_time = now() + 1e7 * (seconds + minutes + hours)
-; Set our end time. If this is just now(), it'll get ignored
+end_time = seconds + minutes + hours
+; Set our end time. If this is just 0, it'll get ignored
 ;
 ; Update our job
 {job.set(if(\
@@ -282,24 +281,19 @@ end_time = now() + 1e7 * (seconds + minutes + hours)
 in_towertesting:
 waitframe()
 
-game_time = s2d(sub({hider.get}, 1, 99), 0.0) + time.delta()
-; Update our game time. The hider stores it after the instance count
-; Do not lose the instance count
-{hider.set(sub({hider.get}, 0, 1) . d2s(game_time))}
-
 additional_cond_pos:
 additional_cond = {additional_cond}
 
 ; Rather complicated gotoif
 ; We stay in towertesting for as long as we're running, not dead and
 ; we haven't meat our additional condition
-; If the end_time offset is 0.0 (default), then our end_time will be ignored
+; If the end_time is 0.0 (default), then our end_time will be ignored
 ; Otherwise, we'll exit once the time of seconds, minutes and hours summed together is elapsed
 gotoif(\
   in_towertesting,\
   {status.get} && health(false) > 0.0 && not(additional_cond) && (\
-    seconds + minutes + hours == 0.0 ||\
-    now() <= end_time\
+    end_time == 0.0 ||\
+    game.realtime() <= end_time\
   )\
 )
 
@@ -379,10 +373,10 @@ waitframe()
 enter_towertesting:
 ; Click on the difficulty
 ; diff.get has a 1-character counter, a length-2 position and a 5 character 
-{click.relative(395.0/800.0, s2d(sub({diff.get}, 3, 5), 0.0)/450.0, 0.0, 1.0)}
+{click.relative(395.0 / 800.0, s2d(sub({diff.get}, 4, 5), 0.0) / 450.0, 0.0, 1.0)}
 
 ; Launch a round of towertesting
-{click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}
+{click.relative(162.0 / 800.0, 97.0/450.0, 0.0, 1.0)}
 
 gotoif(if({status.get}, loop, end), isTowerTesting() || not({status.get}))
 
@@ -403,4 +397,4 @@ waitframe()
 
 end:
 ; Subtract 1 from the number of instances, as we've just removed an instance
-{hider.set(i2s(s2i(sub({hider.get}, 0, 1), 0) - 1) . sub({hider.get}, 1, 99))}
+{diff.set(i2s(s2i(sub({diff.get}, 0, 1), 1) - 1) . sub({diff.get}, 1, 99))}

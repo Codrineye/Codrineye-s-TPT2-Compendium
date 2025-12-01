@@ -14,21 +14,21 @@ Script details are explained on the repo linked to the version.
 
 # Codrineye's TowerTesting
 
-[Version 2.2.4](./Codrineye's%20TowerTesting/README.md)
+[Version 2.2.5](./Codrineye's%20TowerTesting/README.md)
 
 This package handles all movement needed to enter dificulties and regions for TowerTesting.<br>
 Please keep in mind that the script does not know what region or difficulty you're on, nor does it try to interact with blueprints. This is purely for movement automation, not for entire TowerTesting automation.<br>
 For script comments and easier script customization, import the scripts [source code](./Codrineye's%20TowerTesting/README.md).
 
 ```
-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
+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
 ```
 
 ## Requirements
 
-- 9  impulses
+- 10 impulses
 - 5  condition
-- 41 actions
+- 38 actions
 - 1  script
 
 ## Surface view
@@ -36,7 +36,8 @@ For script comments and easier script customization, import the scripts [source 
 If the script is enabled and the Facility AI overlay is active, you're able to use the keys `e`, `r` and `t` to exit, restart and open the statistics menu on the Waves tab. More information on impulses can be found at [the impulses](#the-impulses)
 
 You have 4 global variables you can interact with and 4 local variables you can modify.<br>
-Use the keys x, w, q or d whilst in headquarters to activate the scripts UI. Make sure the "Hide global variables in overlay" setting is unticked (no checkmark next to it). The 4 global variables have keys next to their name, press that key to toggle the variables value.
+Use the keys x, w, q or d whilst in headquarters to activate the scripts UI. Make sure the "Hide global variables in overlay" setting is unticked (no checkmark next to it). The 4 global variables have keys next to their name, press that key to toggle the variables value.<br>
+You will also see a 5th helper variale referred to as the `job_status`. This adds flavour text to the script so that you can tell what is happening.
 
 The 3 local variables "seconds" "minutes" and "hours" are used to set a timer for how much time in real life you want a game of towertesting to last, leave all 3 at 0 if you don't want this. The final variable is `additional_cond` representing an additional condition that can be met for the script to exit towertesting.
 
@@ -49,7 +50,14 @@ The script has 5 conditions. The last 2 conditions (closest ones to the Actions 
 Condition 4 gives you a condensed version of [surface view](#surface-view), where it re-iterates the purpose of the local variables `additional_cond`, "seconds", "minutes" and "hours".<br>
 Condition 5 gives you line numbers. Since the "seconds", "minutes" and "hours" variables are at the top of the script, this condition only tells you the line number of `additional_cond`. To add an additional condition, you simply edit `set local additional_cond` and give it your goal. This goal is worded to reflect what you want to achieve. If your goal was to reach wave 100, you'd perform a `comparison.double` of `game: waves >= 100`.
 
-The script also keeps track of the game time with the local double called "game_time". Game time is reset if you restart your run, real time continues to count up.
+Lastly, the `job_status`. This is a variable that tells you what the script is doing at a given time. The text is can display is as follows:
+- `User must exit headquarters` in red if you're running the script while still in the HQ.
+- `User must close the window opened in town` in red if you're running the script in town but have any menu open.
+- `Waiting to exit Tower Testing` in green when the script is in a game of towertesting.
+- `Exit caused by pressing key.e` in green, if you press `key.exit` (key.e by default)
+- `Exit caused by additional_cond` in green if your additional condition was met.
+- `Exit caused by tower death` in green if the exit was caused by neither key.exit nor additional_cond but you're still in towertesting.
+- `Exit caused by an external cause` in green if the exit wasn't caused by the script itself. This means that you have another script active which exited the round for you.
 
 ## The Impulses
 
@@ -71,7 +79,9 @@ The 4 global variables you interract with are hidden until the script is active,
 
 The key inbetween `(parenthesies)` is the key you press to toggle the value. The key is calculated within the source, so changing the impulse key macros will automatically change what's displayed.
 
-Finally, the `close.headquarters()` impulse is used to hide the script UI if you exit the HQ while the script isn't active and the `game.newround()` impulse is used to reset the `game_time` when you restart your run and to hide the scripts UI if you activated configuration mode in the `towertesting menu`.
+
+
+Finally, the `close.headquarters()` and `close.towertesting()` impulses are used to hide the script UI if you exit the HQ or towertesting menu while the script isn't active and the `game.newround()` impulse is used to reset the `game_time` when you restart your run and to hide the scripts UI if you activated configuration mode in the `towertesting menu`.
 
 ## The Conditions
 

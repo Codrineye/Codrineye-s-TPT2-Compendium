@@ -1,0 +1,73 @@
+:import RNG_manip lib
+:name rng.show interference
+:budget_cap 200
+;
+:global double rolls
+:global double rng_val
+:global double target_val
+;
+:local int i
+;
+:local string state_0
+
+#states.get global.string.get("states<br><size")
+#states.set(value) global.string.set("states<br><size", {value})
+
+key.t()
+
+global.string.set("<size=0><line-height=0><color", "white></line-height></size>")
+rng_val = 0.0
+target_val = 0.0
+rolls = 0.0
+{states.set("20>")}
+
+{rng.line_1}
+{rng.line_2}
+{rng.line_3(guess)}
+
+start:
+rng_state = state_0
+
+loop:
+; Lower the size block by 4 for every 11 rolls and then add the remaining values back
+{states.set(concat(\
+  sub(d2s(120.0 - (2.0 * floor(rolls / 11.0))), 1, 2),\
+  sub({states.get}, 2, 999999)\
+) . if(rolls >= 4.0, rng_val . "<br>", ""))}
+; Add a new value only if the rolls are higher than 4.0 to ignore the background rolls
+
+rolls += 1.0
+
+guess:
+{rng.next}
+global.double.set(if(i == 1, "target", "rng") . "_val", {rng.get_uniform})
+state_0 = if(state_0 == "", rng_state, state_0)
+i += if(i == 2, 0, 1)
+goto(if(\
+  i == 1,\
+  add_interference,\
+  if(\
+    rolls == 0.0,\
+    start,\
+    if(\
+      target_val == rng_val,\
+      99,\
+      if(rolls % 1e3 == 0.0, waitframe, loop)\
+    )\
+  )\
+))
+
+waitframe:
+waitframe()
+goto(loop)
+
+add_interference:
+; add the action here
+; This will show you how much interference is caused by that action
+adventure.move(if(\
+  x(adventure.playerPos()) == 9.0,\
+  vec(0.0, if(y(adventure.playerPos()) == 0.0, -1.0, 1.0)),\
+  vec(if(x(adventure.playerPos()) == 0.0, -1.0, 1.0), 0.0)\
+))
+
+goto(rng.line_2)

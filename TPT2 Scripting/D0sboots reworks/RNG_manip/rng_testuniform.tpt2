@@ -1,8 +1,11 @@
 :import RNG_manip lib
 :budget_cap 100
-
+;
+:global bool equal_rng
+;
 :global double predicted_rng
 :global double actual_rng
+
 
 key.t()
 
@@ -15,3 +18,5 @@ guess:
 {rng.next}
 predicted_rng = {rng.get_uniform}
 actual_rng = rnd(0.0, 1.0)
+
+equal_rng = predicted_rng == actual_rng

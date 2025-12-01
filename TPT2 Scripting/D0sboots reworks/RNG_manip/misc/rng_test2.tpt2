@@ -55,7 +55,6 @@ key.t()
   return table.concat(code_table);\
 )}"
 
-goto(line_2)
 line_1:
 rng_temp = if(\
   contains("", {rng_varType}.string.get("1111xor1111")),\
@@ -112,7 +111,7 @@ next:
 
 {rng.next}
 
-predicted_rng = {rng.get_range(-2147483648, 2147483646)}
+predicted_rng = {rng.get_range.int(-2147483648, 2147483646)}
 actual_rng = rnd(-2147483648, 2147483646)
 
 equal_rng = predicted_rng == actual_rng

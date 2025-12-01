@@ -943,6 +943,8 @@ If either value_x or value_y can't be pre-computed, the export uses vector2: fro
 A fundamental function is an action that consumes 100 budget from your execution budget.<br>
 These are the actions used to interact with the game.
 
+### General purpose
+
 click(clickPosition) `[basic: click type: vector(2D)]`<br>
 Performs a click in the inputed position. If that position has a button, it will interact with it.
 
@@ -990,7 +992,7 @@ Equivalent to execute(script_name), however, execution is stopped until the scri
 executesync("foo") ; execute the script called "foo" and wait for it to finish execution
 
 :global string status
-status = "finish" ; status will only get set to "finish" after foo finishes execution
+status = "finish" ; status will only get set to "finish" after script "foo: finishes execution
 ```
 executesync(script_name) has a bug where, if the called script does not start execution because the conditions aren't met, executesync will continue to wait, indefinitely.<br>
 If executesync does not find a valid script to execute, it will just consume 100 budget, however, if it does succeed, it will consume the rest of the budget and then consume an extra 100, leaving you with budget_cap - 100 left, where-as usually, you're left with budget_cap left.
@@ -998,6 +1000,13 @@ If executesync does not find a valid script to execute, it will just consume 100
 stop(script_name) `[basic: stop type: string]`<br>
 Stops the execution of all scripts and script instances which are named `script_name`.<br>
 This action also clears the execution stack, which is what makes systems such as budget_exec work.
+
+### UI
+
+These can be used anywhere, like the [General purpose](#general-purpose) actions, but specialized for user interface.
+
+These are for managing the user interface.<br>
+canvas specific actions require the boots.dos ingame software to be unlocked and installed.
 
 canvas.rect(where, size, color) `[canvas: draw rect type: vector(2d), type: vector(2d), type: string]`<br>
 Function that's added by the software boots.d0s, which lets you draw on the canvas.<br>
@@ -1031,6 +1040,10 @@ Destroys the window with the ID `windowID`.
 
 destroy.all() `[window: destroy all]`<br>
 Ddestroys all active windows.
+
+### Tower Testing
+
+The actions that only work in tower testing.
 
 useinstant(spell_index) `[tower: use (instantly) type: int]`<br>
 Uses the spell at slot `spell_index`, where slot 1 refers to the first skill.<br>
@@ -1070,6 +1083,10 @@ Attempts to upgrade the specified era divider by the inputed ammount by using xp
 disable.inf(moduleID) `[infinity: secure module type: string]`<br>
 Attempts to secure the module with the specified `moduleID` to prevent enemies from mimicking it during the infinity phase.
 
+### Town and workers
+
+These can be used anywhere, like the [General purpose](#general-purpose) actions, but specialized for town and workers
+
 open(building, open) `[town: open window type: string, type: bool]`<br>
 Opens the `building` window if `open` is true, otherwise it will be closed. Opening or closing windows this way does not play the transition animation.
 
@@ -1097,6 +1114,8 @@ Sets the name of the worker at index `index` (0 is the first worker) to `name`.
 worker.setGroup(index, group) `[worker: set group type: int, type: int]`<br>
 Sets the group of the worker at index `index` (0 is the first worker) to the group with id `group`.
 
+### Mine
+
 dig(x, y) `[mine: dig type: int, type: int]`<br>
 Digs up the tile at `x` and `y` of the currently selected resource in the mine with (0, 0) being the top left corner.<br>
 Only works if the mine window is active.
@@ -1111,3 +1130,113 @@ Opens the mining tab at position `tab`. Position 1 is the first tab (orage) and 
 remove(cluster) `[mine: delete cluster type: int]`<br>
 Removes the asteroid cluster at list position `cluster` where 1 represents the first cluster in the list.
 
+### Arcade
+
+wheel.spin(wager) `[arcade: spin lucky wheel type: double]`<br>
+Spin the lucky wheel with the given wager. Wager represents the number of recources to spend for the spin.
+
+jumble.new(waget) `[arcade: jumble new game type: double]`<br>
+Start a new game of jumble with the given wager.
+
+jumble.stop() `[arcade: jumble stop]`<br>
+Stop the current column in jumble.
+
+adventure.move(direction) `[adventure: move type: vector(2d)]`<br>
+Moves the player in the specified directions.<br>
+You can only move left `(-1, 0)`, right `(1, 0)`, up `(0, 1)` or down `(0, -1)`. Any invalid direction will result in doing nothing.
+
+adventure.wait() `[adventure: wait]`<br>
+Skip the current turn.
+
+adventure.placeBomb() `[adventure: place bomb]`<br>
+Place a bomb on the current tile. If the current tile already has a bomb on it, it does nothing.
+
+adventure.useSpell(spell) `[adventure: cast spell type: string]`<br>
+Cast the specified spell.<br>
+Valid spells are the strings `identifyRoom`, `manaArmor`. Inputing an invalid spell or not having the mana required for the spell will do nothing.<br>
+Note that using a spell does use up your turn. So enemies will move while you use spells.
+
+adventure.teleport(completedRoom) `[adventure: teleport type: vector(2d)]`<br>
+Teleports you to the specified completed room.<br>
+If the room you are currently in isn't cleared, the room you are teleporting to hasn't been completed or you don't have the mana to teleport, it does nothing.
+
+adventure.buyMarketItem(item) `[adventure: buy market items type: string]`<br>
+Buys the specified market item. Does nothing if you don't have the gems for it or if the `item` string is invalid.<br>
+Valid item id's are: `eodArmor`, `thornsArmor`, `bootsPhasing`, `leechSword`, `impaler`, `manaReaver`, `hammer`, `holyBomb`, `bookSpells`
+
+### Factory
+
+craft(item, tier, ammount) `[factory: try craft type: string, type: int, type: double]`<br>
+Tries to craft the requested item, of the specified tier. Does nothing if the item, of the specified tier doesn't exist or if you can't make the requested ammount.<br>
+Valid item ID's are `chip.basic`, `chip.advanced`, `chip.hitech`, `chip.nano`, `chip.quantum`, `chip`, `hammer`, `sapling.rubber`, `sapling.void`, `dust.rainbow`, `cable.insulated`, `plate`, `motor`, `pump`, `block`, `plate.stack`, `lump`, `producer.town`, `producer.statueofcubos`, `producer.workshop`, `producer.shipyard`, `producer.laboratory`, `producer.constructionFirm`, `producer.mine`, `producer.powerplant`, `producer.arcade`, `producer.headquarters`, `producer.tradingpost`, `producer.museum`, `producer.factory`, `producer.exoticgems`, `producer.gems`, `booster.acceleration`, `booster.machines`, `booster.production.regular`, `booster.resource.drops`, `booster.trees`, `pumpkin.stack`, `pumpkin.producer`, `machine.oven`, `machine.assembler`, `machine.refinery`, `machine.crusher`, `machine.cutter`, `machine.presser`, `machine.mixer`, `machine.transportbelt`, `machine.shaper`, `machine.boiler`.
+
+produce(item, tier, ammount, machine) `[factory: try produce type: string, type: int, type: double, type: string]`<br>
+Parameters similar to craft, but needs the corresponding machine to produce your item. If the specified machine is invalud (see `factory_machines up top`) or if the machine is busy (not empty), it does nothing.<br>
+Valid item ID's are `rubber`, `dust.rainbow`, `ingot.rainbow`, `cable`, `ore`, `dust`, `ingot`, `plate`, `block`, `plate.stack`, `rod`, `lump`, `pumpkin`, `pumpkin.stack`
+
+trash(item, tier, ammount) `[factory: trash type: string, type: int, type: double]`<br>
+Same parameters as craft, but instead of crafting that item, it puts them in the trash.<br>
+Valid item ID's are `plate.rubber`, `plate.rainbow`, `essence.void`, `circuit`, `wire`, `screw`, `pipe`, `ring`, `block.dense`, `plate.dense`, `plate.circuit`, `pumpkin.plate`, `pumpkin.carved`, `pumpkin.anti`, `chip.basic`, `chip.advanced`, `chip.hitech`, `chip.nano`, `chip.quantum`, `chip`, `hammer`, `sapling.rubber`, `sapling.void`, `dust.rainbow`, `cable.insulated`, `plate`, `motor`, `pump`, `block`, `plate.stack`, `lump`, `producer.town`, `producer.statueofcubos`, `producer.workshop`, `producer.shipyard`, `producer.laboratory`, `producer.constructionFirm`, `producer.mine`, `producer.powerplant`, `producer.arcade`, `producer.headquarters`, `producer.tradingpost`, `producer.museum`, `producer.factory`, `producer.exoticgems`, `producer.gems`, `booster.acceleration`, `booster.machines`, `booster.production.regular`, `booster.resource.drops`, `booster.trees`, `pumpkin.stack`, `pumpkin.producer`, `machine.oven`, `machine.assembler`, `machine.refinery`, `machine.crusher`, `machine.cutter`, `machine.presser`, `machine.mixer`, `machine.transportbelt`, `machine.shaper`, `machine.boiler`, `rubber`, `ingot.rainbow`, `cable`, `ore`, `dust`, `ingot`, `rod`, `pumpkin`.
+
+cancel(machine) `[factory: cancel machine type: string]`<br>
+Stops the specified machine and exects all items in the inventory if possible. Does nothing it can't place the items somewhere. Valid machine ID's are specified at the top under `factory_machines`.
+
+### Powerplant
+
+sell(x, y) `[powerplant: sell type: int, type: int]`<br>
+Sells the powerplant component at the specified tile, where (0,0) is the bottom left corner and (18,12) is the top right corner. Giving an invalid tile will default to and sell (0,0).
+
+### Trading Post
+
+refresh() `[tradingpost: refresh]`<br>
+Generates new offers in the place of all offers you haven't locked. Requires mt12+ to use.
+
+trade(offer, pct) `[tradingpost: trade type: int, type: double]`<br>
+Accepts the trade at index `offer` using `pct` percent of your resources for the trade. Does nothing if the `offer` is not a valid index.
+
+### Museum
+
+museum.buyTier(element, tier, quantity) `[museum: buy type: string, type: int, type: int]`<br>
+Buys the PowerStone of the requested element and tier, quantity number of times. Buys all the stones it can, even if you can't afford the given quantity.
+
+museum.buyRange(element, tierMin, tierMax, quantity) `[museum: buy range type: string, type: int, type: int, type: int]`<br>
+Similar to museum.buyTier, but it tries to get the highest tier it can.
+
+combine(tierMax) `[museum: combine type: int]`<br>
+Combines all PowerStones in the inventory up to tierMax. If tierMax < 1, there's no limit, so implicitly 50 or higher if updates change this.
+
+transmute() `[museum: transmute]`<br>
+Transmute PowerStones currently inside the Cubos Cube.
+
+move(from, slot, to) `[museum: move type: string, type: int, type: string]`<br>
+Move the PowerStone from `slot` within `from` inside of `to`. Example default `Move from inventory in slot 0 to loadout`.
+
+museum.moveTo(from, flomSlot, to, toSlot) `[museum: move slot type: string, type: int, type: string, type: int]`<br>
+Move the Powerstone from `fromSlot` within `from` inside of `to` at `toSlot`. Example default `Move from inventory slot 0 to loadout slot 0`.
+
+museum.swap(invA, slotA, invB, slotB) `[museum: swap type: string, type: int, type: string, type: int]`<br>
+Same parameters as in museum.moveTo. Swaps the PowerStones between containers.
+
+delete(inventory, slot) `[museum: sell type: string, type: int]`<br>
+Sells the stone in slot, within the inventory. Default example `Sell from inventory in slot 0`.
+
+clear(inventory) `[museum: sell all type: string]`<br>
+Sells every stone within the inventory.
+
+museum.setPreferredTied(tier) `[museum: set preferred tier type: int]`<br>
+Sets the preferred offshore market tier.
+
+museum.setPreference(element, bool) `[museum: set preference type: string, type: bool]`<br>
+Set the offshore market preference for element to bool. If bool is false, you won't get offers of that element, if bool is true, you will get offers of that tier.
+
+museum.refresh() `[museum: market refresh]`<br>
+Refreshes offshore market offers. Requires mt12+ to use.
+
+museum.buyOffer(offerSlot, ammount) `[museum: buy market type: int, type: int]`<br>
+Buy the PowerStone from offshore market at `offerSlot` `ammount` times. Default example `Buy from offshore market from slot 0 1 times`.
+
+museum.setSlotLocked(offerSlot, locked) `[museum: lock market slot type: int, type: bool]`<br>
+Set the lock state of offshore market `offerslot` to `locked`. Default example `Set the lock state of slot 0 to false`.
+
+museum.rebuy(trashSlot) `[museum: rebuy type: int]`<br>
+Rebuy the PowerStone from tashSlot.
