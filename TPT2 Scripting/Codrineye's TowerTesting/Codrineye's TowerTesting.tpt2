@@ -10,6 +10,8 @@
 :const string order1 {diff_list(true)}
 :const string order2 {diff_list(false)}
 
+; Helper variable for region cycling
+:local bool started
 :local bool additional_cond
 ; add an additional condition that can lead to exiting
 ;
@@ -24,7 +26,7 @@
 :local string difficulty_list
 ;
 ; Macros for configuration in source
-#additional_cond true
+#additional_cond false
 
 key.{start}()
 key.{cycling}()
@@ -128,7 +130,7 @@ difficulty_list = if(\
     )\
   ),\
   {diff_mode.get},\
-  if({diff_mode.get} == order2, order1, order2)\
+  if({diff_mode.get} != order1, order1, order2)\
 )
 
 ; Increment the instance
@@ -138,7 +140,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 ; The difficulty variable holds a counter and the current coordinate
 ; The counter is used to decide what we're doing based on the mode.
 ; It uses index("ABCDEFGHIJKLMN", sub(diff, 0, 1), 0) + 1 to count up
-; A = 0, B = 1 and N = 14. Thus, I can determine what to do by simply using a contains()
+; A = 0, B = 1 and O = 15. Thus, I can determine what to do by simply using a contains()
 ;
 ; How changing difficulty is determined:
 ; If we're in mode1, we're always moving to the next difficulty. If we're in mode2, we only move
@@ -148,7 +150,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 ; If mode1, we only change the region when our counter is at A. If mode2, we always move to the
 ; next region
 ;
-:const string counting_string "ABCDEFGHIJKLMN"
+:const string counting_string "ABCDEFGHIJKLMNO"
 ;
 ; We shut off the hider with a </size> block if the script is running
 ; or if start/cycling/mode were pressed while inside the headquarters/towertesting menu
@@ -165,7 +167,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         if({status.get}, "mod", ""),\
         if(\
           {curent_mode.get} == mode1 ||\
-          (impulse() == "key.{mode}" && {curent_mode.get} == mode2), 5, 14)\
+          (impulse() == "key.{mode}" && {curent_mode.get} == mode2), 6, 15)\
       ),\
       1\
     ) . sub(\
@@ -174,7 +176,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
         {curent_mode.get} == mode1 || \
         (impulse() == "key.{mode}" && {curent_mode.get} == mode2) ||\
-        contains({diff.get}, "N"),\
+        contains({diff.get}, "O"),\
         difficulty_list,\
         {diff.get}\
       ),\
@@ -191,7 +193,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
         {curent_mode.get} == mode1 || \
         (impulse() == "key.{mode}" && {curent_mode.get} == mode2) ||\
-        contains({diff.get}, "N"),\
+        contains({diff.get}, "O"),\
         if(\
           impulse() == "game.newround",\
           s2i(sub({diff.get}, 2, 2), 1),\
@@ -262,13 +264,8 @@ goto(if(\
   )\
 ))
 
-quit:
-; We're here only if we shut down. This can't softlock us, because
-; movement_manager ensures we've started a new round
-; This waitwhile is in place to slow us down (intentionally) so that we can exit towertesting
-waitwhile(isopen("towertesting"))
-
 loop:
+started = true ; signal that we can start cycling
 end_time = seconds + minutes + hours
 ; Set our end time. If this is just 0, it'll get ignored
 ;
@@ -351,14 +348,15 @@ show("towertesting", true)
 ; Enter the TT menu
 ;
 ; Determine if we're able to change regions
-; 
+; Don't change the region if we've just now started
+; Otherwise, if we're in mode2, we'll always cycle no matter the counter value
 goto(if(\
   {status.get},\
   if(\
     {region_cycling.get} && (\
       ({curent_mode.get} == mode1 && contains({diff.get}, "A")) ||\
-      ({curent_mode.get} == mode2 && not(contains({diff.get}, "A")))\
-    ),\
+      ({curent_mode.get} == mode2)\
+    ) && started,\
     change_region,\
     enter_towertesting\
   ),\
@@ -373,7 +371,8 @@ waitframe()
 
 enter_towertesting:
 ; Click on the difficulty
-; diff.get has a 1-character counter, a length-2 position and a 5 character 
+; diff.get has a 1-character instance counter, 1-character progress counter,
+; a length-2 position and the difficulty string of 5 characters
 {click.relative(395.0 / 800.0, s2d(sub({diff.get}, 4, 5), 0.0) / 450.0, 0.0, 1.0)}
 
 ; Launch a round of towertesting
