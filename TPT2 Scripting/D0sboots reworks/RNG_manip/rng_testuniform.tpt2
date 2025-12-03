@@ -9,10 +9,8 @@
 
 key.t()
 
-goto(rng.line_2)
 {rng.line_1}
-{rng.line_2}
-{rng.line_3(guess)}
+{rng.line_2(guess)}
 
 guess:
 {rng.next}

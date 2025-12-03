@@ -22,8 +22,7 @@ rolls = 0.0
 {states.set("20>")}
 
 {rng.line_1}
-{rng.line_2}
-{rng.line_3(guess)}
+{rng.line_2(guess)}
 
 start:
 rng_state = state_0
@@ -64,10 +63,10 @@ goto(loop)
 add_interference:
 ; add the action here
 ; This will show you how much interference is caused by that action
-adventure.move(if(\
+;adventure.move(if(\
   x(adventure.playerPos()) == 9.0,\
   vec(0.0, if(y(adventure.playerPos()) == 0.0, -1.0, 1.0)),\
   vec(if(x(adventure.playerPos()) == 0.0, -1.0, 1.0), 0.0)\
 ))
 
-goto(rng.line_2)
+goto(rng.line_1)

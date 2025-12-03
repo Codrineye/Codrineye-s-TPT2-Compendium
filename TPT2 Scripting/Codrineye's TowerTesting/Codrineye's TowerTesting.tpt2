@@ -24,7 +24,7 @@
 :local string difficulty_list
 ;
 ; Macros for configuration in source
-#additional_cond false
+#additional_cond true
 
 key.{start}()
 key.{cycling}()
@@ -39,7 +39,7 @@ close.headquarters()
 close.towertesting()
 ; Attempt to hide the UI when leaving HQ or towertesting menu
 
-; Attempt to 
+; Detect when a new round increments to update the progress character inside of the `diff` monolith
 game.newround()
 ;
 ; Detects if any of the invalid buildings are open
@@ -131,6 +131,7 @@ difficulty_list = if(\
   if({diff_mode.get} == order2, order1, order2)\
 )
 
+; Increment the instance
 instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 
 ; This starts the block hider
@@ -357,7 +358,7 @@ goto(if(\
     {region_cycling.get} && (\
       ({curent_mode.get} == mode1 && contains({diff.get}, "A")) ||\
       ({curent_mode.get} == mode2 && not(contains({diff.get}, "A")))\
-    ) && end_time > 0.0,\
+    ),\
     change_region,\
     enter_towertesting\
   ),\
@@ -397,4 +398,6 @@ waitframe()
 
 end:
 ; Subtract 1 from the number of instances, as we've just removed an instance
+; If, for whatever reason someone modifies the variable and the instance int
+; stops becoming a valid number, fallback to 1 so that we don't have negative numbers.
 {diff.set(i2s(s2i(sub({diff.get}, 0, 1), 1) - 1) . sub({diff.get}, 1, 99))}

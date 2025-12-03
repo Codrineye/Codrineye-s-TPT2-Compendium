@@ -27,8 +27,7 @@ start_frame = time.frame()
 target = guess
 
 {rng.line_1}
-{rng.line_2}
-{rng.line_3(guess)}
+{rng.line_2(guess)}
 
 start:
 rng_state = state_0
@@ -63,7 +62,7 @@ target = loop
 goto(if(\
   i == 0,\
   start,\
-  rng.line_2\
+  rng.line_1\
 ))
 
 waitframe:

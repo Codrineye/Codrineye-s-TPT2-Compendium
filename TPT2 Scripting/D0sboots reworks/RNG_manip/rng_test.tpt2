@@ -1,21 +1,24 @@
 :import RNG_manip lib
 :budget_cap 100
 ;
-:global bool equal_rng
-;
-:global int predicted_rng
-:global int actual_rng
+:local int predicted_rng
+:local int actual_rng
+
+:local string target
+
+:global int count
 
 key.t()
 
-goto(rng.line_2)
 {rng.line_1}
-{rng.line_2}
-{rng.line_3(guess)}
+{rng.line_2(guess)}
 
 guess:
 {rng.next}
-predicted_rng = {rng.get_range.int(0, 10000)}
-actual_rng = rnd(0, 10000)
+predicted_rng = {rng.get_range.int(0, 2147483646)}
+actual_rng = rnd(0, 2147483646)
 
-equal_rng = predicted_rng == actual_rng
+count += 1
+target = if(actual_rng == predicted_rng, "true", "false")
+global.int.set(target, global.int.get(target) + 1)
+gotoif(guess, count < 100000)

@@ -2,7 +2,9 @@
 :name COD.RakStack
 :budget_cap 200
 
-:global string rak_stacks
+:const string rak_stacks "<size=0>@rm!S"
+#rak.get global.string.get(rak_stacks)
+#rak.set(value) global.string.set(rak_stacks, {value} . "</size>")
 
 :local int rak_index
 
@@ -22,18 +24,18 @@ rak_index = active.index("spell.raksCurse")
 ;
 ; active.index(spell not in blueprint) == 0
 goto(if(\
-  contains(rak_stacks, ";") || rak_index == 0,\
+  contains({rak.get}, ";") || rak_index == 0,\
   99,\
   wait\
 ))
 
 use_instant:
 useinstant(rak_index)
-stacks += min(1.0, ceil(cooldown(rak_index)))
+stacks += 1.0
 
 wait:
 ; Update our shown stacks
-rak_stacks = concat(d2s(stacks), ";")
+{rak.set(concat(d2s(stacks), ";"))}
 waves = {raw_waves}
 waitframe()
 ; Terminate the instance if:
@@ -42,14 +44,13 @@ waitframe()
 ; - we've reached 5 stacks
 ; Otherwise, if raks curse is on cooldown we keep waiting otherwise we jump to line 2
 goto(if(\
-  health(false) <= 0.0 || {raw_waves} < waves || contains(rak_stacks, "5"),\
+  health(false) <= 0.0 || {raw_waves} < waves || contains({rak.get}, "5"),\
   end,\
-  if(cooldown(rak_index) > 0.0, wait, rng.line_2)\
+  if(cooldown(rak_index) > 0.0, wait, rng.line_1)\
 ))
 
 {rng.line_1}
-{rng.line_2}
-{rng.line_3(guess)}
+{rng.line_2(guess)}
 
 guess:
 {rng.next}
@@ -63,10 +64,10 @@ guess:
 ; the number is smaller than 1. Otherwise, we need to move to the next rng value,
 ; for this next value to correlate with the internal rng value, we must also call for rnd()
 goto(if(\
-  {rng.get_range(0, 999)} < 1,\
+  {rng.get_range.int(0, 999)} < 1,\
   use_instant,\
-  guess + rnd(0, 0)\
+  rnd(guess, 0)\
 ))
 
 end:
-rak_stacks = d2s(stacks)
+{rak.set(d2s(stacks))}

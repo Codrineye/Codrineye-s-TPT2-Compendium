@@ -17,13 +17,15 @@
 )}
 
 ; There are three sets of macros defined in this library
-; The first is the 2-part rng_init sequence
+; The first is the 3-part rng_init sequence
 #rng.line_1 {lua(return RNG.macro_body("line_1"))}
-#rng.line_2(label) {lua(return RNG.macro_body("line_2", [[{label}]]))}
+#rng.line_2 {lua(return RNG.macro_body("line_2"))}
+#rng.line_3(label) {lua(return RNG.macro_body("line_3", [[{label}]]))}
 ;
 ; To use these, place this sequence *immediately* before the event you want to manipulate
 ; {rng.line_1}
-; {rng.line_2(continue)}
+; {rng.line_2}
+; {rng.line_3(continue)}
 ; continue:
 ;
 ; The last one makes a label to `goto` to when it is done.
@@ -33,7 +35,7 @@
 ; It is important that you run this in the same frame as the event you are trying to manipulate,
 ; ideally right before, so that other calls to the rng do not happen in-between.
 ; 
-; If you need to re-initialize the state, jump to label `rng.line_1`.
+; If you need to re-initialize the state, jump to label `rng.line_2`.
 ;
 ; To simulate future rolls of the rng, use this macro:
 #rng.next {lua(return RNG.macro_body("next"))}
