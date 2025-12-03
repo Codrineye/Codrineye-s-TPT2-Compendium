@@ -25,6 +25,8 @@ Fixed a bug introduced in [2.2.5](#version-225). The logic for cycling regions r
 
 Removed what's either a bug or a feature, but that seems like a bug to me where being in mode2 wouldn't change the region after completing a cycle which would lead to the script getting offset by 1. This means that, if you started in Forest easy, you'd then end up in Chaos Easy, and instead of going to Forest Normal you'd enter Chaos Normal.
 
+Fix what I broke by forgetting to make the gotoif() check if `seconds + minutes + hours == 0.0` instead of `end_time == 0.0`
+
 ### version 2.2.5
 
 Removed variables `game_time` and `time.real` in place for the games new functions `game.time()` and `game.realtime()`.<br>

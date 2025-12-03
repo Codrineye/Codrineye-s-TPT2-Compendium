@@ -10,8 +10,6 @@
 :const string order1 {diff_list(true)}
 :const string order2 {diff_list(false)}
 
-; Helper variable for region cycling
-:local bool started
 :local bool additional_cond
 ; add an additional condition that can lead to exiting
 ;
@@ -265,8 +263,7 @@ goto(if(\
 ))
 
 loop:
-started = true ; signal that we can start cycling
-end_time = seconds + minutes + hours
+end_time = now() + 1e7 * (seconds + minutes + hours)
 ; Set our end time. If this is just 0, it'll get ignored
 ;
 ; Update our job
@@ -290,8 +287,8 @@ additional_cond = {additional_cond}
 gotoif(\
   in_towertesting,\
   {status.get} && health(false) > 0.0 && not(additional_cond) && (\
-    end_time == 0.0 ||\
-    game.realtime() <= end_time\
+    seconds + minutes + hours == 0.0 ||\
+    now() <= end_time\
   )\
 )
 
@@ -356,7 +353,7 @@ goto(if(\
     {region_cycling.get} && (\
       ({curent_mode.get} == mode1 && contains({diff.get}, "A")) ||\
       ({curent_mode.get} == mode2)\
-    ) && started,\
+    ) && end_time > 0.0,\
     change_region,\
     enter_towertesting\
   ),\
