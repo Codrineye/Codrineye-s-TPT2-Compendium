@@ -1,0 +1,47 @@
+:import museum_macros
+:name {script(Combine)}
+
+; This script is responsible for actually combining gems.
+;
+; That's true in two senses: It both has the actual call to Combine(), and
+; also the logic immediately surrounding it that runs the combines and checks
+; to see if the loop is done.
+
+:global int museum_tier
+:global int target_tier
+:global int museum_pos
+
+:local double end_time
+:local int buy_amount
+
+restart_loop:
+; Calculate a time to end the loop at. This is 1/5 of a second in the future,
+; so it should reliably be 5 FPS.
+end_time = now() + 10000000. / 5.
+buy_amount = max(1, (target_tier - museum_tier - 5) * 3)
+
+combine:
+museum.buyTier(element("inventory", 0), museum_tier, buy_amount)
+combine(50)
+combine(50)
+combine(50)
+gotoif(combine, tier("inventory", 0) < target_tier && now() < end_time)
+
+gotoif(done, tier("inventory", 0) >= target_tier || tier("inventory", 27) == museum_tier)
+
+execute("{script(Buy)}")
+waitframe()
+
+done:
+; Now that we're done, move the finished stone back to "equipped". This also
+; moves partial/original stones back, if we cancelled via {start}.
+;
+; Even though this happens after signalling, we get one extra cycle as a
+; "delay slot" before we're stopped by Main.
+museum.moveTo("inventory", 0, "loadout", museum_pos)
+
+
+; This is the signal for Main that it should continue.
+museum_tier = -5
+
+end:

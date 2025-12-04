@@ -1,0 +1,12 @@
+open.museum()
+wakeup()
+:budget_cap -1
+isopen("museum")
+
+clear("loadout")
+clear("inventory")
+
+loop:
+museum.buyTier("light", 1, 1)
+move("inventory", 1, "loadout")
+gotoif(loop, freeSlots("loadout") > 0)
