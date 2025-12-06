@@ -13,14 +13,11 @@
 
 :global double end_time
 
-:local int buy_amount
 
-
-buy_amount = max(1, (target_tier - museum_tier - 5) * 3)
 end_time = if(now() <= end_time, end_time, now() + 10000000.0 / 5.0)
 
 combine:
-museum.buyTier(element("inventory", 0), museum_tier, buy_amount)
+museum.buyTier(element("inventory", 0), museum_tier, 30)
 combine(50)
 combine(50)
 combine(50)
