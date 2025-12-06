@@ -22,6 +22,8 @@ isopen("museum")
 :global int target_tier
 :global int museum_pos
 
+:global double end_time
+
 :local double worker_val
 
 ; If we're being called from Combine, we're a buyer.
@@ -29,15 +31,16 @@ isopen("museum")
 ; currently running, abort. We don't want to change the budget in the middle
 ; of things.
 goto(if(\
-  impulse() == "{script(Combining)}",\
+  impulse() == "{script(Combine)}",\
   trampoline,\
   if(contains(museum_status, "Combining") && contains(impulse(), "key."), 99, init)\
 ))
 
 trampoline:
-stop("{script(Combining)}")
-execute("{script(Combining)}")
+stop("{script(Combine)}")
+execute("{script(Combine)}")
 stop("{script(Buy)}")
+goto(99)
 
 init:
 
@@ -85,6 +88,7 @@ worker.setName(\
   "{prefix}" . gdg({budget})\
 )
 
+end_time = end_time
 
 ; Set other variables that need to happen before we close the script block.
 

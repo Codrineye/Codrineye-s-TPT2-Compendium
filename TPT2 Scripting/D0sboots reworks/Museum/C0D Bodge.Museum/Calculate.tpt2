@@ -43,15 +43,8 @@ global.int.set(\
 ; If we're called from key.{start}, we're done now. Otherwise, if offer_tiers is
 ; the default, calculate it now, but don't bother re-doing work if we don't have to.
 ; (This would be easier to do at the top, but there's no room in Main.)
-goto(if(\
-  contains("key.{start}", impulse()),\
-  end,\
-  if(\
-    contains(offer_tiers, "0101010101010101-1"),\
-    get_offers,\
-    skip_offers\
-  )\
-))
+gotoif(end, impulse() == "key.{start}")
+
 
 ; This loop calculates the best stone to buy, for each element.
 get_offers:
@@ -76,8 +69,9 @@ offer_tiers = if(\
 offer_idx = offer_idx + 1
 gotoif(get_offers, offer_idx < 10)
 
-skip_offers:
+
 clear("inventory")
+clear("combinator")
 
 ; Load the pre-calculated tier of stone we are buying.
 museum_tier = s2i(sub(\

@@ -11,26 +11,35 @@
 :global int target_tier
 :global int museum_pos
 
-:local double end_time
+:global double end_time
+
 :local int buy_amount
 
-restart_loop:
-; Calculate a time to end the loop at. This is 1/5 of a second in the future,
-; so it should reliably be 5 FPS.
-end_time = now() + 10000000. / 5.
+
 buy_amount = max(1, (target_tier - museum_tier - 5) * 3)
+end_time = if(now() <= end_time, end_time, now() + 10000000.0 / 5.0)
 
 combine:
 museum.buyTier(element("inventory", 0), museum_tier, buy_amount)
 combine(50)
 combine(50)
 combine(50)
-gotoif(combine, tier("inventory", 0) < target_tier && now() < end_time)
+goto(if(\
+  tier("inventory", 0) >= target_tier || tier("inventory", 27) == -1,\
+  done,\
+  if(\
+    now() >= end_time,\
+    waitframe,\
+    if(budget() < 400, trampoline, combine)\
+  )\
+))
 
-gotoif(done, tier("inventory", 0) >= target_tier || tier("inventory", 27) == museum_tier)
-
-execute("{script(Buy)}")
+waitframe:
 waitframe()
+
+trampoline:
+execute("{script(Buy)}")
+goto(end)
 
 done:
 ; Now that we're done, move the finished stone back to "equipped". This also
@@ -39,7 +48,7 @@ done:
 ; Even though this happens after signalling, we get one extra cycle as a
 ; "delay slot" before we're stopped by Main.
 museum.moveTo("inventory", 0, "loadout", museum_pos)
-
+gotoif(done, tier("inventory", 0) != -1)
 
 ; This is the signal for Main that it should continue.
 museum_tier = -5
