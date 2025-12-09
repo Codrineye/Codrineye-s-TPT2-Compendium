@@ -68,4 +68,23 @@ It's simple in theory. Activate the AI overlay, press F7 (default hotkey) to act
 But if you want to make them relative to the resolution, here's the added steps.
 
 First, set your window to a 16:9 resolution. I prefer 800x450 for recording clicks, but as long as it's still 16:9 you can use whatever.<br>
-Next, make sure your UI scale is at 100% and that you have Dynamic UI Scale turned off. Dynamic UI Scale doesn't update the ui.size() variable, so 
+Next, make sure your UI scale is at 100% and that you have Dynamic UI Scale turned off. Dynamic UI Scale doesn't update the ui.size() variable, so you'll have to pray that nobody using your script has that option active. Record all the clicks you want and press `f`.<br>
+You can now get back to full screen and set your UI scale to 50%. Note down the direction it aproaches to find the elements anchor, and you're now good to go.<br>
+For coodrinate debugging, boots.d0s is your best friend. canvas.rect({pos.relative()}, vec(5.0, 5.0), "#FFF") is my personal go-to. It shows you the relative coordinate, and you can check if your anchor is off by updating your UI scale to make sure no matter the scale, you still start on your target.
+
+I also created a little desmos thingy for this. [Perfect Tower lib](../../../../Desmos%20Graphs/Perfect%20Tower%20lib.md) is a helper library that you can import inside of a desmos graph to gain the function definitions. It also includes a little example for how to record relative vectors.
+
+Relative vectors require some trial and error, but clicks can be used to achieve some pretty neat stuff, so have fun.
+
+## Decided on what to do
+
+Wonderful, you can now plan out how to implement it in whatever way you'd like. Remember that, just because it's in a game, it doesn't mean this isn't still programming, so ther are infinitely many ways to implement your ideas.<br>
+You now know the extent of AI scripting.
+
+## Best Practices
+
+Programming has best practices, so it might as well get covered here, right?
+
+### Basic implementation
+
+Use goto(51) or higher to exit the script. It isn't recommended 

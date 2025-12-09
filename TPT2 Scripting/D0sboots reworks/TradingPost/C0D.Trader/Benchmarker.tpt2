@@ -16,6 +16,10 @@
 :local double start_time ; The time we started at
 :local double time       ; The time we're at
 
+:local double crates
+:local double crates_per_sec
+:local double crates_exponent
+
 ; Macro definitions
 ; Get seconds in relation to time.now()
 #seconds(time) (1e7 * ({time}))
@@ -26,6 +30,8 @@
 
 ;
 :const string benchmark "<color=#FFF>Benchmark"
+#benchmark.get global.string.get(benchmark)
+#benchmark.set(text) global.string.set(benchmark, {text})
 
 ;
 key.{benchmark}()
@@ -43,6 +49,7 @@ hours = a.d(0.0, "*", 60.0 * 60.0)
 
 start_time = now()
 time_sum = start_time + {seconds(seconds + minutes + hours)}
+crates = resource("crates")
 execute("{package(Main)}")
 
 loop:
@@ -54,11 +61,13 @@ waitwhile(\
 )
 
 time = if(counting_up, now() - start_time, time_sum - now())
-global.string.set(benchmark, if(counting_up, "elapsed", "remaining") . "_time:" . if(\
-  time < {seconds(60.0)},\
-  "",\
-  if(time < {seconds(60.0 * 60.0)}, "0", {clock(60.0 * 60.0)}) . ":"\
-) . if(time < {seconds(60.0)}, "0", {clock(60.0)}) . ":" . {clock(1.0)})
+{benchmark.set(\
+  if(counting_up, "elapsed", "remaining") . "_time:" . if(\
+    time < {seconds(60.0)},\
+    "",\
+    if(time < {seconds(60.0 * 60.0)}, "0", {clock(60.0 * 60.0)} . ":")\
+  ) . if(time < {seconds(60.0)}, "0", {clock(60.0)}) . ":" . {clock(1.0)}\
+)}
 
 {status.set(if(\
   counting_up || now() < time_sum,\
@@ -70,9 +79,19 @@ gotoif(loop, contains({status.get}, "trade="))
 waituntil({status.get} == "red></color>")
 
 time = now() - start_time
-global.string.set(benchmark, "final_time:" . if(\
-  time < {seconds(60.0)},\
-  "",\
-  if(time < {seconds(60.0 * 60.0)}, "0", {clock(60.0 * 60.0)}) . ":"\
-) . if(time < {seconds(60.0)}, "0", {clock(60.0)}) . ":" . floor(time / {seconds(10.0)}) % 6.0\
-  . (time / {seconds(1.0)}) % 10.0)
+crates_per_sec = (resource("crates") - crates) / time
+crates_exponent = floor(crates_per_sec // 10.0)
+{benchmark.set(\
+  "final_time:" . if(\
+    time < {seconds(60.0)},\
+    "",\
+    if(time < {seconds(60.0 * 60.0)}, "0", {clock(60.0 * 60.0)} . ":")\
+  ) . if(time < {seconds(60.0)}, "0", {clock(60.0)}) . ":"\
+    . floor(time / {seconds(10.0)}) % 6.0 . (time / {seconds(1.0)} % 10.0)\
+  . "<br>crates_per_second:<br>" . if(\
+    crates_exponent > 6.0,\
+    sub(d2s(crates_per_sec), 0, 1) . "." . sub(d2s(crates_per_sec), 1, 3) . "E" . crates_exponent,\
+    sub("000" . floor(crates_per_sec / 1000.0), 0, 3) . "," .\
+    sub("000" . floor(crates_per_sec % 1000.0), 0, 3)\
+  )\
+)}

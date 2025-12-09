@@ -33,9 +33,7 @@ To re-iterate, the execution stack removes all "dead" instances once the frame e
 
 As explained in [Why this exists](#why-this-exists), fast execution is more accessible now than it was before, so more scripts would require this budget "acceleration". If 20 scripts use this system, even if the core program is in just 1 script, their package requires 2 scripts, so having 20 such scripts would mean that 40 script slots are taken up, and 20 of are the same 2 lines, just with a different script that they're stop()ing and execue()ing.
 
-If you'd think that this stop/execute() system could be inserted in the same script as the logic script, that doesn't work for 2 reasons:
-1. The turbo bug will exist up until version 1.0.0, so until then, if a script stop()s itself, all running scripts will be turbo-ified, which you should avoid at all costs.
-2. Even after the turbo bug is patched out, once a script stop()'s itself, it's removed from the execution stack, so it can't reach the next action to execute() another worker instance of itself.
+If you'd think that this stop/execute() system could be inserted in the same script as the logic script, that doesn't work, since stop(self) will instantly remove all instances of your script from the execution stack, so even if you create a new instance with execute(self), that instance still gets deleted
 
 # The imports
 
@@ -51,8 +49,8 @@ Second is `BudEx:accelerate`, this script is within a package to not interfere w
 - 1 max impulse
 - 0 conditions
 - 3 max actions
-- max budget_cap of 200, but the scripts that use this will likely require a max budget_cap of 10000
+- max budget_cap of 300, but the scripts that use this will likely require a max budget_cap of 10100
 
 ```
-fZHBbsMgDIZfZfMZZSSbNilqe6jUp1hyIMRFqAkgMFq1qu8+wdKt69gugO1f9u+PEwTptaMA7esJhCRtTXpDFzmvazXZQUxVIK+NqgJSN0hrAglDScCfsuxxFfQ7rvlmG8fdsQokCEtC/rJ6SMoNMOj2Cg16LatA1uUqflqp9OziFDCJUvpLiEeUkbCo7RlIa0Z98d8zWEpLZMSM0IKQEif0glJ7J+RBqJTOxoHBEEeFBG3DOYMYcLvE5COe2S9AHC/elCWr9zdLNzJf/Pasa2lnJ7wO1ixsS0sVETb362L++U0cMLo/oZX+jee12ysm/2OEZcY3ztzgThtNP3BekaxLJPvzBw==
+jZFBbsMgEEWv0s4auTiuWslKsoiUU9ReYDKxUGxAMKhRo9y9gjqtmxKlmxEMf0af90/gpVOWPNRvJxCSlNHxDE3gvCz7wXRiKDw5pfvCIzWdNNqT0BQF/DnJqqVXH7ji603YbY+FJ0GYE/LX5VNUroFBs+9Ro1Oy8GRsesUvK4UabRg8RlFsfwvxiDIQ3tL+XpjzyZO/WkiJAzpBCC0DafROXb7dMpg2TjctRoQaZiMMrJAH0cd22gcMurDrkaCuOGcQPG6mO7mAZ/aHK8eL1d6QUfsrs4tUq1T5dS1LaUYrnPJGT7nkgGTxLx5X2f7LuzhgsDeB/4/l3Qh0GnlQWtEd8DAZ+glgNjoPYMa+zLFvz58=
 ```

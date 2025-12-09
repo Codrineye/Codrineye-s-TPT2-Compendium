@@ -1,6 +1,6 @@
 ; Keep naming between the trader and benchmarker consistent
 ; so they're in the same package
-#package(name) C0D.Trader v1.1:{name}
+#package(name) C0D.Trader v1.2:{name}
 ;
 
 ; Impulse macros
@@ -12,14 +12,8 @@
 
 ; Variable definitions
 ;
-; Iterations holds the frame at which we're activated.
-; This value is important to prevent a unity bug that's explained in Main.
-:const string iteration "<size=0>C%t.I"
-#iteration.get global.int.get(iteration)
-#iteration.set(value) global.int.set(iteration, {value})
-;
 ; Number of loops we want to do in a frame.
-:const string loops "C%t.L"
+:const string loops "<size=0>C%t.L"
 #loops.get global.int.get(loops)
 #loops.set(loops) global.int.set(loops, {loops})
 ;

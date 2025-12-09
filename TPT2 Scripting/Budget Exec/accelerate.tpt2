@@ -4,8 +4,8 @@
 ; This is its own package so that people can have scripts called "accelerate"
 ; without interfering with this package
 
-:budget_cap 200
-; budget cap of 200 so that every action is done instantly
+:budget_cap 300
+; budget cap of 300 so that every action is done instantly
 
 global.string.set(budget_exec_var, "</size>")
 ; Signal to any scripts that use this library that we're up and running.
@@ -23,3 +23,7 @@ stop(impulse())
 ;
 ; Start the script that we just stopped so it can continue execution
 execute(impulse())
+;
+; Stop our script instance. This makes it so that our instance doesn't have to be stop()'ed
+; by our caller
+stop("{accelerate_budget}")

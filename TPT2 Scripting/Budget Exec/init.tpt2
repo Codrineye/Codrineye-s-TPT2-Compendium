@@ -13,10 +13,18 @@ wakeup()
 ; after budget_exec_var has been initialized
 ; 
 
-gotoif(99, impulse() != "wakeup")
+gotoif(end, impulse() != "wakeup")
 ; We kill the instance if our impulse wasn't wakeup, as we've already initialized the variable
 ;
 ; If we're here, we want to initialize budget_exec_var by starting up our package.
 ; If budget_exec_var is empty after this initialization,
 ; the script that uses this package will show an error
 execute("{accelerate_budget}")
+;
+end:
+; Stop the instance to remove us from the execution stack.
+; Minor optimisation but still worth it
+;
+; This addition still works, even with a budget cap of 100 because the gotoif()
+; run by our accelerator starts the instance that kills us
+stop("{budget_exec} init")

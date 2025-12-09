@@ -10,7 +10,7 @@ For space, I've created the groups `data_type`, `buildings`, `factory_machines`,
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
-`buildings` = "arcade", "construction firm", "factory", "headquarters", "laboratory", "mine", "museum", "power plant", "shipyard", "statue of cubos", "trading post", "workshop"
+`buildings` = "arcade", "construction firm", "factory", "headquarters", "laboratory", "mine", "museum", "power plant", "shipyard", "statue of cubos", "trading post", "workshop", "towertesting"
 
 `factory_machines` = "oven", "assembler", "refinery", "crusher", "cutter", "presser", "mixer", "shaper", "boiler"
 
@@ -374,9 +374,15 @@ Returns the current amount of fixed waves per interval as seen in the stats menu
 infinity() `[game: infinity]`<br>
 Returns the current infinity count during Tower Testing or 0 if Tower Testing is not active.
 
+game.realtime() `[game: real time passed]`<br>
+Returns the real time passed during this tower testing run. Returns 0 outside of tower testing.
+
 resource("resource name") `[game: resource type: string]`<br>
 Returns the amount of resources with id `resource name` you have. Returns 0 if `resource name` is not a valid id.<br>
 Valid resource ID's are defined at the [top of file](#ai-functions)
+
+game.time() `[game: time passed]`<br>
+Returns the game time passed during this tower testing run. Returns 0 outside of tower testing.
 
 wave() `[game: wave]`<br>
 Returns the current wave count during Tower Testing or 0 if Tower Testing is not active.
@@ -453,6 +459,18 @@ Returns the height of the game window in pixels.
 
 width.d() `[screen: width]`<br>
 Returns the width of the game window in pixels.
+
+shipment.countdown() `[shipyard: countdown]`<br>
+Returns the time until shipment arrives.
+
+seamiles() `[shipyard: sea miles]`<br>
+Returns the total sea miles.
+
+shipments() `[shipyard: shipments]`<br>
+Returns the total shipments.
+
+weather.bonus() `[shipyard: weather bonus]`<br>
+Returns the current weather bonus.
 
 if(cond, true_val, false_val) `[ternary: double type: bool, type: double, type: double]`<br>
 Computes the condition inputed in `cond` and returns `true_val` if it's true and `false_val` if it's false.<br>
@@ -597,6 +615,9 @@ Permited operators are:
 - `%` `mod` modulo
 - `+` addition
 - `-` subtraction
+- `%&` `and` bitwise and
+- `%^` `xor` bitwise xor
+- `%|` `or` bitwise and
 
 External Editor specifications:<br>
 arithmetic.int is long-form for a.i(). The syntax is the same, however this is shorter.<br>
@@ -688,6 +709,15 @@ Returns the height of the screen in pixels.
 
 width() `[screen: width]`<br>
 Returns the width of the screen in pixels.
+
+order.current() `[shipyard: current order]`<br>
+Returns the current shipment order or -1 if not active.
+
+loadout.count() `[software: loadout count]`<br>
+Returns the total number of existing software loadouts.
+
+loadout.index(loadoutName) `[software: loadout index type: string]`<br>
+Returns the index of the software loadout named `loadoutName`. If multiple loadouts share the same name, it will return the lowest index. If none is found it will return 0.
 
 index(str, substr, offset) `[string: index of type: string, type: string, type: int]`<br>
 Returns the index of the first occurrence of string `substr` within string `str`. Search starts at index `offset` where 0 represents the beginning of the string.<br>
@@ -803,6 +833,9 @@ Returns the ID of the impulse that triggered this script instance. If the script
 software.find(name) `[software: find id type: string]`<br>
 Returns the correct software id of the software with the closest match to the inputed name (ignores case-sensitivity). This function is very slow. Avoid using it in performance critical sections.<br>
 As with factory.find(name), this function has been made obselete ever since the software drop-downs were introduced.
+
+loadout.name(index) `[software: loadout name type: int]`<br>
+Returns the loadout name of the software loadout at `index`. The first loadout has an index of 1, the second 2 and so on (like indicated in the software loadout menu).
 
 lower(str) `[string: to lower]`<br>
 Converts the inputed string into its lowercase variant.
@@ -1194,6 +1227,17 @@ Generates new offers in the place of all offers you haven't locked. Requires mt1
 trade(offer, pct) `[tradingpost: trade type: int, type: double]`<br>
 Accepts the trade at index `offer` using `pct` percent of your resources for the trade. Does nothing if the `offer` is not a valid index.
 
+### Shipyard
+
+order.start(index) `[shipyard: start order type: int]`<br>
+Start a new shipment order with id `index`.
+
+order.collect() `[shipyard: collect order]`<br>
+Collects the current shipment order.
+
+order.cancel() `[shipyard: cancel order]`<br>
+Cancels the current shipment order.
+
 ### Museum
 
 museum.buyTier(element, tier, quantity) `[museum: buy type: string, type: int, type: int]`<br>
@@ -1240,3 +1284,4 @@ Set the lock state of offshore market `offerslot` to `locked`. Default example `
 
 museum.rebuy(trashSlot) `[museum: rebuy type: int]`<br>
 Rebuy the PowerStone from tashSlot.
+
