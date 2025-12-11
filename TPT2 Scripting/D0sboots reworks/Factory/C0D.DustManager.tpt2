@@ -150,7 +150,7 @@ top:
 
 
 #ore_tier (state % 11)
-#has_ore (state % 11 != 0) || count("ingot", {ore_tier}) > 0.0
+#has_ore (state % 11 != 0)
 
 state = ({raw_dust_tier} * 11 + {ore_state}) % 99
 
@@ -222,7 +222,10 @@ produce(\
   if(\
     {has_ore},\
     min(\
-      count("ore", {ore_tier}) - ore_buffer,\
+      max(\
+        count("ore", {ore_tier}) - ore_buffer,\
+        1.0 + (count("ore", {ore_tier}) - count("dust", {ore_tier})) / 3.0\
+      ),\
       powerplant_boost * (2.0 ^ (crusher_tier - 1.0)) * crush_time / (2.0 * i2d({ore_tier}) - 1.0)\
     ),\
     count("lump", {dust_tier.current})\
