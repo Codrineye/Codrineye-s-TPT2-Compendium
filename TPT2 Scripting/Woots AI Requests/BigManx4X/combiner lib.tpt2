@@ -1,0 +1,113 @@
+#name BigManx4X
+
+; Key config.
+#inv_fill m
+;
+#start x
+#gift_up p
+#gift_down o
+;
+#up t
+#down g
+#left f
+#right h
+
+
+{lua(\
+  local data = [[\
+{inv_fill}  inv_fill;\
+{start}     start;\
+{gift_up}   gift_up;\
+{gift_down} gift_down;\
+{up}        up;\
+{down}      down;\
+{left}      left;\
+{right}     right;\
+]];\
+  local keys = {};\
+  for segment in data:gmatch("[^;]+") do\
+    local key, name = segment:match("([^%s]+)%s+(.*)");\
+    local err_msg = {};\
+    if key == "" or name == "" then\
+      err_msg = table.pack("Failed to decode segment `", segment, "`");\
+    elseif #key > 1 then\
+      err_msg = table.pack(\
+        "Impulse key must be of length 1!",\
+        "\nKey", name, "(", key, ") is of length ", #key\
+      );\
+    elseif keys[key] then\
+      err_msg = table.pack(\
+        "Duplicate key detected!",\
+        "\nKey ", key, " was assigned to ", keys[key], " but is now getting assigned to ", name\
+      );\
+    end\
+    if err_msg[1] then\
+      error(table.concat(err_msg))\
+    end\
+    keys[key] = name;\
+  end\
+)}
+
+; This is the only global variable we have, and thus, it's the one holding our memory.
+; Our memory consists of 2 values:
+; First 3 characters are a double representing the gift type through values 0 1 or 2
+; Next 4 characters are a double representing the inventory via the values 0 through 47.
+; Everything after these 7 characters are just UI things.
+:const string combiner_name "<size=0>Wc$B"
+#combiner.get global.string.get(combiner_name)
+#combiner.set(new) global.string.set(combiner_name, {new})
+
+; Const values
+;
+; Values relating to gift slots
+:const double gift_slot_1 460.0
+:const double gift_slot_2 580.0
+:const double gift_slot_3 700.0
+
+:const double gift_coord_y 300.0
+
+:const double gift_slot_increment 120.0
+;
+; Values relating to the rebuy slots
+:const double rebuy_slot_1 565.0
+:const double rebuy_slot_2 695.0
+
+; Value for the sell slot
+:const double sell_slot 410.0
+
+:const double rebuy_coord_y 250.0
+
+:const double rebuy_slot_increment 100.0
+;
+; Values relating to the combine slots
+:const double combine_slot_1 405.0
+:const double combine_slot_2 470.0
+:const double combine_slot_3 535.0
+
+:const double combine_slot_result 600.0
+
+:const double combine_slot_increment 65.0
+
+; The button to push for combining
+:const double combine_button 680.0
+; The y coord for every element relating to combining
+:const double combine_coord_y 180.0
+;
+; Inventory coord values
+:const double inv_coord_x 404.0
+:const double inv_coord_y 115.0
+
+:const double inv_slot_offset 29.75
+;
+; Values pertaining to the UI
+
+; Border arround the selection square + the selection square sizes.
+:const double inv_border_size 25.0
+:const double inv_slot_size 23.0
+
+; Color used for highlighting.
+:const string target_color "#0F6"
+
+; The inventory slot calculation puts us at the middle of the inventory slot.
+; This offset makes our inventory slot vector point to the corner instead of the middle
+:const vector offset_to_corner vec(13.5, 13.5)

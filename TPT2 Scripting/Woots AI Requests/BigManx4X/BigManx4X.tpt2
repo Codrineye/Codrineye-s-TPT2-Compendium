@@ -1,26 +1,8 @@
-#name BigManx4X
-#name.reverse {lua(return string.reverse("{name}"))}
-; name of the script
-
+:import combiner lib
 :name {name}
-:budget_cap 201
-; we use the budget here to prevent
-; a race condition from going through
-; 
-; if 2 instances are set to start
+:budget_cap max
 
-#inv_fill m
-
-#start x
-#gift_up p
-#gift_down o
-
-#config c
-#up t
-#down g
-#left f
-#right h
-
+; Impulses
 
 wakeup()
 
@@ -30,279 +12,193 @@ key.{start}()
 key.{gift_up}()
 key.{gift_down}()
 
-key.{config}()
 key.{up}()
 key.{down}()
 key.{left}()
 key.{right}()
 
+not(contains({combiner.get}, "combining"))
 
-:const string gift_name '<size=0>gift coord'
+:local double target_gift
+:local double inventory
 
-:const double gift_slot_1 460.0
-:const double gift_slot_2 580.0
-:const double gift_slot_3 700.0
-:const double gift_coord_y 300.0
+; Using arithmetic.double to determine the sign of the operation.
+; default value for target_gift is 2.0, so we always start on blue gift
+target_gift = min(2.0, max(0.0,\
+  arithmetic.double(\
+    s2d(sub({combiner.get}, 0, 1), 2.0),\
+    if(impulse() == "key.{gift_up}", "+", "-"),\
+    if(contains("key.{gift_up}|key.{gift_down}", impulse()), 1.0, 0.0)\
+  )\
+))
 
-:const double gift_slot_increment 120.0
-; These are the values related to gift slots
-; 
+; Using arithmetic.double to determine the sign of the operation
+; Subtraction happens if we're going up or to the left, otherwise it's addition
+; We subtract by 0 if we're called with anything other than {up}{down}{left}{right}
+; up/down mean change row, so shift by 12. left/right means change collumn, so shift by 1
+; default value for inventory is 36 because that's the value I chose when making this script
+inventory = min(47.0, max(0.0,\
+  arithmetic.double(\
+    s2d(sub({combiner.get}, 1, 2), 36.0),\
+    if(contains("key.{up}|key.{left}", impulse()), "-", "+"),\
+    if(\
+      contains("wakeup|key.{gift_up}|key.{gift_down}|key.{start}|key.{inv_fill}", impulse()),\
+      0.0,\
+      if(contains("key.{up}|key.{down}", impulse()), 12.0, 1.0)\
+    )\
+  )\
+))
 
-:const double rebuy_slot_1 565.0
-:const double rebuy_slot_2 695.0
-:const double rebuy_coord_y 250.0
+gotoif(end, not(contains("key.{start}|key.{inv_fill}|{name}", impulse())))
 
-:const double rebuy_slot_increment 100.0
-; These are the values related to the rebuy slots
-; 
-
-:const double combine_slot_1 405.0
-:const double combine_slot_2 470.0
-:const double combine_slot_3 535.0
-
-:const double combine_slot_result 600.0
-; The combine slots
-
-:const double combine_button 680.0
-; The combine button
-
-:const double combine_coord_y 180.0
-; The y coord of every element related to combine
-
-:const double combine_slot_increment 65.0
-; These are values related to the combine slots
-; 
-
-:const double inv_coord_x 404.0
-:const double inv_coord_y 115.0
-
-:const double inv_slot_offset 29.75
-#inv_point_to_corner vec(13.5, 13.5)
-
-:const double inv_border_size 25.0
-:const double inv_slot_size 23.0
-
-:const string target_color '#0F6'
-; These are values related to the selection square
-
+:local int counter
 
 :local vector buyer
-:local double combine_coord
-
-:global double inventory
 :local vector inv_slot
 
-:global bool config
+buyer = {pos.relative(\
+  (gift_slot_1 + gift_slot_increment * target_gift) / 800.0,\
+  gift_coord_y / 450.0,\
+  1.0, 0.5\
+)}
 
-:local string target.gift
-:local string gift_info
-:global string buy_gift
+start:
+inv_slot = {pos.relative(\
+  (inv_coord_x + inv_slot_offset * (inventory % 12.0)) / 800.0,\
+  (inv_coord_y - inv_slot_offset * floor(inventory / 12.0)) / 450.0,\
+  1.0, 0.5\
+)}
 
-; helper macro to detect if an impulse
-; is contained inside of the string <str>
+combine_loop:
 
-#contains.key(key) contains(impulse(), "key.{key}")
+; buy our selected gift
+click(buyer)
+; The gift is now in our inventory slot.
+;
+; Click on the inventory slot to grab our gift
+click(inv_slot)
+;
+; and put our gift in the first combine slot.
+{click.relative(combine_slot_1 / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+;
+; Buy again
+click(buyer)
+; The gift is now in our inventory slot.
+;
+; Click on the inventory slot to grab our gift
+click(inv_slot)
+;
+; and put our gift in the second combine slot.
+{click.relative(combine_slot_2 / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+; And again
+click(buyer)
+; The gift is now in our inventory slot.
+;
+; Click on the inventory slot to grab our gift
+click(inv_slot)
+;
+; and put our gift in the second combine slot.
+{click.relative(combine_slot_3 / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+;
+; Now click the Combine button
+{click.relative(combine_button / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+;
+; Take the combine output from the combe slot
+{click.relative(combine_slot_result / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
 
-; macros and const values for impulse groups
+counter = (counter + 1) % 3
 
-:const string inv_fill 'key.{inv_fill}{name}'
-:const string in_config 'key.{config}wakeup'
-:const string no_config 'key.{start}key.{inv_fill}'
-#actions no_config . "key.{config}wakeup{name}"
-#filler "key.{up}key.{down}key.{right}key.{gift_up}key.{gift_down}" . \
-  in_config
+; We don't sell if this is our third combine
+gotoif(no_sell, counter == 0)
 
-global.double.set(gift_name, min(2.0, max(0.0, if(\
-  contains({actions}, impulse()) || config,\
-  global.double.get(gift_name),\
-  if(\
-    {contains.key({gift_down})},\
-    global.double.get(gift_name) + 1.0, \
-    global.double.get(gift_name) - 1.0\
-  )\
-))))
-
-buyer = vec(\
-  gift_slot_3 - gift_slot_increment * global.double.get(gift_name), \
-  gift_coord_y\
-)
-
-config = contains(in_config, impulse()) != (config && contains({filler}, impulse()))
-
-; we perform a substring to get our modification
-; key. = 4 => sub(impulse(), 4, 1) to get our keypress
-; key.{up} = inventory - 12.0
-; key.{down} = inventory + 12.0
-; key.{left} = inventroy - 1
-; key.{right} = inventory + 1
-
-:const string inv_str "-12.0+12.0-1.00+1.00"
-:const string inv_keys "{up}{down}{left}{right}{config}{gift_up}{gift_down}"
-inventory = if(\
-  contains(impulse(), "wakeup"), \
-  36.0, \
-  max(0.0, min(47.0, inventory + s2d(\
-    sub(\
-      inv_str, \
-      if(config, 5 * index(inv_keys, sub(impulse(), 4, 1), 0), 2), \
-      5\
-    ), \
-    0.0\
-  )))\
-)
-
-inv_slot = vec(\
-  inv_coord_x + inv_slot_offset * ((inventory) % 12.0),\
-  inv_coord_y - inv_slot_offset * floor(inventory / 12.0)\
-)
-
-target.gift = if(x(buyer) == gift_slot_1, "red gift", if(\
-  x(buyer) == gift_slot_2, \
-  "green gift", \
-  "blue gift"\
-))
-
-gift_info = if(\
-  not(contains(impulse(), "wakeup")) && (config && contains(buy_gift, "<br>")) ||\
-  (contains(in_config, impulse()) && config || contains(no_config, impulse())), \
-  if(\
-    config, \
-    "<br><mark=#00000050>" . \
-      "config enabled, press " . \
-      "<color=" . target_color . ">{start}/{config}</color>" . \
-      " to <color=red>stop</color>" . \
-      "<br>" .\
-      "<color=" . target_color . ">{up}/{down}</color>" . \
-      " to change row" . \
-      "<br>" . \
-      "<color=" . target_color . ">{left}/{right}</color>" . \
-      " to change inv slot" .\
-    "</mark>", \
-    "<br>combining with <color=#000>" . target.gift . "</color>"\
-  ),\
-  ""\
-)
-
-buy_gift = "</size>script will buy " . target.gift . gift_info
-
-gotoif(config_sequence, contains({filler}, impulse()))
-
-buy_sequence:
-
-:local int buy
-:local int combine
-:local int rebuy
-
-buy_loop:
-
-; because we'll only ever be rebuying on the last combine
-; we'll change the buyer to represent the rebuy_coord instead
-; of buying a new gift
-; 
-; by making this change, we'll also be able to use this loop
-; for the final combine instead of making a new loop at the end
-; 
-; This is an arithmetical change
-; if rebuy is 0, we will never decrease buyer
-; but when rebuy grows to 1, we will only buy
-; the newest gift sold once buy = 2, aka the final rebuy
-buyer = buyer - vec(\
-  rebuy_slot_increment * floor(i2d(rebuy * buy / 2)), \
-  0.0\
-)\
-
-; we also change the location of our combine coord
-; if buy == 0, this returns combine_slot_1
-combine_coord = if(\
-  rebuy == 0,\
-  combine_slot_1 + (combine_slot_increment * i2d(buy)), \
-  combine_slot_3 - (combine_slot_increment * i2d(buy))\
-)
-
-{click.relative(x(buyer) / 800.0, y(buyer) / 450.0, 1.0, 0.5)}
-; buy selected gift
-
-{click.relative(x(inv_slot) / 800.0, y(inv_slot) / 450.0, 1.0, 0.5)}
-; click on the inventory slot
-
-final_combine:
-{click.relative(combine_coord / 800.0, 180.0 / 450.0, 1.0, 0.5)}
-; put it in combine slot
-
-; increment our buy count
-; this keeps track of how many items we have bought
-buy = (buy + 1) % 3
-
-gotoif(buy_loop, buy > 0)
-
-{click.relative(680.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
-; we click the button to combine the input
-
-{click.relative(600.0 / 800.0, 180.0 / 450.0, 1.0, 0.5)}
-; we take the output outsode of our combine slot 
-
-; we want to sell every gift appart from the last one
-gotoif(no_sell, combine == 2 || rebuy == 1)
-
-{click.relative(410.0 / 800.0, rebuy_coord_y / 450.0, 1.0, 0.5)}
-; and we sell it to make space for the next combine sequence
+; And sell it by putting it in the sell slot.
+{click.relative(sell_slot / 800.0, rebuy_coord_y / 450.0, 1.0, 0.5)}
+;
+; We now go back to the combine loop to do it all again
+goto(combine_loop)
 
 no_sell:
-; we've got 3 combines and a final combine
-; this counter keeps track of our combines
-combine = (combine + 1) % 3
+waitframe()
+; Instead of selling this one, we put it in the third combine slot
+{click.relative(combine_slot_3 / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+;
+; We now buy back the second gift we sold, which ended up in rebuy_slot_1
+{click.relative(rebuy_slot_1 / 800.0, rebuy_coord_y / 450.0, 1.0, 0.5)}
+;
+; Rebuying puts it back inside our inventory, so we must grab it back
+click(inv_slot)
+; And put it in our second combine slot
+{click.relative(combine_slot_2 / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+;
+; And lastly, we buy the gift in rebuy_slot_1
+{click.relative(rebuy_slot_1 / 800.0, rebuy_coord_y / 450.0, 1.0, 0.5)}
+click(inv_slot)
+; And put it in the first combine slot
+{click.relative(combine_slot_1 / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
 
-; this makes sure to never set rebuy back to 0
-; this works because the default value of an int is 0
-rebuy = max(rebuy, 1 - combine)
+;
+; To end, we click the combine button 
+{click.relative(combine_button / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+;
+; Take the combine output from the combe slot
+{click.relative(combine_slot_result / 800.0, combine_coord_y / 450.0, 1.0, 0.5)}
+; and put it in our inventory slot
+click(inv_slot)
 
-; and this ensures buyer becomes rebuy_slot_2 only when
-; we're doing the final combine
-buyer = if(rebuy == 0, buyer, vec(rebuy_slot_2, rebuy_coord_y))
+; We end by clicking the unwrap all button
+{click.relative(735.0 / 800.0, 140.0 / 450.0, 1.0, 0.5)}
+; and increment the inventory
 
-
-; this gotoif() ensures we exit after the final comine
-gotoif(if(rebuy == 0, buy_loop, final_combine), rebuy - combine != 0)
+inventory += 1.0
 
 end:
+:local string gift_type
+gift_type = if(\
+  target_gift == 2.0,\
+  "blue",\
+  if(target_gift == 1.0, "green", "red")\
+) . " gift"
 
-; end the combine sequence
-
-{click.relative(x(inv_slot) / 800.0, y(inv_slot) / 450.0, 1.0, 0.5)}
-; buy back the last bought present
-
-{click.relative(735.0 / 800.0, 140.0 / 450.0, 1.0, 0.5)}
-; and unwrap all presents
-
-; finally, we tell the user that the script has finished
-; so we remove our information text
-
-buy_gift = "</size>script will buy " . target.gift
-
-inventory = inventory + 1.0
-
-execute(if(\
-  contains(inv_fill, impulse()) && inventory < 48.0, \
-  "{name}", \
-  "{name}4{name.reverse}"\
-))
-
-config_sequence:
+; add our data back in our combiner
+{combiner.set(sub(d2s(10.0 + target_gift), 1, 1) . sub(d2s(100.0 + inventory), 1, 2) . "</size>"\
+  . if(\
+    contains({combiner.get}, "WARNING") || (impulse() == "wakeup" && budget() < 3600),\
+    "<color=#FC0>WARNING=INSUFFICIENT BUDGET!"\
+    . "<br>UI UPDATED WILL NOT BE AS RESPONSIVE!"\
+    . "<br></color>",\
+    ""\
+  ) . "script will buy " . gift_type . "<br>"\
+  . if(\
+    impulse() == "key.{inv_fill}" && inventory <= 47.0,\
+    "combining with <color=#0000>" . gift_type . "</color>",\
+    "<mark=#00000050>" .\
+      "<color=" . target_color . ">{start}/{inv_fill}</color> to start" .\
+      "<br><color=" . target_color . ">{inv_fill}</color> fills the inventory with gifts" .\
+      "<br><color=" . target_color . ">{gift_up}/{gift_down}</color> changes the target gift" .\
+      "<br><color=" . target_color . ">{up}/{down}/{left}/{right}</color> moves " .\
+      "<color=" . target_color . ">up/down/left/right</color>" .\
+    "</mark>"\
+  )\
+)}
 
 inv_slot = vec(\
-  inv_coord_x + inv_slot_offset * ((inventory) % 12.0),\
+  inv_coord_x + inv_slot_offset * (inventory % 12.0),\
   inv_coord_y - inv_slot_offset * floor(inventory / 12.0)\
-) - {inv_point_to_corner}
+) - offset_to_corner
 
 canvas.clear()
+; add a highlight to the selection square
 canvas.rect(\
-  {pos.relative(x(inv_slot) / 800.0, y(inv_slot) / 450.0, 1.0, 0.5)}, \
-  {pos.relative(inv_border_size / 800.0, inv_border_size / 450.0, 0.0, 0.0)}, \
+  {pos.relative(x(inv_slot) / 800.0, y(inv_slot) / 450.0, 1.0, 0.5)},\
+  {pos.relative(inv_border_size / 800.0, inv_border_size / 450.0, 0.0, 0.0)},\
   "#000"\
 )
+; make the selection square
 canvas.rect(\
-  {pos.relative((x(inv_slot) + 1.0) / 800.0, (y(inv_slot) + 1.0) / 450.0, 1.0, 0.5)}, \
-  {pos.relative(inv_slot_size / 800.0, inv_slot_size / 450.0, 0.0, 0.0)}, \
+  {pos.relative((x(inv_slot) + 1.0) / 800.0, (y(inv_slot) + 1.0) / 450.0, 1.0, 0.5)},\
+  {pos.relative(inv_slot_size / 800.0, inv_slot_size / 450.0, 0.0, 0.0)},\
   target_color . "5"\
 )
-
+; concatenating a 5 onto the target color to make the selection square a little bit transparent
+waitframe()
+gotoif(start, contains({combiner.get}, "combining"))
