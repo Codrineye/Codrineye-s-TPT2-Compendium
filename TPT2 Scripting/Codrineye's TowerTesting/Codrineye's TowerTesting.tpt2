@@ -43,26 +43,23 @@ close.towertesting()
 game.newround()
 ;
 ; Detects if any of the invalid buildings are open
-#opened_building {lua(\
-  local acc = {};\
-  local isOpen = [[isopen("%s")]];\
-  local buildings = table.pack(\
-    "tradingpost", "powerplant",\
-    "factory", "laboratory", "shipyard",\
-    "workshop", "arcade", "museum",\
-    "constructionfirm", "statueofcubos", "mine"\
-  );\
-  for i = 1, #buildings do\
-    acc[1 + #acc] = isOpen:format(buildings[i]);\
-  end\
-  return table.concat(acc, " || ");\
-)}
+#opened_building={{lua(
+  local acc = {};
+  local isOpen = [[isopen("%s")]];
+  local buildings = table.pack(
+    "tradingpost", "powerplant",
+    "factory", "laboratory", "shipyard",
+    "workshop", "arcade", "museum",
+    "constructionfirm", "statueofcubos", "mine"
+  );
+  for i = 1, #buildings do
+    acc[#acc + 1] = isOpen:format(buildings[i]);
+  end
+  return table.concat(acc, " || ")
+)}}
 
 ; If the impulse is exit, stats or restart, it must be done in towertesting
-contains(\
-  "key.{start}|key.{mode}|key.{cycling}|key.{difficulty}|close.headquarters|close.towertesting",\
-  impulse()\
-) || isTowerTesting()
+not(contains("key.{exit}|key.{stats}|key.{restart}", impulse())) || isTowerTesting()
 ;
 ; Prevent multiple exit() instances being created
 ; Only 1 should be made
@@ -77,37 +74,32 @@ isTowerTesting() || not(isBossFight() || {opened_building})
 
 
 ; Condition that specifies the line number of the action the user might want to modify
-#condition_comment.info {lua(\
-  local msg = table.pack(\
-    "</size><br>",\
-      "additional_cond adds an additional condition ",\
-      "that could be met to exit tower testing<br>",\
-      "<br>seconds, minutes and hours reprezent how much time ",\
-      "you want to pass in real world seconds before exiting tower testing",\
-      "<br>Leave all at 0 if you don't want this",\
-    "<size=0>"\
-  );\
-  return table.concat(msg)\
-)}
+#condition_comment.info={{lua(
+  local msg = {
+    "</size>",
+      "<br>additional_cond adds an additional condition that could be met to exit towertesting",
+      "<br>",
+      "<br>seconds, minutes and hours reprezent how much time you want to pass",
+          "in real world seconds becore exiting tower testing",
+      "<br>Leave all at 0 if you don't want this",
+    "</size=0>"
+  };
+  return table.concat(msg);
+)}}
+contains(concat("click here for line info!<size=0>", "{condition_comment.info}"), "")
 
-contains(\
-  concat("click here for line info!<size=0>", "{condition_comment.info}"),\
-  ""\
-)
-#condition_comment.line {lua(\
-  local msg = table.pack(\
-    "</size><br>",\
-      "<br>additional_cond is found on line ",\
-      [[" . additional_cond_pos . "]],\
-    "<size=0>"\
+
+#condition_comment.line={{lua(\
+  local msg = table.pack(
+    "</size><br>",
+      "<br>additional_cond is found on line ",
+      [[" . additional_cond_pos . "]],
+    "<size=0>"
   );\
   return table.concat(msg);\
-)}
+)}}
 
-contains(\
-  concat("click here for line numbers!<size=0>", "{condition_comment.line}"),\
-  ""\
-)
+contains(concat("click here for line numbers!<size=0>", "{condition_comment.line}"), "")
 
 ; Start of code
 
@@ -178,15 +170,15 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         difficulty_list,\
         {diff.get}\
       ),\
-      {lua(--/*\
-        * Determine the offset.\
-        * If we're not reading from difficulty_list, we have an offset of 1\
-        * Otherwise, if we're changing difficulty, we move to the difficulty corresponding\
-        * to our current position in the list.\
-        * If we're at E->I on difficulty Hard and the user changes to I->E, we are now\
-        * considered to be at difficulty Insane.\
-        * Otherwise, if we're here for a game.newround, get the starting 2 bits for the position\
-      */)}\
+      {lua(--[[/*\
+        * Determine the offset.
+        * If we're not reading from difficulty_list, we have an offset of 1
+        * Otherwise, if we're changing difficulty, we move to the difficulty corresponding
+        * to our current position in the list.
+        * If we're at E->I on difficulty Hard and the user changes to I->E, we are now
+        * considered to be at difficulty Insane.
+        * Otherwise, if we're here for a game.newround, get the starting 2 bits for the position
+      */]])}\
       if(\
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
         {curent_mode.get} == mode1 || \
@@ -370,6 +362,11 @@ enter_towertesting:
 ; Click on the difficulty
 ; diff.get has a 1-character instance counter, 1-character progress counter,
 ; a length-2 position and the difficulty string of 5 characters
+; canvas.rect(\
+  {pos.relative(395.0 / 800.0, s2d(sub({diff.get}, 4, 5), 0.0) / 450.0, 0.0, 1.0)},\
+  vec(5.0, 5.0),\
+  "#FFF"\
+)
 {click.relative(395.0 / 800.0, s2d(sub({diff.get}, 4, 5), 0.0) / 450.0, 0.0, 1.0)}
 
 ; Launch a round of towertesting

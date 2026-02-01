@@ -3,6 +3,8 @@
 This is an adaptation of [D0S.Crates](../D0S.Crates/README.md) to use the execution budget.<br>
 Just like its predecesor, this script travels between the idle screen and the trading post. The frame always ends with you back in the idle screen.
 
+# Additionally, this script requires **mt12+**
+
 ## The import package
 
 The package comes with 2 scripts.<br>
@@ -29,7 +31,7 @@ If `counting_up` is false, then the timer will read `benchmark=elapsed_time:` an
 You start the script by pressing `key.b` whilst in the trading post. You cannot start another benchmark process until `Main` terminates.<br>
 This impulse is also configurable in the [source import](#source-import).
 
-## Pre-requisits
+## Prerequisits
 
 For this script to be useful, you must toggle on the Air Stone infinity perk to make the refresh() action functional.<br>
 Additionally, you must select your Town Resource Idle Production inside of your idle screen.

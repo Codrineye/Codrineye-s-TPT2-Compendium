@@ -5,15 +5,14 @@
 ; If you don't know what RNG manipulation is, you can find plenty of info on the web.
 ; Also, this library is probably not for you.
 
-{lua(\
-  --[[Core RNG table that everything is built ontop of]]\
-  RNG = {};\
-  \
-  --[[Table that holds all our usable data]]\
-  RNG.code_cache = nil;\
-  \
-  --[[Return the appropiate macro body]]\
-  function RNG.macro_body(id, arg1, arg2) end\
+{lua(
+  -- Core RNG table that everything is built ontop of
+  RNG = {
+    -- Table that holds all our usable data
+    code_cache = nil,
+    -- Return the appropriate macro body
+    macro_body = function(id, arg1, arg2) end
+  };
 )}
 
 ; There are three sets of macros defined in this library

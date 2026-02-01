@@ -19,196 +19,193 @@
 ; multiple rng seeds at once.
 :{rng_varType} string rng_state
 
-{lua(\
-  --[[/*\
-    * The structure of code is broken up into multiple lua functions, to allow regular comments\
-    * to explain them. Lua functions are used to construct the code, instead of regular macros,\
-    * so that we could define our user-visible macros such as {rng.line_1}, {rng.next} etc.\
-    * at the top without having to give the full implementation; instead, a stub implementation\
-    * was given and the function is re=implemented at the bottom of the file here. This allows us\
-    * to use the macros freely in comments, since macros are always expanded, where otherwise we\
-    * could not comment on them before they were defined.\
-    * As a side benefit, before the full definition takes effect, they will expand to nothing,\
-    * which is very fast to evaluate.\
-    *\
-    * This constructs the code for the {rng.line_1} and {rng.line_2()} macros.\
-    * At a high level, {rng.line_1} is a local.string.set, and {rng.line_2()} is a goto.\
-    *\
-    * Setting the state is relatively straightfowrard: A value from rnd() is just converted to\
-    * a string and padded. We can easily do this 4 times in 1 expression.\
-    */]]\
-  function RNG.cache_lines(cache)\
-    cache.line_1 = [[\
-      rng.line_1: rng_state =\
-        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11) .\
-        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11) .\
-        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11) .\
-        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11)\
-    ]];\
-    cache.line_1 = cache.line_1:gsub("^ +", ""):gsub("OFFSET", "          ");\
-    --[[/*\
-      * There is an additional quirt here where, if the value is exactly 0, it indicates\
-      * a condition where we restart the process. This is because the nature of rnd() is that\
-      * it adds one to range_max, so there is a hole where both 0 and 2 ^ 32 - 1\
-      * map to the same value and we cannot distinguish them. Since this is very rare, we just\
-      * restart in this case and roll again. This is the purpose of the second line\
-      */]]\
-    cache.line_2 = [[goto(if(contains(rng_state, "0          "), rng.line_1, EXTERNAL_LABEL))]];\
-  end\
+{lua(
+  --[[/*
+    * The structure of code is broken up into multiple lua functions, to allow regular comments
+    * to explain them. Lua functions are used to construct the code, instead of regular macros,
+    * so that we could define our user-visible macros such as {rng.line_1}, {rng.next} etc.
+    * at the top without having to give the full implementation; instead, a stub implementation
+    * was given and the function is re=implemented at the bottom of the file here. This allows us
+    * to use the macros freely in comments, since macros are always expanded, where otherwise we
+    * could not comment on them before they were defined.
+    * As a side benefit, before the full definition takes effect, they will expand to nothing,
+    * which is very fast to evaluate.
+    *
+    * This constructs the code for the {rng.line_1} and {rng.line_2()} macros.
+    * At a high level, {rng.line_1} is a local.string.set, and {rng.line_2()} is a goto.
+    *
+    * Setting the state is relatively straightfowrard: A value from rnd() is just converted to
+    * a string and padded. We can easily do this 4 times in 1 expression.
+    */]]
+  function RNG.cache_lines(cache)
+    local line_1 = [[
+      rng.line_1: rng_state =
+        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11) .
+        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11) .
+        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11) .
+        sub((rnd(-2147483648, 2147483646) %^ -2147483648) . "OFFSET", 0, 11)
+    ]];
+    cache.line_1 = line_1:gsub("^ +", ""):gsub("OFFSET", "          "):gsub("\n", "");
+    --[[/*
+      * There is an additional quirt here where, if the value is exactly 0, it indicates
+      * a condition where we restart the process. This is because the nature of rnd() is that
+      * it adds one to range_max, so there is a hole where both 0 and 2 ^ 32 - 1
+      * map to the same value and we cannot distinguish them. Since this is very rare, we just
+      * restart in this case and roll again. This is the purpose of the second line
+      */]]
+    cache.line_2 = [[goto(if(contains(rng_state, "0          "), rng.line_1, EXTERNAL_LABEL))]];
+  end
 )}
 
-{lua(\
-  --[[/*\
-    * Construct the {rng.get_int} code. This is simply the last number in the state.\
-    *\
-    * Internally, get_int() and get_double() are functions so that we can use them\
-    * in the implementation of {rng.next}. The pos will always be either 33 or 0\
-    * to select either `last` or `shift`.\
-    *\
-    * {rng.get_uniform} has a bit more to it, but also only uses 23 bits from rng_state.\
-    * We use the vector type, is is a pair of single-precision numbers, to get accurate\
-    * single-precision rounding for the calculation to mirror what Unity does\
-    */]]\
-  function RNG.cache_get_int(cache)\
-    cache.get_int = function(pos)\
-      return string.format("s2i(sub(rng_state, %s, 11), 0)", pos);\
-    end\
-    cache.get_double = function(pos)\
-      return string.format("(i2d(%s %%^ -2147483648) + 2147483648.0)", cache.get_int(pos));\
-    end\
-    cache.get_uniform_vec = string.format(\
-      "vec(i2d(%s %%& 8388607), 0.0) * vec(1.192093e-7, 0.)",\
-      cache.get_int(33)\
-    );\
-    cache.get_uniform = "x(" .. cache.get_uniform_vec .. ")";\
-  end\
+{lua(
+  --[[/*
+    * Construct the {rng.get_int} code. This is simply the last number in the state.
+    *
+    * Internally, get_int() and get_double() are functions so that we can use them
+    * in the implementation of {rng.next}. The pos will always be either 33 or 0
+    * to select either `last` or `shift`.
+    *
+    * {rng.get_uniform} has a bit more to it, but also only uses 23 bits from rng_state.
+    * We use the vector type, is is a pair of single-precision numbers, to get accurate
+    * single-precision rounding for the calculation to mirror what Unity does
+    */]]
+  function RNG.cache_get_int(cache)
+    cache.get_int = function(pos)
+      return string.format("s2i(sub(rng_state, %s, 11), 0)", pos);
+    end
+    cache.get_double = function(pos)
+      return string.format("(i2d(%s %%^ -2147483648) + 2147483648.0)", cache.get_int(pos));
+    end
+    cache.get_uniform_vec = string.format(
+      "vec(i2d(%s %%& 8388607), 0.0) * vec(1.192093e-7, 0.)",
+      cache.get_int(33)
+    );
+    cache.get_uniform = "x(" .. cache.get_uniform_vec .. ")";
+  end
 )}
 
-{lua(\
-  do\
-    --[[This is an example of the xorshift128 function]]\
-    local state = {};\
-    --[[/*\
-      * Our state is a table holding 4 values state[0], state[1], state[2] and state[3];\
-      * Lua still lets us index tables by 0, so don't let this indexing by 0 confuse you.\
-      *\
-      * state reprezents a 128 bit register holding 4 32-bit unsigned integers\
-      *\
-      * We have our xorshift table, that manipulates our state and returns a modified 32-bit int\
-    */]]\
-    local function xorshift128()\
-      local last = state[3];\
-      --[[We make a copy of the last value in our table and then rearrange our state]]\
-      state[3] = state[2];\
-      state[2] = state[1];\
-      state[1] = state[0];\
-      \
-      --[[/*\
-        * We must perform bit operations on our variable `last`\
-        *\
-        * For this I'll create a helper variable `shift` that performs the bitshifts.\
-      */]]\
-      \
-      local shift = last << 11;\
-      --[[/*\
-        * To start, we shift last by 11 bits to the left\
-        * Then, we take an xor between last and the shift\
-      */]]\
-      last = last ~ shift;\
-      \
-      shift = last >> 8;\
-      --[[/*\
-        * We then take the new value of last and shift it by 8 bits to the right\
-        * Then, we take an xor between the new value of last and the shift\
-      */]]\
-      last = last ~ shift;\
-      \
-      shift = state[0] >> 19;\
-      --[[/*\
-        * Lastly, we shift our first integer by 19 bits to the right\
-        * Then, we xor the first integer by our shift\
-        * And then we xor the last value with our new state[0]\
-      */]]\
-      state[0] = state[0] ~ shift;\
-      state[0] = last ~ state[0];\
-      \
-      --[[We end the function by returning the modified bit]]\
-      return state[0];\
-    end\
-    --[[/*\
-      * As xorshift128 is written in C, it uses little-endian encoding. To show this,\
-      * here is a binary representation of status if it held the number\
-      * 2 ^ 128 - 2 ^ 97 - 2 ^ 96 + 2 ^ 32 - 3\
-      *\
-      * status = (\
-      *   10111111 11111111 11111111 11111111\
-      *   00000000 00000000 00000000 00000000\
-      *   00000000 00000000 00000000 00000000\
-      *   10111111 11111111 11111111 11111111\
-      * );\
-      * last = status[3];\
-      * status[3] = status[2];\
-      * status[2] = status[1];\
-      * status[1] = status[0];\
-      * shift = last << 11 = 00000000 00010111 11111111 11111111\
-      * last = last ~ shift = 10111111 11101000 00000000 00000000\
-      * shift = last >> 8 = 11101000 00000000 00000000 00000000\
-      * last = last ~ shift = 01010111 11101000 00000000 00000000\
-      * shift = status[0] >> 19 = 11111111 11111000 00000000 00000000\
-      * status[0] = status[0] ~ shift = 01000000 00010000 000000000 00000000\
-      * status[0] = last ~ status[0] = 00010111 11111000 00000000 00000000\
-      *\
-      * status = (\
-      *   00010111 11111000 00000000 00000000\
-      *   10111111 11111111 11111111 11111111\
-      *   00000000 00000000 00000000 00000000\
-      *   00000000 00000000 00000000 00000000\
-      * )\
-    */]]\
-  end\
-  --[[/*\
-    * Construct {rng.next}.\
-    *\
-    * This is simply Margsaglia's xorshift128 (defined above), modified to deal with the fact\
-    * that we're using a single 128-bit string and doing all the work in parallel.\
-    * Bear in mind that the number indexing is "reversed", i.e state[3] is rng_state[0...11].\
-    *\
-    * In generalized, simplified pseudocode, xorshift128 is:\
-    * x[3]..x[2]..x[1]..x[0] = rng_state;\
-    * s = x[0];\
-    * t = x[3];\
-    * t ^= t << 11;\
-    * t ^= t >> 8;\
-    * s ^= s >> 19;\
-    * rng_state = x[2]..x[1]..x[0]..t ^ s;\
-    *\
-    *\
-    * To do this simultaneously and in parallel, we want to compute:\
-    * rng_state = rng_state[11..44] .. (\
-    *   x[0] ^ (x[0] >> 19)                     ; s ^ (s >> 19)\
-    * ^ x[3] ^ (x[3] << 11)                     ; t ^ (t << 11)\
-    * ^ ((x[3] >> 8) ^ (x[3] << 3)) & 0xFFFFFF  ; t ^ (t << 11) >> 8\
-    * )\
-    *\
-    * Left-shifts can be accomplished by multiplying by a constant. Right-shifts are trickier:\
-    * We can divide by a power of twu, but negative values will copy the sign bit\
-    * and round to zero, messing everything up. Instead, we use get_double to\
-    * operate on an unsigned version, and floor the result\
-    */]]\
-  --[[\
-    state = sub(state, 11, 33) . ;\
-  ]]\
-  function RNG.cache_next(cache)\
-    cache.next = string.format(\
+{lua(
+  do
+    --[[This is an example of the xorshift128 function]]
+    local state = {};
+    --[[/*
+      * Our state is a table holding 4 values state[0], state[1], state[2] and state[3];
+      * Lua still lets us index tables by 0, so don't let this indexing by 0 confuse you.
+      *
+      * state reprezents a 128 bit register holding 4 32-bit unsigned integers
+      *
+      * We have our xorshift table, that manipulates our state and returns a modified 32-bit int
+    */]]
+    local function xorshift128()
+      local last = state[3];
+      -- We make a copy of the last value in our table and then rearrange our state 
+      state[3] = state[2];
+      state[2] = state[1];
+      state[1] = state[0];
+      
+      --[[/*
+        * We must perform bit operations on our variable `last`
+        *
+        * For this I'll create a helper variable `shift` that performs the bitshifts.
+      */]]
+      
+      local shift = last << 11;
+      --[[/*
+        * To start, we shift last by 11 bits to the left
+        * Then, we take an xor between last and the shift
+      */]]
+      last = last ~ shift;
+      
+      shift = last >> 8;
+      --[[/*
+        * We then take the new value of last and shift it by 8 bits to the right
+        * Then, we take an xor between the new value of last and the shift
+      */]]
+      last = last ~ shift;
+      
+      shift = state[0] >> 19;
+      --[[/*
+        * Lastly, we shift our first integer by 19 bits to the right
+        * Then, we xor the first integer by our shift
+        * And then we xor the last value with our new state[0]
+      */]]
+      state[0] = state[0] ~ shift;
+      state[0] = last ~ state[0];
+      
+      -- We end the function by returning the modified bit 
+      return state[0];
+    end
+    --[[/*
+      * As xorshift128 is written in C, it uses little-endian encoding. To show this,
+      * here is a binary representation of status if it held the number
+      * 2 ^ 128 - 2 ^ 97 - 2 ^ 96 + 2 ^ 32 - 3
+      *
+      * status = (
+      *   10111111 11111111 11111111 11111111
+      *   00000000 00000000 00000000 00000000
+      *   00000000 00000000 00000000 00000000
+      *   10111111 11111111 11111111 11111111
+      * );
+      * last = status[3];
+      * status[3] = status[2];
+      * status[2] = status[1];
+      * status[1] = status[0];
+      * shift = last << 11 = 00000000 00010111 11111111 11111111
+      * last = last ~ shift = 10111111 11101000 00000000 00000000
+      * shift = last >> 8 = 11101000 00000000 00000000 00000000
+      * last = last ~ shift = 01010111 11101000 00000000 00000000
+      * shift = status[0] >> 19 = 11111111 11111000 00000000 00000000
+      * status[0] = status[0] ~ shift = 01000000 00010000 000000000 00000000
+      * status[0] = last ~ status[0] = 00010111 11111000 00000000 00000000
+      *
+      * status = (
+      *   00010111 11111000 00000000 00000000
+      *   10111111 11111111 11111111 11111111
+      *   00000000 00000000 00000000 00000000
+      *   00000000 00000000 00000000 00000000
+      * )
+    */]]
+  end
+  --[[/*
+    * Construct {rng.next}.
+    *
+    * This is simply Margsaglia's xorshift128 (defined above), modified to deal with the fact
+    * that we're using a single 128-bit string and doing all the work in parallel.
+    * Bear in mind that the number indexing is "reversed", i.e state[3] is rng_state[0...11].
+    *
+    * In generalized, simplified pseudocode, xorshift128 is:
+    * x[3]..x[2]..x[1]..x[0] = rng_state;
+    * s = x[0];
+    * t = x[3];
+    * t ^= t << 11;
+    * t ^= t >> 8;
+    * s ^= s >> 19;
+    * rng_state = x[2]..x[1]..x[0]..t ^ s;
+    *
+    *
+    * To do this simultaneously and in parallel, we want to compute:
+    * rng_state = rng_state[11..44] .. (
+    *   x[0] ^ (x[0] >> 19)                     ; s ^ (s >> 19)
+    * ^ x[3] ^ (x[3] << 11)                     ; t ^ (t << 11)
+    * ^ ((x[3] >> 8) ^ (x[3] << 3)) & 0xFFFFFF  ; t ^ (t << 11) >> 8
+    * )
+    *
+    * Left-shifts can be accomplished by multiplying by a constant. Right-shifts are trickier:
+    * We can divide by a power of twu, but negative values will copy the sign bit
+    * and round to zero, messing everything up. Instead, we use get_double to
+    * operate on an unsigned version, and floor the result
+    */]]
+  function RNG.cache_next(cache)
+    cache.next = string.format(
       "rng_state = sub(rng_state, 11, 33) . sub(\
         %s %%^ d2i(floor(%s / 524288.0)) %%^\
         %s %%^ %s * 2048 %%^\
-        d2i(floor(%s / 256.0)) %%^ (%s * 8) %%& 16777215 . '          ', 0, 11)",\
-      cache.get_int(33), cache.get_double(33),\
-      cache.get_int(0), cache.get_int(0),\
-      cache.get_double(0), cache.get_int(0)\
-    ):gsub("^ +", "");\
-  end\
+        d2i(floor(%s / 256.0)) %%^ (%s * 8) %%& 16777215 . '          ', 0, 11)",
+      cache.get_int(33), cache.get_double(33),
+      cache.get_int(0), cache.get_int(0),
+      cache.get_double(0), cache.get_int(0)
+    ):gsub("^ +", ""):gsub("\n", "");
+  end
 )}
 
 
@@ -220,142 +217,142 @@
 :import Editor_actions lib
 ; Import Editor_actions lib to form parsable code through lua macros with more ease
 
-{lua(\
-  function RNG.get_range(tag, min, max)\
-    if tag ~= "int" and tag ~= "double" and tag ~= "float" then\
-      local err_msg = table.pack(\
-        "\n",\
-        "\nUnrecognised get_range tag encountered!",\
-        "\nExpected tags are 'int', 'double' and 'float', but got ", tag\
-      );\
-      error(table.concat(err_msg), 0);\
-    end\
-    \
-    local min_num = tonumber(min);\
-    local max_num = tonumber(max);\
-    \
-    local range;\
-    if tag == "double" then\
-      if min_num and max_num then\
-        range = math.max(min_num, max_num) - min_num;\
-      else\
-        range = Editor_max(min, max);\
-        range = Editor_math(range, "-", min);\
-      end\
-      range = Editor_encase_value(range);\
-      range = Editor_math(RNG.code_cache.get_uniform, "*", range);\
-      if not min_num or min_num ~= 0 then\
-        range = Editor_math(range, "-", min);\
-      end\
-      return range;\
-    \
-    elseif tag == "float" then\
-      local uniform = RNG.code_cache.get_uniform_vec;\
-      \
-      if max_val and max_val == 0 then\
-        range = "vec(0.0, 0.0)";\
-      else\
-        range = Editor_math("vec(1.0, 0.0)", "-", uniform);\
-        range = Editor_encase_value(range);\
-        max_val = Editor_vec(max, 0.0);\
-        range = Editor_math(range, "*", max_val);\
-      end\
-      \
-      if not min_val or min_val ~= 0 then\
-        min_val = Editor_vec(min, 0.0);\
-        min_val = Editor_math(min_val, "*", uniform);\
-        if range == "vec(0.0, 0.0)" then\
-          range = min_val;\
-        else\
-          range = Editor_math(range, "+", min_val);\
-        end\
-      end\
-      \
-      return Editor_vector_xCoord(range);\
-    \
-    elseif tag == "int" then\
-      if max_num and min_num then\
-        local max_nr = max_num + 1;\
-        min_num = min_num + 0.0;\
-        range = math.max(max_nr - min_num, min_num - max_nr);\
-      else\
-        local left_arg, right_arg;\
-        \
-        if max_num then\
-          local max_nr = max_num + 1;\
-          left_arg = Editor_math(max_nr, "-", min);\
-          right_arg = Editor_math(min, "-", max_nr);\
-        elseif min_num then\
-          local min_nr = min_num - 1;\
-          left_arg = Editor_math(max, "-", min_nr);\
-          right_arg = Editor_math(min_nr, "-", max);\
-          min_num = min_num + 0.0;\
-        else\
-          local max_nr = Editor_math(max, "+", 1);\
-          left_arg = Editor_math(max_nr, "-", min);\
-          right_arg = Editor_math(min, "-", max_nr);\
-        end\
-        \
-        range = Editor_max(left_arg, right_arg);\
-        range = Editor_convertIntToDouble(range);\
-      end\
-      \
-      range = Editor_math(RNG.code_cache.get_double(33), "%", range);\
-      \
-      if max_num and min_num then\
-        if min_num ~= 0.0 or max_num < min_num then\
-          range = Editor_math(min_num, min_num < max_num and "+" or "-", range);\
-        end\
-        \
-        range = Editor_convertDoubleToInt(range);\
-      else\
-        local cond = Editor_math(min, "<", max);\
-        local op = Editor_if(cond, [["-"]], [["+"]]);\
-        \
-        if min_num then\
-          range = Editor_primitive_arithmetic(min_num, op, range);\
-          range = Editor_convertDoubleToInt(range);\
-        else\
-          range = Editor_convertDoubleToInt(range);\
-          range = Editor_primitive_arithmetic("int", min, op, range);\
-        end\
-      end\
-      return range;\
-    end\
-    \
-  end\
-  \
-  local get_range_size = string.len("get_range.");\
-  \
-  --[[/*\
-    * Return the appropriate code (macro body) given the passed in "id".\
-    * All this does is lookup the precomputed code and return that;\
-    * If the code hasn't been computed yet, it calls the helper functions that exist\
-    * specifically to set that up.\
-    * The one wrinkle is that {rng.line_2()} has a parameter, and that's substituted in here.\
-  */]]\
-  function RNG.macro_body(id, arg1, arg2)\
-    local cache = RNG.code_cache;\
-    \
-    if cache == nil then\
-      RNG.code_cache = {};\
-      cache = RNG.code_cache;\
-      RNG.cache_lines(cache);\
-      RNG.cache_get_int(cache);\
-      RNG.cache_next(cache);\
-    end\
-    \
-    if id:sub(1, get_range_size) == "get_range." then\
-      return RNG.get_range(id:sub(get_range_size + 1), arg1, arg2);\
-    end\
-    local res = cache[id];\
-    if arg1 then\
-      res = res:gsub("EXTERNAL_LABEL", arg1);\
-    end\
-    return res;\
-  end\
+{lua(
+  function RNG.get_range(tag, min, max)
+    if tag ~= "int" and tag ~= "double" and tag ~= "float" then
+      local err_msg = table.pack(
+        "\n",
+        "\nUnrecognised get_range tag encountered!",
+        "\nExpected tags are 'int', 'double' and 'float', but got ", tag
+      );
+      error(table.concat(err_msg), 0);
+    end
+    
+    local min_num = tonumber(min);
+    local max_num = tonumber(max);
+    
+    local range;
+    if tag == "double" then
+      if min_num and max_num then
+        range = math.max(min_num, max_num) - min_num;
+      else
+        range = Editor_max(min, max);
+        range = Editor_math(range, "-", min);
+      end
+      range = Editor_encase_value(range);
+      range = Editor_math(RNG.code_cache.get_uniform, "*", range);
+      if not min_num or min_num ~= 0 then
+        range = Editor_math(range, "-", min);
+      end
+      return range;
+    
+    elseif tag == "float" then
+      local uniform = RNG.code_cache.get_uniform_vec;
+      
+      if max_val and max_val == 0 then
+        range = "vec(0.0, 0.0)";
+      else
+        range = Editor_math("vec(1.0, 0.0)", "-", uniform);
+        range = Editor_encase_value(range);
+        max_val = Editor_vec(max, 0.0);
+        range = Editor_math(range, "*", max_val);
+      end
+      
+      if not min_val or min_val ~= 0 then
+        min_val = Editor_vec(min, 0.0);
+        min_val = Editor_math(min_val, "*", uniform);
+        if range == "vec(0.0, 0.0)" then
+          range = min_val;
+        else
+          range = Editor_math(range, "+", min_val);
+        end
+      end
+      
+      return Editor_vector_xCoord(range);
+    
+    elseif tag == "int" then
+      if max_num and min_num then
+        local max_nr = max_num + 1;
+        min_num = min_num + 0.0;
+        range = math.max(max_nr - min_num, min_num - max_nr);
+      else
+        local left_arg, right_arg;
+        
+        if max_num then
+          local max_nr = max_num + 1;
+          left_arg = Editor_math(max_nr, "-", min);
+          right_arg = Editor_math(min, "-", max_nr);
+        elseif min_num then
+          local min_nr = min_num - 1;
+          left_arg = Editor_math(max, "-", min_nr);
+          right_arg = Editor_math(min_nr, "-", max);
+          min_num = min_num + 0.0;
+        else
+          local max_nr = Editor_math(max, "+", 1);
+          left_arg = Editor_math(max_nr, "-", min);
+          right_arg = Editor_math(min, "-", max_nr);
+        end
+        
+        range = Editor_max(left_arg, right_arg);
+        range = Editor_convertIntToDouble(range);
+      end
+      
+      range = Editor_math(RNG.code_cache.get_double(33), "%", range);
+      
+      if max_num and min_num then
+        if min_num ~= 0.0 or max_num < min_num then
+          range = Editor_math(min_num, min_num < max_num and "+" or "-", range);
+        end
+        
+        range = Editor_convertDoubleToInt(range);
+      else
+        local cond = Editor_math(min, "<", max);
+        local op = Editor_if(cond, [["-"]], [["+"]]);
+        
+        if min_num then
+          range = Editor_primitive_arithmetic(min_num, op, range);
+          range = Editor_convertDoubleToInt(range);
+        else
+          range = Editor_convertDoubleToInt(range);
+          range = Editor_primitive_arithmetic("int", min, op, range);
+        end
+      end
+      return range;
+    end
+    
+  end
+  
+  local get_range_size = string.len("get_range.");
+  
+  --[[/*
+    * Return the appropriate code (macro body) given the passed in "id".
+    * All this does is lookup the precomputed code and return that;
+    * If the code hasn't been computed yet, it calls the helper functions that exist
+    * specifically to set that up.
+    * The one wrinkle is that {rng.line_2()} has a parameter, and that's substituted in here.
+  */]]
+  function RNG.macro_body(id, arg1, arg2)
+    local cache = RNG.code_cache;
+    
+    if cache == nil then
+      RNG.code_cache = {};
+      cache = RNG.code_cache;
+      RNG.cache_lines(cache);
+      RNG.cache_get_int(cache);
+      RNG.cache_next(cache);
+    end
+    
+    if id:sub(1, get_range_size) == "get_range." then
+      return RNG.get_range(id:sub(get_range_size + 1), arg1, arg2);
+    end
+    local res = cache[id];
+    if arg1 then
+      res = res:gsub("EXTERNAL_LABEL", arg1);
+    end
+    return res;
+  end
 )}
 
-{lua(\
-  Editor.format_error_message = false;\
+{lua(
+  Editor.format_error_message = false;
 )}

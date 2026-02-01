@@ -13,89 +13,86 @@
 #exit e
 #stats t
 
-{lua(\
-  TowerTest = {};\
-  TowerTest.debug = false;\
-  --[[Set to true for debugging, set to anything else besides TowerTest for not debugging]]\
-  TowerTest.impulse = {};\
-  \
-  --[[/*\
-    * Go through all impulse keys and\
-    * prevent compilation if there's duplicate keys\
-  */]]\
-  local impulse = {};\
-  local keys = table.pack(\
-    "{start}", "{mode}", "{cycling}", "{difficulty}",\
-    "{restart}", "{exit}", "{stats}"\
-  );\
-  for i = 1, #keys do\
-    if impulse[keys[i]] ~= nil then\
-      error("every key impulse must mean a different key", 0);\
-    end\
-    impulse[keys[i]] = true;\
-  end\
+{lua(
+  TowerTest = {
+    debug = false,
+    -- Set to true for debugging, set to anything else besides TowerTesting for not debugging
+    impulse = {}
+  };
+  
+  -- Go through all impulse keys and prevent compilation if there's duplicate keys
+  local impulse = {};
+  local keys = table.pack(
+    "{start}", "{mode}", "{cycling}", "{difficulty}",
+    "{restart}", "{exit}", "{stats}"
+  );
+  for i = 1, #keys do
+    local key = keys[i];
+    if impulse[key] ~= nil then
+      error("every key impulse must mean a different key", 0);
+    end
+    impulse[key] = true;
+  end
 )}
+
 
 ; variable macros for improved visibility in the source code
 ; a display var hides the script identifier to make it less likely
 ; that the var gets changed by another script
 ;
-{lua(\
-  local security_prefix = "<size=0>C^t@t</size>";\
-  \
-  --[[/*\
-    * Used to add an impulse to the display_var\
-    * value in `impulse` has no whitespace and is never empty\
-    * Throws an error if the same impulse controls multiple vars\
-    * \
-    * Returns the impulse as an uppercase string encased in\
-    * parenthesies ()\
-    * add_impulse(a) returns `(A)`\
-  */]]\
-  local function add_impulse(impulse)\
-    if TowerTest.impulse[impulse] == true then\
-      local err_msg = table.pack(\
-        "Variables cannot be controlled by the same impulse\n",\
-        "Impulse '", impulse, "' has been used before!"\
-      );\
-      error(table.concat(err_msg), 0);\
-    end\
-    TowerTest.impulse[impulse] = true;\
-    return string.format("(%s)", string.upper(impulse));\
-  end\
-  \
-  --[[/*\
-    * Used to create the name of a global variable\
-    * meant to be visible in the global variables overlay.\
-    * \
-    * security_toggle is a bool that determinse if\
-    * this variable gets the security prefix or not.\
-    * \
-    * var_name is the string that represents this variable\
-    * \
-    * impulse is the triggered impulse for this variable\
-    * if it doesn't have one, nothing will be added\
-  */]]\
-  function TowerTest.display_var(var_name, security_toggle, impulse)\
-    local var = {};\
-    var[1] = security_toggle and security_prefix or "";\
-    var[2] = var_name;\
-    local impulse_val = impulse:gsub(" ", "");\
-    if impulse_val ~= "" then\
-      var[3] = add_impulse(impulse_val);\
-    end\
-    return string.format([["%s"]], table.concat(var));\
-  end\
+{lua(
+  local security_prefix = "<size=0>C^t@t</size>";
+  
+  --[[/*
+    * Add an impulse to the display_var.
+    * Value in `impulse` has no whitespace and is never empty.
+    * Throws an error if the same impulse controls multiple vars
+    *
+    * Returns the impulse as an uppercase string encased in parenthesies ()
+    * add_impulse(a) returns `(A)`
+  */]]
+  local function add_impulse(impulse)
+    if TowerTest.impulse[impulse] == true then
+      local err_msg = table.pack(
+        "\n",
+        "\nVariables cannot be controlled by the same impulse!",
+        "\nImpulse '", impulse, "' has been used before!"
+      );
+      error(table.concat(err_msg))
+    end
+    TowerTest.impulse[impulse] = true;
+    return string.format("(%s)", string.upper(impulse));
+  end
+  
+  --[[/*
+    * Create the name of a global variable meant to be visible in the global variables overlay/
+    *
+    * security_toggle is a bool that determines if this variable gets the security prefix or not.
+    * var_name is the string that represents this varialbe
+    * impulse is the triggered impulse for this variable
+    * if it doesn't have one, nothing will be added
+  */]]
+  TowerTest.display_var = function(var_name, security_toggle, impulse)
+    local var = {
+      security_toggle and security_prefix or "",
+      var_name
+    };
+    local impulse_val = impulse:gsub(" ", "");
+    if impulse_val ~= "" then
+      var[3] = add_impulse(impulse_val);
+    end
+    return string.format([["%s"]], table.concat(var));
+  end
 )}
 
-#display_var(name, secured, impulse) {lua(\
-  return TowerTest.display_var([[{name}]], {secured}, [[{impulse}]]);\
-)}
+#display_var(name, secured, impulse)={{lua(
+  return TowerTest.display_var([[{name}]], {secured}, [[{impulse}]]);
+)}}
 
 ; Returns empty or blank or case false
-#if_debugging(case_false) {lua(\
-  return TowerTest.debug and "" or [[{case_false}]];\
-)}
+#if_debugging(case_false)={{lua(
+  return TowerTest.debug and "" or [[{case_false}]];
+)}}
 
 ; block hider
 ; used to control when the global variables are shown or hidden 
@@ -136,58 +133,56 @@
 ; </size>
 
 ; lua macro used to process coordinates and output a difficulty list
-{lua(\
-  --[[y coordinate of all 6 difficulties]]\
-  local difficulties = table.pack(\
-    "290.0", "256.0", "217.0",\
-    "182.0", "145.0", "112.0"\
-  );\
-  \
-  function TowerTest.diff_list(switch)\
-    if switch == nil or type(switch) ~= "boolean" then\
-      local err_msg = table.pack(\
-        "\n",\
-        "\nSwitch in macro diff_list must be true or false",\
-        "\nValue recieved was ", switch or "nil"\
-      );\
-      error(table.concat(err_msg), 0);\
-    end\
-    \
-    local diff = {};\
-    --[[true = keep order, false = reverse order]]\
-    if switch then\
-      diff = difficulties;\
-    else\
-      for i = #difficulties, 1, -1 do\
-        diff[#diff + 1] = difficulties[i];\
-      end\
-    end\
-    local acc = {};\
-    local pos = 0;\
-    for i = 1, #diff do\
-      local offset = i * 2;\
-      if i == #diff then\
-        pos = 0;\
-      else\
-        pos = pos + 2 + #diff[i]\
-      end\
-      --[[/*\
-        * Encode our coordinates\
-        * We have a length-2 position and the difficulty coord\
-        * the position = where in the list we are\
-        * coord = what y value do we want\
-      */]]\
-      acc[offset - 1] = string.format("%02d", pos);\
-      acc[offset] = diff[i];\
-    end\
-    acc[#acc + 1] = "</size>Diff Order(" .. string.upper("{difficulty}") .. ")="\
-    if switch then\
-      acc[#acc + 1] = "Easy -> Impossible";\
-    else\
-      acc[#acc + 1] = "Impossible -> Easy";\
-    end\
-    return table.concat(acc);\
-  end\
+{lua(
+  -- y coordinate of all 6 difficulties
+  local difficulties = table.pack(
+    "290.0", "256.0", "217.0",
+    "182.0", "145.0", "112.0"
+  );
+  
+  TowerTest.diff_list = function(switch)
+    if switch == nil or type(switch) ~= "boolean" then
+      local err_msg = table.pack(
+        "\n",
+        "\nSwitch in macro diff_list must be true or false",
+        "\nValue recieved was ", switch or "nil"
+      );
+      error(table.concat(err_msg), 0);
+    end
+    
+    local diff = {};
+    if switch then
+      -- keep order
+      diff = difficulties
+    else
+      -- referse order
+      for i = #difficulties, 1, -1 do
+        diff[#diff + 1] = difficulties[i];
+      end
+    end
+    
+    local acc = {};
+    local pos = 0;
+    for i = 1, #diff do
+      local offset = i * 2;
+      pos = (i == #diff and 0 or (pos + 2 + #diff[i]));
+      --[[/*
+        * Encode our coordinates
+        * We have a length-2 position and the difficulty coord
+        * position = where in the list we are
+        * coord = what y value we want
+      */]]
+      acc[offset - i] = string.format("%02d", pos);
+      acc[offset] = diff[i];
+    end
+    acc[#acc + 1] = "</size>Diff Order(" .. string.upper("{difficulty}") .. ")=";
+    if switch then
+      acc[#acc + 1] = "Easy -> Impossible";
+    else
+      acc[#acc + 1] = "Impossible -> Easy";
+    end
+    return table.concat(acc);
+  end
 )}
 
 #diff_list(switch) "{lua(return TowerTest.diff_list({switch}))}"
