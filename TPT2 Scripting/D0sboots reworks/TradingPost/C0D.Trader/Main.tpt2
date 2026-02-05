@@ -109,17 +109,17 @@ goto(refresh)
 ; 11 to 22. Doubling the stress that's already being put on it.
 
 top:
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
-trade(1, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
+trade(0, 0.0)
 
 ; We refresh the available trades, so we have 12 available trades once again.
 refresh:
@@ -127,7 +127,7 @@ refresh()
 
 ; We take the first trade.
 trade:
-trade(1, 0.0)
+trade(0, 0.0)
 
 ; If we're about to use up our last action, or prioritize_trades is active, we
 ; go to the top. Otherwise, we refresh.

@@ -44,8 +44,8 @@ contains("red></color>", {status.get})
 
 counting_up = false
 seconds = 15.0
-minutes = a.d(0.0, "*", 60.0)
-hours = a.d(0.0, "*", 60.0 * 60.0)
+minutes = arithmetic.double(0.0, "*", 60.0)
+hours = arithmetic.double(0.0, "*", 60.0 * 60.0)
 
 start_time = now()
 time_sum = start_time + {seconds(seconds + minutes + hours)}
