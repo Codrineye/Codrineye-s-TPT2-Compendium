@@ -63,7 +63,7 @@
 )}
 
 ; We make an offsets string such that we can use the first_active
-; as an index. We must add the same ammount of space as the module ID
+; as an index. We must add the same amount of space as the module ID
 ; takes up.
 :const string offset_list {lua(\
   local offsets = "";\

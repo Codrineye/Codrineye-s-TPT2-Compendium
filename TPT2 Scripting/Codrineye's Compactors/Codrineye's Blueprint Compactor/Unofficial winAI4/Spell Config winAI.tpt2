@@ -54,8 +54,8 @@
 ; 
 ; this modulo value is used to 
 ; 
-; synchronize(spell_ammount) 
-; it makes the following spell_ammount recordings
+; synchronize(spell_amount) 
+; it makes the following spell_amount recordings
 ; get used on the same gametick
 ; 
 ; onto the add_spell.<spell_type> functions
@@ -63,7 +63,7 @@
 ; by importing a script that uses the modules you want
 ; 
 ; These functions also return a const int spell_<spell_number>
-; holding the current ammount of space in your recording after
+; holding the current amount of space in your recording after
 ; the addition of the new spell
 ; 
 ; add_spell.instant(spell_name, timer)
@@ -108,7 +108,7 @@
 ; lua macro here that does this exact thing
 #spam_SRN(start, end) {lua(\
   for i = {start} + 0.2, {end}, 0.2 do\
-    BP.sync_ammount = 1;\
+    BP.sync_amount = 1;\
     BP.comp.add_spell([["spell.response.neutral"]], i, 0.0, 0.0);\
   end\
 )}

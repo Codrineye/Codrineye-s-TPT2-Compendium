@@ -79,7 +79,7 @@ isTowerTesting() || not(isBossFight() || {opened_building})
     "</size>",
       "<br>additional_cond adds an additional condition that could be met to exit towertesting",
       "<br>",
-      "<br>seconds, minutes and hours reprezent how much time you want to pass",
+      "<br>seconds, minutes and hours represent how much time you want to pass",
           "in real world seconds becore exiting tower testing",
       "<br>Leave all at 0 if you don't want this",
     "</size=0>"

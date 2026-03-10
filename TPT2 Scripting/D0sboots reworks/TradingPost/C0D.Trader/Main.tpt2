@@ -54,7 +54,7 @@ cycles = 5
 ))}
 
 ; We need a budget of at least 501 to perform a trade in the worst case scenario.
-; Having less than that would mean that we have cycles * (traders - 1) ammount of trades
+; Having less than that would mean that we have cycles * (traders - 1) amount of trades
 ; instead of cycles * traders.
 {status.set(if(\
   contains("{accelerate_budget}|{package(Main)}", impulse()),\

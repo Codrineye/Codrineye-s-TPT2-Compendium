@@ -16,7 +16,7 @@
   BP.used_space.blueprint = 0;\
   \
   --[[Keep track of how many modules we have left to synchronize]]\
-  BP.sync_ammount = 0;\
+  BP.sync_amount = 0;\
   \
   --[[Table that has compactor specific data]]\
   BP.comp = {};\
@@ -289,7 +289,7 @@
     end\
     \
     local space = BP.used_space.blueprint;\
-    --[[Get the ammount of space we've currently used up]]\
+    --[[Get the amount of space we've currently used up]]\
     \
     local bp_name = name:match([[%b""]]):sub(2, -2);\
     --[[removes the quote marks from the match operation]]\
@@ -341,7 +341,7 @@
     \
     local space = tonumber(spell.space:sub(1, -2));\
     BP.used_space.blueprint = BP.used_space.blueprint - space;\
-    --[[We also have to update the total ammount of space being used]]\
+    --[[We also have to update the total amount of space being used]]\
     \
     space = space + #spell.timer_base - 1 - #spell.space;\
     --[[/*\
@@ -363,25 +363,25 @@
     BP.used_space.blueprint = BP.used_space.blueprint + used_space;\
   end\
   \
-  function BP.comp.sync(spell_ammount)\
+  function BP.comp.sync(spell_amount)\
     --[[Perform basic error handling on the parameter]]\
-    if tonumber(spell_ammount) == nil then\
-      err_msg[1] = "Trying to add a non-number as a sync ammount";\
-    elseif tonumber(spell_ammount) <= 0 then\
-      err_msg[1] = "Trying to add a sync ammount that's less than 1";\
-    elseif math.type(tonumber(spell_ammount)) ~= "integer" then\
-      err_msg[1] = "Trying to assign a non-integer as a sync ammount";\
+    if tonumber(spell_amount) == nil then\
+      err_msg[1] = "Trying to add a non-number as a sync amount";\
+    elseif tonumber(spell_amount) <= 0 then\
+      err_msg[1] = "Trying to add a sync amount that's less than 1";\
+    elseif math.type(tonumber(spell_amount)) ~= "integer" then\
+      err_msg[1] = "Trying to assign a non-integer as a sync amount";\
     end\
     BP.debug.detect_error();\
     --[[/*\
         * The sync system prevents the compactor from refreshing its\
         * execution budget until all synchronized modules have been used\
         * \
-        * We subtract the ammount of spells that are synchronized by 1\
+        * We subtract the amount of spells that are synchronized by 1\
         * so that the final synchronized spell refreshes the budget\
        */]]\
-    BP.sync_ammount = tonumber(spell_ammount) - 1;\
-    --[[sync_ammount always gets overwritten]]\
+    BP.sync_amount = tonumber(spell_amount) - 1;\
+    --[[sync_amount always gets overwritten]]\
   end\
   \
   function BP.comp.add_spell(name, timer, coord_x, coord_y)\
@@ -426,9 +426,9 @@
         * used_space is currently 3 because sync and loop_sign\
         * are length-1 signals and the timer_base is empty by default\
        */]]\
-    if BP.sync_ammount > 0 then\
+    if BP.sync_amount > 0 then\
       new_spell.sync = "s";\
-      BP.sync_ammount = BP.sync_ammount - 1;\
+      BP.sync_amount = BP.sync_amount - 1;\
     end\
     --[["s" means that the script skips refreshing the execution budget]]\
     \
@@ -726,7 +726,7 @@
 ; Define a base for the timer
 #timer_modulo(modulo) {lua(BP.comp.blueprint_base([[{modulo}]]))}
 ; 
-; Synchronize spell_count ammount of spell activations
+; Synchronize spell_count amount of spell activations
 #synchronize(spell_count) {lua(BP.comp.sync({spell_count}))}
 ; 
 ; general add_spell lua function call

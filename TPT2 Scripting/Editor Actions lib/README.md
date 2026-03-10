@@ -52,7 +52,7 @@ The downside is that I'm not able to write the macro perfectly as I don't fully 
      */]]\
   local function orecount_cond(tier)\
     --[[/*\
-        * Counts the ammount of ore and dust we have of the requested tier\
+        * Counts the amount of ore and dust we have of the requested tier\
         * The min operation ensures we never process more dust than ore_buffer\
         * permits\
        */]]\

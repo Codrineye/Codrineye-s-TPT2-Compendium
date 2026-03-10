@@ -44,8 +44,8 @@
 #recipe(name) {lua(Factory.macro_body("recipe", "{name}"))}
 ;
 ; Define a component of the recipe needed for crafting
-#make(tier, name, ammount) {lua(\
-  Factory.macro_body("make", "{name}", "{ammount}", "{tier}");\
+#make(tier, name, amount) {lua(\
+  Factory.macro_body("make", "{name}", "{amount}", "{tier}");\
 )}
 ; Specify the cost in resources it takes to craft that item
 #price(price) {lua(Factory.macro_body("add_price", "{price}"))}

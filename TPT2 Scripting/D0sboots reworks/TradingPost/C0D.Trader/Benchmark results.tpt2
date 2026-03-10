@@ -10,7 +10,7 @@
 ; Last 5 are with prioritise_trades = false.
 ;
 ; You start with the number of trades you got, then the number of crates you got and finally
-; the ammount of time it took
+; the amount of time it took
 ;
 ; traders cycles
 ; start count of crates

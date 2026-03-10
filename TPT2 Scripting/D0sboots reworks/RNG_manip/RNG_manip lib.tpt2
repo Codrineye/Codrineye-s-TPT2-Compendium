@@ -92,7 +92,7 @@
       * Our state is a table holding 4 values state[0], state[1], state[2] and state[3];
       * Lua still lets us index tables by 0, so don't let this indexing by 0 confuse you.
       *
-      * state reprezents a 128 bit register holding 4 32-bit unsigned integers
+      * state represents a 128 bit register holding 4 32-bit unsigned integers
       *
       * We have our xorshift table, that manipulates our state and returns a modified 32-bit int
     */]]

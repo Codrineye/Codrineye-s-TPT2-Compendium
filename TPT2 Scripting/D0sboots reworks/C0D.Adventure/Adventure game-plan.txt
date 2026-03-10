@@ -12,7 +12,7 @@
 ; When we clear a room, we must first kill all enemies and then pick our chests
 ; If we don't have the phase boots unlocked, we prioritise chests furthest away from the exit.
 ; If we do have the phase boots, we grab the last chest that's closest to our entrance so that
-; the furthest chest requires the minimum ammount of deviation
+; the furthest chest requires the minimum amount of deviation
 ;
 ;
 ; The key idea is to have a target room that we're trying to reach.

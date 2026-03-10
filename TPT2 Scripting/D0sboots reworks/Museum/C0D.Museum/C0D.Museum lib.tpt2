@@ -10,7 +10,7 @@
 ; false if we're idle
 #status "<size=0>%ms#"
 
-; how many characters are used to reprezent an element?
+; how many characters are used to represent an element?
 #element_size 2
 {lua(\
   --[[list of all elements]]\

@@ -70,11 +70,11 @@ If you want to comment out a spell or a synchronization, you should make a comme
 
 add_spell.`spell_type` returns a const int, irelevant of the spell type. Similar to recorded_blueprint, this variable contains the space in the recording _after_ adding the spell. The difference being that this constant is called spell_`spell_number`.
 
-recorded_blueprint tells the compactor that the recording it has made is a blueprint. This macro returns a const int value that holds the current ammount of space in the recording. This variable is called blueprint_`value within blueprint_name`, so that you can cut up the recorded string.
+recorded_blueprint tells the compactor that the recording it has made is a blueprint. This macro returns a const int value that holds the current amount of space in the recording. This variable is called blueprint_`value within blueprint_name`, so that you can cut up the recorded string.
 
 timer_modulo is best used before calling recorded_blueprint for clarity.<br>
 Adding a modulo adds extra space to the recording, making the value in spell_`spell_number` of the previous add_spell no longer be accurate.<br>
-recorded_blueprint sends the accurate space ammount.
+recorded_blueprint sends the accurate space amount.
 
 Your recording gets compacted and stored in the string `recorded_actives` and, in addition, your recordings size is stored in the integer `recording_size`.
 
@@ -111,7 +111,7 @@ You will not be able to secure the next module until the previous one is secured
 
 Adding secures is performed using the following macros
 * `add_secure(module_ID)` adds the module with ID `module_ID` to the security sequence.
-* `recorded_secures(blueprint_name)` returns the current ammount of space taken up in the recording through a const int with the name `secures_<blueprint_name>`. Additionally, an entry is made in the global table BP.comp.defined_secures at index `blueprint_name` with the space ammount, so that you can retrieve the space ammount in a lua macro.
+* `recorded_secures(blueprint_name)` returns the current amount of space taken up in the recording through a const int with the name `secures_<blueprint_name>`. Additionally, an entry is made in the global table BP.comp.defined_secures at index `blueprint_name` with the space amount, so that you can retrieve the space amount in a lua macro.
 
 Your security recording is concatenated in the const string `recorded_secures` and its size is saved in the const int `secures_space`.
 

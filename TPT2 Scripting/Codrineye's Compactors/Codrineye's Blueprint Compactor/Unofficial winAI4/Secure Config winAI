@@ -10,7 +10,7 @@
 ; You have 2 macros at your disposal
 ; add_secure(secure_name) is the name ID that you want to be secured
 ; recorded_secures(secures_name) will return a const int called
-; secures_<secures_name> which holds the ammount of space your secures
+; secures_<secures_name> which holds the amount of space your secures
 ; have taken up
 ; 
 ; your compacted secures are in the const string recorded_secures

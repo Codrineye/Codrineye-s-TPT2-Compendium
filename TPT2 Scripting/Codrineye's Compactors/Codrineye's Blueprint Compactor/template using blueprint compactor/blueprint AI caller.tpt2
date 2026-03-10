@@ -22,7 +22,7 @@
 ; 
 ; You can also use the pointer to start your actives string at an offset
 ; since every add_spell macro returns a spell.<number> constant
-; with the ammount of space in your recording. To start at the second
+; with the amount of space in your recording. To start at the second
 ; spell, you can set the pointer to spell_2
 
 ; 

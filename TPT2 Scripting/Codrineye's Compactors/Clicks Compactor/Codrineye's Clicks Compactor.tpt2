@@ -8,7 +8,7 @@
 ; The way this works is by creating a string value
 ; :const string click[click number] 'data given for the click'
 ; For information on what 'data given for click' means, look at Clicks Config
-; The comments bellow explain what you're looking at
+; The comments below explain what you're looking at
 ; 
 ; Macro 1 will initialise all global variables used in the functions
 ; Additionally, it supports user interaction to for additional configuration
@@ -186,7 +186,7 @@
       tonumber(click_recording.anchor_y)\
     );\
     if 1 < anchor_max or anchor_min < 0 then\
-      return [[Recording a relative vector should not have anchor values bellow 0 or above 1]];\
+      return [[Recording a relative vector should not have anchor values below 0 or above 1]];\
     end\
     click_recording.click_name = name:gsub("^ +", ""):gsub(" +$", "") .. click.maintenance.name_separator;\
   \

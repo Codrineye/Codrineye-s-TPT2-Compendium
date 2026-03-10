@@ -40,7 +40,7 @@ dust_multipliers = "1 1 0.625 0.5 0.07872 0.06312 0.01 0.01 0.0021"
 
 #buffer(tier) "buffer" . ({tier})
 #buffer.get(tier) local.double.get({buffer({tier})})
-#buffer.set(tier, ammount) local.double.set({buffer({tier})}, {ammount})
+#buffer.set(tier, amount) local.double.set({buffer({tier})}, {amount})
 
 ; This is a simple loop: Each iteration converts one number and advances
 ; both the read position "pos" and the "tier" appropriately. The only subtle
@@ -209,10 +209,10 @@ craft(\
   )\
 )
 
-; try to crush the ammount of ore that'd occupy the crusher for crush_time ammount of seconds
+; try to crush the amount of ore that'd occupy the crusher for crush_time amount of seconds
 ; This calculation is made with the machine speed, which is 2 ^ (crushter_tier - 1)
 ; and ore crushing speed, which is (2t - 1) seconds, where t is the ore tier
-; We mark as `x` the ammount of ore we'll need to crush to achieve this goal
+; We mark as `x` the amount of ore we'll need to crush to achieve this goal
 ; x(2t - 1) = crush_time * 2 ^ (crusher_tier - 1)
 ; x = (crush_time / (2t - 1)) * 2 ^ (crusher_tier - 1)
 

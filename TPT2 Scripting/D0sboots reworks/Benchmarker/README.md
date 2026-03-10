@@ -3,7 +3,7 @@
 This utility benchmarks the execution speed of instructions in the TPT2 AI. Using it is a bit more involved than other scripts, because it's designed for programmers and is mainly of interest to programmers.<br>
 Here's how to use it.
 1. Disable _all_ scripts you have with impulses wakeup() and/or key.b() to get minimal interference when you run the script.
-2. Import the source code bellow into the _external editor_ at https://d0sboots.github.io/perfect-tower/. It's the source code, so you can't import it in the game anyway.
+2. Import the source code below into the _external editor_ at https://d0sboots.github.io/perfect-tower/. It's the source code, so you can't import it in the game anyway.
 3. Modify `benchmark_1` to test what you want. If you're making a simple expression, you should use `:import COD.Benchmark lib`. If you're chaining together the same expression multiple times to perform a 'stress test' of sorts, you'll want to use `COD.Benchmark utils` to gain access to [Editor_actions lib](../../Editor%20Actions%20lib/README.md). You can read the contents of [COD.Benchmark utils](COD.Benchmark%20utils.tpt2) to understand how to use the macros `function` and `dup`.
 4. (Optional) Tweak the constants in [COD.Benchmark lib](COD.Benchmark lib.tpt2) if they're not to your liking. Changing NUM_BENCHMARKS is required if you add more benchmark scrits.
 5. Export the workspace and import the result into the game, you press `b` to start the benchmark suite. Pressing `b` again while the benchmarker is running will stop the benchmark process.

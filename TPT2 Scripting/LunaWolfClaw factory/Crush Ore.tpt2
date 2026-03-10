@@ -2,9 +2,9 @@
 :name {package(CrushOre)}
 
 :local int i_TIER ; current tier of ore being crushed
-:local double d_MAX_VOLUME ; max ammount of ores to crush in a single action
-:local double d_RETAIN_ORE ; ammount of ore to keep and not crush.
-:local double d_PERCENT_DUST ; percent ammount of dust to have before
+:local double d_MAX_VOLUME ; max amount of ores to crush in a single action
+:local double d_RETAIN_ORE ; amount of ore to keep and not crush.
+:local double d_PERCENT_DUST ; percent amount of dust to have before
 
 wakeup()
 open.factory()

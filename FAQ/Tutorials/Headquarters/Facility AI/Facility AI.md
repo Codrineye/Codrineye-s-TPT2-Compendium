@@ -5,7 +5,7 @@ This file is its own [set of FAQ posts](https://discord.com/channels/48844487983
 
 Facility AI is a software you can download at MT4.
 
-This is a game mechanic that lets you program scripts using a visual probramming language, similar to Scratch.
+This is a game mechanic that lets you program scripts using a visual programming language, similar to Scratch.
 
 Downloading its software provides you with a new Headquarters tab titled "Facility AI", which update the ingame tutorial and gives you access to the Facility AI interface.
 

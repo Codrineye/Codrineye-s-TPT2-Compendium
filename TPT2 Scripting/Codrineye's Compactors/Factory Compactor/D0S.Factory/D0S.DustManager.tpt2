@@ -87,7 +87,7 @@ top:
      */]]\
   local function orecount_cond(tier)\
     --[[/*\
-        * Counts the ammount of ore and dust we have of the requested tier\
+        * Counts the amount of ore and dust we have of the requested tier\
         * The min operation ensures we never process more dust than ore_buffer\
         * permits\
        */]]\

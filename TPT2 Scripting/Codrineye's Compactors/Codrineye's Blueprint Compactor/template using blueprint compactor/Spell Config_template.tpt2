@@ -57,8 +57,8 @@
 ; has precice timings where the timer must be set back to 0.0 before
 ; it can activate spells again.
 ; 
-; synchronize(spell_ammount) 
-; it makes the following spell_ammount recordings
+; synchronize(spell_amount) 
+; it makes the following spell_amount recordings
 ; get used on the same gametick
 ; 
 ; onto the add_spell.<spell_type> functions
@@ -66,7 +66,7 @@
 ; by importing a script that uses the modules you want
 ; 
 ; These functions also return a const int spell_<spell_number>
-; holding the current ammount of space in your recording after
+; holding the current amount of space in your recording after
 ; the addition of the new spell
 ; 
 ; add_spell.instant(spell_name, timer)

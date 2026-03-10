@@ -4,7 +4,7 @@
 ; The formula to calculate the cost to buy a tier from the offshore market = `2000 * 18 ^ tier`
 ;
 ; Since we can now have the exact number of museum resources on hand, we no longer have to wait
-; because of a lack of budget, as it can simply uptier the ammount that it needs.
+; because of a lack of budget, as it can simply uptier the amount that it needs.
 ;
 ;
 ; Similar to the original script by d0sboots. We need to keep a list of offer tiers, but this time

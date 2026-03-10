@@ -12,8 +12,8 @@ For organization, it follows notation rules that I recommend to be followed as w
 
 The naming scheme is {Ruleset}_{variable name}.<br>
 The rulesets are as follows:
-- C reprezents a constant variable. This variable holds a value that'd not modified by any other variable.
-- D reprezents a dynamic variable. This variable holds a value composing of other values.
+- C represents a constant variable. This variable holds a value that'd not modified by any other variable.
+- D represents a dynamic variable. This variable holds a value composing of other values.
 - F is a function. Functions are like dynamic variables but they have function parameters.
 - P is a function parameter. These are defined within a function.
 

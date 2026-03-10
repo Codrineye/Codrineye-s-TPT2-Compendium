@@ -1,59 +1,34 @@
 <v background-color="#0000" content-size-fitter="true">
-  <text text-alignment="center">Factory AI by d0sboots</text>
-  <text text-alignment="center" id="Status">Status</text>
-  <v background-color="#000" spacing="5" padding="5" size="250 60">
+  <text>Factory AI by d0sboots</text>
+  <text id="Status">Status</text>
+  <v background-color="#000" spacing="5" padding="5" size="250 35">
     <h background-color="#0000" spacing="2">
-      <button sprite="noborder.shadow" color="#0F0" id="D.D6" size="25">
-        <text text-alignment="center">6</text>
+      <button color="#F00" size="25" id="I.D0">
+        <text>0</text>
       </button>
-      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D5">
-        <text text-alignment="center">5</text>
+      <button color="#F00" size="25" id="I.D1">
+        <text>1</text>
       </button>
-      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D4">
-        <text text-alignment="center">4</text>
+      <button color="#F00" size="25" id="I.D2">
+        <text>2</text>
       </button>
-      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D3">
-        <text text-alignment="center">3</text>
+      <button color="#F00" size="25" id="I.D3">
+        <text>3</text>
       </button>
-      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D2">
-        <text text-alignment="center">2</text>
+      <button color="#F00" size="25" id="I.D4">
+        <text>4</text>
       </button>
-      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D1">
-        <text text-alignment="center">1</text>
+      <button color="#F00" size="25" id="I.D5">
+        <text>5</text>
       </button>
-      <button sprite="noborder.shadow" color="#0F0" size="25" id="D.D0">
-        <text text-alignment="center">0</text>
+      <button color="#F00" size="25" id="I.D6">
+        <text>6</text>
       </button>
-      <button sprite="flat.plus" color="#F00" script="Factory AI" impulse="Sign" id="Sign" size="25"/>
-      <button sprite="noborder.shadow" size="25" color="#000"/>
-    </h>
-    <h background-color="#0000" spacing="2">
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D0">
-        <text text-alignment="center">0</text>
-      </button>
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D1">
-        <text text-alignment="center">1</text>
-      </button>
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D2">
-        <text text-alignment="center">2</text>
-      </button>
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D3">
-        <text text-alignment="center">3</text>
-      </button>
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D4">
-        <text text-alignment="center">4</text>
-      </button>
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D5">
-        <text text-alignment="center">5</text>
-      </button>
-      <button sprite="noborder.shadow" color="#F00" size="25" id="I.D6">
-        <text text-alignment="center">6</text>
-      </button>
-      <img sprite="noborder.shadow" color="#0F0" size="25">
-        <text text-alignment="center">T</text>
+      <img color="#0F0" size="25">
+        <text>T</text>
       </img>
-      <button sprite="noborder.shadow" id="I.T" color="#F00" size="25">
-        <text text-alignment="center">1</text>
+      <button id="I.T" color="#F00" size="25">
+        <text>1</text>
       </button>
     </h>
   </v>
@@ -150,43 +125,43 @@
     </v>
     <v background-color="#0000" size="75" padding="15 ">
       <h background-color="#0000" size=" 25">
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">7</text>
+        <button color="#F00">
+          <text>7</text>
         </button>
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">8</text>
+        <button color="#F00">
+          <text>8</text>
         </button>
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">9</text>
-        </button>
-      </h>
-      <h background-color="#0000" size=" 25">
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">4</text>
-        </button>
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">5</text>
-        </button>
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">6</text>
+        <button color="#F00">
+          <text>9</text>
         </button>
       </h>
       <h background-color="#0000" size=" 25">
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">1</text>
+        <button color="#F00">
+          <text>4</text>
         </button>
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">2</text>
+        <button color="#F00">
+          <text>5</text>
         </button>
-        <button sprite="noborder.shadow" color="#F00">
-          <text text-alignment="center">3</text>
+        <button color="#F00">
+          <text>6</text>
         </button>
       </h>
       <h background-color="#0000" size=" 25">
-        <button sprite="noborder.shadow" color="#F00" size="25">
-          <text text-alignment="center">0</text>
+        <button color="#F00">
+          <text>1</text>
         </button>
-        <button sprite="noborder.shadow" color="#0F0" id="Enter" size="53">
+        <button color="#F00">
+          <text>2</text>
+        </button>
+        <button color="#F00">
+          <text>3</text>
+        </button>
+      </h>
+      <h background-color="#0000" size=" 25">
+        <button color="#F00" size="25">
+          <text>0</text>
+        </button>
+        <button color="#0F0" id="Enter" size="53">
           <text>Enter</text>
         </button>
       </h>

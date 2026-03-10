@@ -6,7 +6,7 @@ If you are not here to understand a specific function in more detail, please go 
 AI Functions are blocks used when writing scripts.<br>
 This is a list of all of them, separated according to the function type
 
-For space, I've created the groups `data_type`, `buildings`, `factory_machines`, `adventure_entities`, `museum_storage`, `resources`, `elements`, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its coresponding list:
+For space, I've created the groups `data_type`, `buildings`, `factory_machines`, `adventure_entities`, `museum_storage`, `resources`, `elements`, `digits` and `letters`. When you see these, just know that the specified action works for for all items in its corresponding list:
 
 `data_type` = `bool`, `double`, `int`, `string`, `vector`
 
@@ -85,7 +85,7 @@ If any of the conditions returns false, the script will terminate without execut
 
 There is a bug in how conditions handle script termination. If a script calls another script using [executesync()](#fundemental-functions), and the called script has a false condition, the called script will terminate itself. However, the calling script incorrectly continues to treat the called script as still running.
 
-## Permited operators
+## permitted operators
 
 ### Boolean
 
@@ -141,10 +141,10 @@ var2 = true = true ; syntax error.
 
 
 global.bool.get("variable name") `[global: get (bool) type: string]`<br>
-Returns the value of the global bool variable with the coresponding name.
+Returns the value of the global bool variable with the corresponding name.
 
 local.bool.get("variable name") `[local: get (bool) type: string]`<br>
-Returns the value of the local bool variable with the coresponding name<br>
+Returns the value of the local bool variable with the corresponding name<br>
 please keep in mind that the value of a local bool will always be false on script activation.
 
 stunned() `[tower: is stunned]`<br>
@@ -245,7 +245,7 @@ An atomic function is an action that consumes 0 from your execution budget.
 
 goto(line number) `[basic: goto type: int]`<br>
 Jumps to specified `line number` of the script. Line 1 is the first action in your script.<br>
-Any number bellow 1 is treated as 1, any number above your actions count will terminate the script.
+Any number below 1 is treated as 1, any number above your actions count will terminate the script.
 
 gotoif(line number, condition) `[basic: goto-if type: int, type: bool]`<br>
 Same as a goto() but if your condition is false it continues to the next line instead of jumping to the line number.
@@ -257,7 +257,7 @@ global.unset("variable name") `[global: unset type: string]`<br>
 Deletes the global variable with the name `variable name`. Note that unsetting a global variable will have strange side effects to the global values overlay.
 
 local.*data_type*.set("variable name", value) `[local: set (`*data_type*`) type: string, type: `*data_type*`]`<br>
-Assigns the inputed `valuse` inside of the local variable `variable name`.
+Assigns the inputed `value` inside of the local variable `variable name`.
 
 local.unset("variable name") `[local: unset type: string]`<br>
 Deletes the local variable with the name `variable name`.
@@ -305,7 +305,7 @@ Is the same as :global bool `var_name` but instead of a global variable, this de
 
 arithmetic.double(value1, "operation", value2) `[arithmetic type: double, type: string, type: double]`<br>
 Performs arithmetic on the inputed values.<br>
-Permited operations are:
+permitted operations are:
 
 - `^` `pow` power
 - `//` `log` logarithm<br>
@@ -522,7 +522,7 @@ Returns the maximum shieldpoints of the tower or 0 if the tower is either dead o
 
 cooldown(skill) `[tower: module cooldown type: int]`<br>
 Returns the remaining cooldown of the active module at slot 1 in seconds. Slot 1 refers to the first module in the active modules list.<br>
-Returns -1 if the value of `skill` does not reprezent the index of a valid active module.
+Returns -1 if the value of `skill` does not represent the index of a valid active module.
 
 shield(percent) `[tower: shield type: bool]`<br>
 Returns the current shieldpoints of the tower or 0 if the tower is dead or does not exist. Value is returned as a percentage from 0.0 to 1.0 if the value in `percent` is true.
@@ -564,20 +564,20 @@ test = test
 Is the same as :global int `var_name` but instead of a global variable, this defines a local variable.
 
 adventure.armor() `[adventure: armor]`<br>
-Returns the ammount of armor the player has in the game of adventure.<br>
+Returns the amount of armor the player has in the game of adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.bombs() `[adventure: bombs]`<br>
-Returns the ammount of bombs the player has in the game of adventure.<br>
+Returns the amount of bombs the player has in the game of adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.countEntities("adventure_entities") `[adventure: count entities type: string]`<br>
-Returns the ammount of entities in the current room of the inputed `adventure_entities` entity type.<br>
+Returns the amount of entities in the current room of the inputed `adventure_entities` entity type.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.<br>
 Valid adventure ID's are defined at the [top of file](#ai-functions)
 
 adventure.emeralds() `[adventure: emeralds]`<br>
-Returns the ammount of emeralds the player has in the game of adventure.<br>
+Returns the amount of emeralds the player has in the game of adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.goldenHearts() `[adventure: golden hearts]`<br>
@@ -585,7 +585,7 @@ Returns the number of golden hearts the player has collected in the game of adve
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.hearts() `[adventure: hearts]`<br>
-Returns the ammount of hit points the player has in the game of adventure.<br>
+Returns the amount of hit points the player has in the game of adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.keys() `[adventure: keys]`<br>
@@ -593,20 +593,20 @@ Returns the number of keys the player has collected in the game of adventure.<br
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.mana() `[adventure: mana]`<br>
-Returns the ammount of mana the player has in the game of adventure.<br>
+Returns the amount of mana the player has in the game of adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.manaArmor() `[adventure: mana armor]`<br>
-Returns the ammount of mana armor the player has in the game of adventure.<br>
+Returns the amount of mana armor the player has in the game of adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 adventure.swords() `[adventure: swords]`<br>
-Returns the ammount of damage the player can deal in adventure.<br>
+Returns the amount of damage the player can deal in adventure.<br>
 If the adventure tab in the arcade isn't in focus, this will return 0.
 
 arithmetic.int(value1, "operation", value2) `[arithmetic type: int, type: string, type: double]`<br>
 Performs an arithmetic operation on the inputed values.<br>
-Permited operators are:
+permitted operators are:
 - `^` `pow` power
 - `//` `log` logarithm<br>
   a // b = log base b of a
@@ -648,7 +648,7 @@ var2 = 10 pow 2 ; syntax error
 ```
 
 budget() `[basic: remaining budget]`<br>
-Returns the ammount of execution budget the script has left durring its execution.
+Returns the amount of execution budget the script has left durring its execution.
 
 d2i(val) `[convert: int type: double]`<br>
 Converts the double `val` into an integer. 
@@ -741,11 +741,11 @@ if(false, 1, 0) = 0
 ```
 
 time.frame() `[time: frame]`<br>
-Returns the number of frames that have occoured since starting the game.<br>
+Returns the number of frames that have occured since starting the game.<br>
 Do note that this value returns back to 0 once you exit and re-enter a save.
 
 negative() `[tower: negative buffs]`<br>
-Returns the total ammount of negative buffs currently present on the tower or 0 if the tower has no negative buffs or does not exist.<br>
+Returns the total amount of negative buffs currently present on the tower or 0 if the tower has no negative buffs or does not exist.<br>
 Note that this only counts negative buffs, this does not count positive buffs.
 
 offerCount() `[tradingpost: offer count]`<br>
@@ -927,7 +927,7 @@ If the arcade is closed or the adventure tab in arcade is not in focus, this ret
 
 arithmetic.vec2(val, "operation", val) `[arithmetic type: vector (2D), type: string, type: vector (2D)]`<br>
 Performs arithmetic on the components of the 2 inputed values.<br>
-Permited operators are:
+permitted operators are:
 
 - `*` multiplication
 - `/` division
@@ -993,8 +993,8 @@ scrollbar(vec(0.0), -1,  1) ; only scrolls vertically
 scrollbar(vec(0.0),  1,  1) ; scrolls both horisontally and vertically
 ```
 
-wait(ammount) `[basic: wait type: double]`<br>
-Waits for the inputed ammount of seconds.<br>
+wait(amount) `[basic: wait type: double]`<br>
+Waits for the inputed amount of seconds.<br>
 Inputting a negative value acts as tho you inputed 0.<br>
 Inputting any non-0 value will consume the rest of your execution budget.
 
@@ -1110,8 +1110,8 @@ equivalent to `pause.set(false)`.
 disable.era(element) `[era: disable power type: string]`<br>
 Tries to disable the era powers of enemies of the inputed `element` by purchasing the according upgrade using xp.
 
-upgrade.era(divider, ammount) `[era: upgrade divider type: string, type: int]`<br>
-Attempts to upgrade the specified era divider by the inputed ammount by using xp.
+upgrade.era(divider, amount) `[era: upgrade divider type: string, type: int]`<br>
+Attempts to upgrade the specified era divider by the inputed amount by using xp.
 
 disable.inf(moduleID) `[infinity: secure module type: string]`<br>
 Attempts to secure the module with the specified `moduleID` to prevent enemies from mimicking it during the infinity phase.
@@ -1199,15 +1199,15 @@ Valid item id's are: `eodArmor`, `thornsArmor`, `bootsPhasing`, `leechSword`, `i
 
 ### Factory
 
-craft(item, tier, ammount) `[factory: try craft type: string, type: int, type: double]`<br>
-Tries to craft the requested item, of the specified tier. Does nothing if the item, of the specified tier doesn't exist or if you can't make the requested ammount.<br>
+craft(item, tier, amount) `[factory: try craft type: string, type: int, type: double]`<br>
+Tries to craft the requested item, of the specified tier. Does nothing if the item, of the specified tier doesn't exist or if you can't make the requested amount.<br>
 Valid item ID's are `chip.basic`, `chip.advanced`, `chip.hitech`, `chip.nano`, `chip.quantum`, `chip`, `hammer`, `sapling.rubber`, `sapling.void`, `dust.rainbow`, `cable.insulated`, `plate`, `motor`, `pump`, `block`, `plate.stack`, `lump`, `producer.town`, `producer.statueofcubos`, `producer.workshop`, `producer.shipyard`, `producer.laboratory`, `producer.constructionFirm`, `producer.mine`, `producer.powerplant`, `producer.arcade`, `producer.headquarters`, `producer.tradingpost`, `producer.museum`, `producer.factory`, `producer.exoticgems`, `producer.gems`, `booster.acceleration`, `booster.machines`, `booster.production.regular`, `booster.resource.drops`, `booster.trees`, `pumpkin.stack`, `pumpkin.producer`, `machine.oven`, `machine.assembler`, `machine.refinery`, `machine.crusher`, `machine.cutter`, `machine.presser`, `machine.mixer`, `machine.transportbelt`, `machine.shaper`, `machine.boiler`.
 
-produce(item, tier, ammount, machine) `[factory: try produce type: string, type: int, type: double, type: string]`<br>
+produce(item, tier, amount, machine) `[factory: try produce type: string, type: int, type: double, type: string]`<br>
 Parameters similar to craft, but needs the corresponding machine to produce your item. If the specified machine is invalud (see `factory_machines up top`) or if the machine is busy (not empty), it does nothing.<br>
 Valid item ID's are `rubber`, `dust.rainbow`, `ingot.rainbow`, `cable`, `ore`, `dust`, `ingot`, `plate`, `block`, `plate.stack`, `rod`, `lump`, `pumpkin`, `pumpkin.stack`
 
-trash(item, tier, ammount) `[factory: trash type: string, type: int, type: double]`<br>
+trash(item, tier, amount) `[factory: trash type: string, type: int, type: double]`<br>
 Same parameters as craft, but instead of crafting that item, it puts them in the trash.<br>
 Valid item ID's are `plate.rubber`, `plate.rainbow`, `essence.void`, `circuit`, `wire`, `screw`, `pipe`, `ring`, `block.dense`, `plate.dense`, `plate.circuit`, `pumpkin.plate`, `pumpkin.carved`, `pumpkin.anti`, `chip.basic`, `chip.advanced`, `chip.hitech`, `chip.nano`, `chip.quantum`, `chip`, `hammer`, `sapling.rubber`, `sapling.void`, `dust.rainbow`, `cable.insulated`, `plate`, `motor`, `pump`, `block`, `plate.stack`, `lump`, `producer.town`, `producer.statueofcubos`, `producer.workshop`, `producer.shipyard`, `producer.laboratory`, `producer.constructionFirm`, `producer.mine`, `producer.powerplant`, `producer.arcade`, `producer.headquarters`, `producer.tradingpost`, `producer.museum`, `producer.factory`, `producer.exoticgems`, `producer.gems`, `booster.acceleration`, `booster.machines`, `booster.production.regular`, `booster.resource.drops`, `booster.trees`, `pumpkin.stack`, `pumpkin.producer`, `machine.oven`, `machine.assembler`, `machine.refinery`, `machine.crusher`, `machine.cutter`, `machine.presser`, `machine.mixer`, `machine.transportbelt`, `machine.shaper`, `machine.boiler`, `rubber`, `ingot.rainbow`, `cable`, `ore`, `dust`, `ingot`, `rod`, `pumpkin`.
 
@@ -1276,8 +1276,8 @@ Set the offshore market preference for element to bool. If bool is false, you wo
 museum.refresh() `[museum: market refresh]`<br>
 Refreshes offshore market offers. Requires mt12+ to use.
 
-museum.buyOffer(offerSlot, ammount) `[museum: buy market type: int, type: int]`<br>
-Buy the PowerStone from offshore market at `offerSlot` `ammount` times. Default example `Buy from offshore market from slot 0 1 times`.
+museum.buyOffer(offerSlot, amount) `[museum: buy market type: int, type: int]`<br>
+Buy the PowerStone from offshore market at `offerSlot` `amount` times. Default example `Buy from offshore market from slot 0 1 times`.
 
 museum.setSlotLocked(offerSlot, locked) `[museum: lock market slot type: int, type: bool]`<br>
 Set the lock state of offshore market `offerslot` to `locked`. Default example `Set the lock state of slot 0 to false`.
