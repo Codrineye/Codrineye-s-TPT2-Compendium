@@ -1,14 +1,14 @@
 :import TowerTesting_lib
 :name {package(Enter Region)}
 
-:global double Curent_Diff
+:global double current_Diff
 
-; Conditions set in accordance to CurentMode
+; Conditions set in accordance to currentMode
 ; counting starts from 0
 ; mode2 means we advance to the next difficulty after 15 cycles
 ; mode1 means we advance to the next region after 6 cycles
-#condition1 contains({CurentMode_get}, {mode2}) && {counting_get} == 14
-#condition2 contains({CurentMode_get}, {mode1}) && {counting_get} < 6
+#condition1 contains({currentMode_get}, {mode2}) && {counting_get} == 14
+#condition2 contains({currentMode_get}, {mode1}) && {counting_get} < 6
 
 game.newround()
 
@@ -37,7 +37,7 @@ wait(global.double.get("screen_delay"))
 enter_difficulty:
 show("towertesting", true)
 wait(global.double.get("screen_delay"))
-{click.relative(395.0/800.0, Curent_Diff/450.0, 0.0, 1.0)}
+{click.relative(395.0/800.0, current_Diff/450.0, 0.0, 1.0)}
 
 ; launch the new round
 wait(global.double.get("screen_delay"))

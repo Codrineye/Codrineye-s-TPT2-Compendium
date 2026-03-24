@@ -27,9 +27,9 @@
 #Region_Cycling {identifier} . "</size>" . "Region_Cycling" . "(W)"
 #Region_Cycling_get global.bool.get({Region_Cycling})
 
-; The variable name for CurentMode
-#CurentMode "<size=0>" . {identifier} . "</size>" . "CurentMode" . "(Q)"
-#CurentMode_get global.string.get({CurentMode})
+; The variable name for currentMode
+#currentMode "<size=0>" . {identifier} . "</size>" . "currentMode" . "(Q)"
+#currentMode_get global.string.get({currentMode})
 
 ; The two different modes, so it's easy to edit
 #mode1 "Difficulty>Region" . "</size>"

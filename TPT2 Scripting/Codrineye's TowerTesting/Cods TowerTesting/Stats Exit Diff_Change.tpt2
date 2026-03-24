@@ -1,7 +1,7 @@
 :import TowerTesting_lib
 :name {package(Stats Exit Diff_Change)}
 
-:global double Curent_Diff
+:global double current_Diff
 :local int increment
 
 key.t()
@@ -41,7 +41,7 @@ goto(99)
 
 ; most important loop, it determines which difficulty is sellected
 loop:
-Curent_Diff = s2d(sub({difficulty_list}, increment * difficulty_spacing, difficulty_spacing), 290.0)
+current_Diff = s2d(sub({difficulty_list}, increment * difficulty_spacing, difficulty_spacing), 290.0)
 
 ; we increment because we've changed difficulty
 increment = (increment + 1) % difficulty_count

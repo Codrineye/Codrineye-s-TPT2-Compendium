@@ -99,7 +99,7 @@
 ; we create a local string 'click_string' that
 ; contains the data which will be outputed for the string
 ; we then update click.max_name to hold either
-; * the length of the curent name
+; * the length of the current name
 ; * the value it already has
 ; we do a similar thing with click.max_length but with the whole click_string
 ; after that, we insert the new click inside of our table click.record

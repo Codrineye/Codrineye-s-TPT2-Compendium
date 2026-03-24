@@ -38,7 +38,7 @@ By default, your game screen is restricted to a minimum size of `11x11` (like it
 
 D_{gameScreen} is a point that lets you change C_{width} and C_{height} without needing to find the slider. It'll make more sense if you look at the graph.
 
-D_{resolutionFactor} is the factor between your curent game window resolution and the maximum resolution.
+D_{resolutionFactor} is the factor between your current game window resolution and the maximum resolution.
 
 C_{mousePosition} is your game mouse.
 

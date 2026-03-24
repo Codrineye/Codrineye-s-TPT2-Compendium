@@ -357,7 +357,7 @@ s2d(val, fallback) `[convert: string type: string, type: double]`<br>
 Tries to convert `val` into a double value. If unsucessful, it returns the value in `fallback` instead.
 
 disable.cost("element") `[era: disable cost type: string]`<br>
-Returns the xp cost of the upgrade that disables the era powers of enemies with element id `element`. Returns -1 if outside of Tower Testing or if the upgrade cannot be disabled, it's either already disabled or it's not in the curent region.
+Returns the xp cost of the upgrade that disables the era powers of enemies with element id `element`. Returns -1 if outside of Tower Testing or if the upgrade cannot be disabled, it's either already disabled or it's not in the current region.
 
 count("item name", tier) `[factory: item count type: string, type: int]`<br>
 Returns the total amount of items with id `item name` of tier `tier` from the inventory of the factory.
@@ -521,7 +521,7 @@ shield.max() `[tower: max. shield]`<br>
 Returns the maximum shieldpoints of the tower or 0 if the tower is either dead or does not exist.
 
 cooldown(skill) `[tower: module cooldown type: int]`<br>
-Returns the remaining cooldown of the active module at slot 1 in seconds. Slot 1 refers to the first module in the active modules list.<br>
+Returns the remaining cooldown of the active module at slot `skill` in seconds. Slot 1 refers to the first module in the active modules list.<br>
 Returns -1 if the value of `skill` does not represent the index of a valid active module.
 
 shield(percent) `[tower: shield type: bool]`<br>

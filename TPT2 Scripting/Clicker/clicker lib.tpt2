@@ -62,7 +62,7 @@
 ; 
 ; calculate the offset from our root
 ; this is a compressed formula, that takes in
-; our curent position, the number of `effect displace` present
+; our current position, the number of `effect displace` present
 ; and other displacements
 ; 
 ; this turns getting the discription from

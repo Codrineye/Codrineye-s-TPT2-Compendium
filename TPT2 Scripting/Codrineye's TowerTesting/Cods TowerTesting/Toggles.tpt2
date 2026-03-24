@@ -9,7 +9,7 @@ gotoif(initialized, {state_get})
 executesync("{package(Initialiser)}")
 goto(99)
 
-; we've passed the initialization sequence, set Region_Cycling and CurentMode appropiately
+; we've passed the initialization sequence, set Region_Cycling and currentMode appropiately
 initialized:
 global.bool.set(\
   {Region_Cycling}, \
@@ -17,8 +17,8 @@ global.bool.set(\
 )
 
 gotoif(99, contains(impulse(), "key.w"))
-global.string.set({CurentMode}, if(\
-  contains({CurentMode_get}, {mode1}) && false == contains(impulse(), "{package()}"), \
+global.string.set({currentMode}, if(\
+  contains({currentMode_get}, {mode1}) && false == contains(impulse(), "{package()}"), \
   {mode2}, \
   {mode1}\
 ))

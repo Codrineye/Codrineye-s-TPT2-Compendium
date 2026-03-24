@@ -22,9 +22,9 @@ loop:
 region = region - 1
 gotoif(loop, region > 0)
 
-#curent_challenge s2d(sub(challenges, {get_visual(1)} * challenge_length, challenge_length), 290.0)
+#current_challenge s2d(sub(challenges, {get_visual(1)} * challenge_length, challenge_length), 290.0)
 ; Sellect the challenge
-{click.relative(395.0/800.0, {curent_challenge}/450.0, 0.0, 1.0)}
+{click.relative(395.0/800.0, {current_challenge}/450.0, 0.0, 1.0)}
 
 ; launch tower testing
 {click.relative(162.0/800.0, 97.0/450.0, 0.0, 1.0)}

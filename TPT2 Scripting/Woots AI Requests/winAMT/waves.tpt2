@@ -33,7 +33,7 @@ software.toggle("software.infinityhorizon", false)
 restart_detect = fixedWavesPerInterval()
 ; restart detection, if we've restarted, the
 ; snapshot of fixedWavesPerInterval should be
-; bigger than the curent value
+; bigger than the current value
 
 restart:
 restart()

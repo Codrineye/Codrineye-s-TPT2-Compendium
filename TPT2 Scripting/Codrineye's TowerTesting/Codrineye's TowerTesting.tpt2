@@ -156,16 +156,16 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         if(impulse() == "game.newround", 1, 0),\
         if({status.get}, "mod", ""),\
         if(\
-          {curent_mode.get} == mode1 ||\
-          (impulse() == "key.{mode}" && {curent_mode.get} == mode2), 6, 15)\
+          {current_mode.get} == mode1 ||\
+          (impulse() == "key.{mode}" && {current_mode.get} == mode2), 6, 15)\
       ),\
       1\
     ) . sub(\
       {lua(--Determine if we change the difficulty or not)}\
       if(\
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
-        {curent_mode.get} == mode1 || \
-        (impulse() == "key.{mode}" && {curent_mode.get} == mode2) ||\
+        {current_mode.get} == mode1 || \
+        (impulse() == "key.{mode}" && {current_mode.get} == mode2) ||\
         contains({diff.get}, "O"),\
         difficulty_list,\
         {diff.get}\
@@ -181,8 +181,8 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
       */]])}\
       if(\
         impulse() == "key.{difficulty}" || {diff.get} == "" ||\
-        {curent_mode.get} == mode1 || \
-        (impulse() == "key.{mode}" && {curent_mode.get} == mode2) ||\
+        {current_mode.get} == mode1 || \
+        (impulse() == "key.{mode}" && {current_mode.get} == mode2) ||\
         contains({diff.get}, "O"),\
         if(\
           impulse() == "game.newround",\
@@ -211,13 +211,13 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 ))}
 
 ; Keep the mode unchanged if we're initialized and the user
-{curent_mode.set(if(\
-  {curent_mode.get} != "" && (\
+{current_mode.set(if(\
+  {current_mode.get} != "" && (\
     impulse() != "key.{mode}" ||\
     not(isopen("headquarters") || isopen("towertesting") || {status.get})\
   ),\
-  {curent_mode.get},\
-  if({curent_mode.get} == mode1, mode2, mode1)\
+  {current_mode.get},\
+  if({current_mode.get} == mode1, mode2, mode1)\
 ))}
 
 {diff_mode.set(difficulty_list)}
@@ -343,8 +343,8 @@ goto(if(\
   {status.get},\
   if(\
     {region_cycling.get} && (\
-      ({curent_mode.get} == mode1 && contains({diff.get}, "A")) ||\
-      ({curent_mode.get} == mode2)\
+      ({current_mode.get} == mode1 && contains({diff.get}, "A")) ||\
+      ({current_mode.get} == mode2)\
     ) && end_time > 0.0,\
     change_region,\
     enter_towertesting\
