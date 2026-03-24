@@ -111,7 +111,7 @@
 #region_cycling.set(value) global.bool.set(cycle_var, {value})
 
 ; which mode is selected
-:const string mode_var {display_var(current Mode, true, {mode})}
+:const string mode_var {display_var(Current Mode, true, {mode})}
 #current_mode.get global.string.get(mode_var)
 #current_mode.set(mode) global.string.set(mode_var, {mode})
 
