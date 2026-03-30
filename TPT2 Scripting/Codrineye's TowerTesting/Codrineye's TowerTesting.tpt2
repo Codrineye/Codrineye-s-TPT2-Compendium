@@ -82,7 +82,7 @@ isTowerTesting() || not(isBossFight() || {opened_building})
       "<br>seconds, minutes and hours represent how much time you want to pass",
           "in real world seconds becore exiting tower testing",
       "<br>Leave all at 0 if you don't want this",
-    "</size=0>"
+    "<size=0>"
   };
   return table.concat(msg);
 )}}
@@ -100,6 +100,9 @@ contains(concat("click here for line info!<size=0>", "{condition_comment.info}")
 )}}
 
 contains(concat("click here for line numbers!<size=0>", "{condition_comment.line}"), "")
+
+; Additional condition that documents the script version
+contains("Script version 2.2.8<size=0>", "")
 
 ; Start of code
 
