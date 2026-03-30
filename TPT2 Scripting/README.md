@@ -36,7 +36,7 @@ For script comments and easier script customization, import the scripts [source 
 If the script is enabled and the Facility AI overlay is active, you're able to use the keys `e`, `r` and `t` to exit, restart and open the statistics menu on the Waves tab. More information on impulses can be found at [the impulses](#the-impulses)
 
 You have 4 global variables you can interact with and 4 local variables you can modify.<br>
-Use the keys x, w, q or d whilst in headquarters to activate the scripts UI. Make sure the "Hide global variables in overlay" setting is unticked (no checkmark next to it). The 4 global variables have keys next to their name, press that key to toggle the variables value.<br>
+Use the keys `x`, `w`, `q` or `d` whilst in headquarters to activate the scripts UI. Make sure the "Hide global variables in overlay" setting is unticked (no checkmark next to it). The 4 global variables have keys next to their name, press that key to toggle the variables value.<br>
 You will also see a 5th helper variale referred to as the `job_status`. This adds flavour text to the script so that you can tell what is happening.
 
 The 3 local variables "seconds" "minutes" and "hours" are used to set a timer for how much time in real life you want a game of towertesting to last, leave all 3 at 0 if you don't want this. The final variable is `additional_cond` representing an additional condition that can be met for the script to exit towertesting.
