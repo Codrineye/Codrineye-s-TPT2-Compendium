@@ -147,6 +147,10 @@ local.bool.get("variable name") `[local: get (bool) type: string]`<br>
 Returns the value of the local bool variable with the corresponding name<br>
 please keep in mind that the value of a local bool will always be false on script activation.
 
+option.get("optionID") `[option: get (bool) type: string]`<br>
+Returns true if the setting with the inputed optionID is enabled in the options menu.<br>
+Valid option IDs are `accessibility.photosensitivity`, `ai.disableOnImport`, `ai.hideActiveScripts`, `ai.hideGlobalVariables`, `boosts.global`, `citizenName.show`, `cloudService`, `debugging.useFallbackLanguage`, `discord.activity.enabled`, `dynamicLighting`, `gfx.floatingtext`, `onlineServices`, `rendering.stopUnfocused`, `tooltips.modules`, `tower.range.show`, `towertesting.start.paused`, `ui.dynamicScaling`, `weather.show`
+
 stunned() `[tower: is stunned]`<br>
 Returns true if the tower is stunned. Returns false if the tower is not stunned or if towertesting is not active.
 
