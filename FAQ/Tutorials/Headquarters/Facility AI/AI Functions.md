@@ -1,5 +1,6 @@
+This post is made on github, for completion, you can access the markdown file [AI Functions](AI%20Functions.md).<br>
 If you are here to understand Facility AI, there's a separate post for [Facility AI](Facility%20AI.md)<br>
-If you are not here to understand a specific function in more detail, please go to [Facility AI Scripting](Facility%20AI%20Scripting.md) for information on writing an AI
+If you are not here to understand a specific function in more detail, please go to [Facility AI Scripting](Facility%20AI%20Scripting.md) for information on writing an AI.
 
 # AI Functions
 
