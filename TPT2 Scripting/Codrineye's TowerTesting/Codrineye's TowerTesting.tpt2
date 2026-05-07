@@ -102,7 +102,7 @@ contains(concat("click here for line info!<size=0>", "{condition_comment.info}")
 contains(concat("click here for line numbers!<size=0>", "{condition_comment.line}"), "")
 
 ; Additional condition that documents the script version
-contains("Script version 2.2.8<size=0>", "")
+contains("Script version 2.2.9<size=0>", "")
 
 ; Start of code
 
@@ -275,13 +275,13 @@ additional_cond_pos:
 additional_cond = {additional_cond}
 
 ; Rather complicated gotoif
-; We stay in towertesting for as long as we're running, not dead and
+; We stay in towertesting for as long as we are not dead and
 ; we haven't meat our additional condition
 ; If the end_time is 0.0 (default), then our end_time will be ignored
 ; Otherwise, we'll exit once the time of seconds, minutes and hours summed together is elapsed
 gotoif(\
   in_towertesting,\
-  {status.get} && health(false) > 0.0 && not(additional_cond) && (\
+  health(false) > 0.0 && not(additional_cond) && (\
     seconds + minutes + hours == 0.0 ||\
     now() <= end_time\
   )\
