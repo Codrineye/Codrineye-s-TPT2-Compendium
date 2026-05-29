@@ -102,7 +102,7 @@ contains(concat("click here for line info!<size=0>", "{condition_comment.info}")
 contains(concat("click here for line numbers!<size=0>", "{condition_comment.line}"), "")
 
 ; Additional condition that documents the script version
-contains("Script version 2.3.0<size=0>", "")
+contains("Script version 2.3.1<size=0>", "")
 
 ; Start of code
 
@@ -127,7 +127,7 @@ difficulty_list = if(\
 )
 
 ; Increment the instance
-instance = s2i(sub({diff.get}, 0, 1), 0) + 1
+instance = s2i(sub({diff.get}, 0, 2), 0) + 10
 
 ; This starts the block hider
 ; The difficulty variable holds a counter and the current coordinate
@@ -148,15 +148,15 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 ; We shut off the hider with a </size> block if the script is running
 ; or if start/cycling/mode were pressed while inside the headquarters/towertesting menu
 {diff.set(\
-  i2s(instance) . "0" . if(\
+  i2s(instance - if(impulse() == "game.newround" && instance % 10 == 1, 1, 0)) . if(\
     {diff.get} != "" && {status.get} != (impulse() == "key.{start}")\
     && not(contains("key.{difficulty}|key.{mode}|game.newround", impulse())),\
     sub({diff.get}, 2, 99),\
     sub(\
       counting_string,\
       arithmetic.int(\
-        index(counting_string, sub({diff.get}, 3, 1), 0) +\
-        if(impulse() == "game.newround", s2i(sub({diff.get}, 1, 1), 0), 0),\
+        index(counting_string, sub({diff.get}, 2, 1), 0) +\
+        if(impulse() == "game.newround", instance % 10, 0),\
         if({status.get}, "mod", ""),\
         if(\
           {current_mode.get} == mode1 ||\
@@ -188,7 +188,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         (impulse() == "key.{mode}" && {current_mode.get} == mode2) ||\
         contains({diff.get}, "O"),\
         if(\
-          impulse() == "game.newround" && sub({diff.get}, 1, 1) == "1",\
+          impulse() == "game.newround" && instance % 10 == 1,\
           s2i(sub({diff.get}, 3, 2), 1),\
           index(difficulty_list, sub({diff.get}, 3, 2), 0)\
         ),\
@@ -244,7 +244,7 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 ; Otherwise, we're called for a qol or an irelevant impulse
 ; If this is a qol impulse, we must be in towertesting to perform it
 goto(if(\
-  {status.get} && impulse() == "key.{start}" && instance == 1,\
+  {status.get} && impulse() == "key.{start}" && instance == 10,\
   if(isTowerTesting(), loop, movement_manager),\
   if(\
     contains("key.{exit}|key.{stats}|key.{restart}", impulse()) && isTowerTesting(),\
@@ -370,7 +370,7 @@ enter_towertesting:
   vec(5.0, 5.0),\
   "#FFF"\
 )
-{click.relative(395.0 / 800.0, s2d(sub({diff.get}, 4, 5), 0.0) / 450.0, 0.0, 1.0)}
+{click.relative(395.0 / 800.0, s2d(sub({diff.get}, 5, 5), 0.0) / 450.0, 0.0, 1.0)}
 
 ; Launch a round of towertesting
 {click.relative(162.0 / 800.0, 97.0/450.0, 0.0, 1.0)}
