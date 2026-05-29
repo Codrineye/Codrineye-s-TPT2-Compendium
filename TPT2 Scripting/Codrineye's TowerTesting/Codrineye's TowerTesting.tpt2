@@ -89,20 +89,20 @@ isTowerTesting() || not(isBossFight() || {opened_building})
 contains(concat("click here for line info!<size=0>", "{condition_comment.info}"), "")
 
 
-#condition_comment.line={{lua(\
+#condition_comment.line={{lua(
   local msg = table.pack(
     "</size><br>",
       "<br>additional_cond is found on line ",
       [[" . additional_cond_pos . "]],
     "<size=0>"
-  );\
-  return table.concat(msg);\
+  );
+  return table.concat(msg);
 )}}
 
 contains(concat("click here for line numbers!<size=0>", "{condition_comment.line}"), "")
 
 ; Additional condition that documents the script version
-contains("Script version 2.2.9<size=0>", "")
+contains("Script version 2.3.0<size=0>", "")
 
 ; Start of code
 
@@ -148,15 +148,15 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
 ; We shut off the hider with a </size> block if the script is running
 ; or if start/cycling/mode were pressed while inside the headquarters/towertesting menu
 {diff.set(\
-  i2s(instance) . if(\
+  i2s(instance) . "0" . if(\
     {diff.get} != "" && {status.get} != (impulse() == "key.{start}")\
     && not(contains("key.{difficulty}|key.{mode}|game.newround", impulse())),\
-    sub({diff.get}, 1, 8),\
+    sub({diff.get}, 2, 99),\
     sub(\
       counting_string,\
       arithmetic.int(\
-        index(counting_string, sub({diff.get}, 1, 1), 0) +\
-        if(impulse() == "game.newround", 1, 0),\
+        index(counting_string, sub({diff.get}, 3, 1), 0) +\
+        if(impulse() == "game.newround", s2i(sub({diff.get}, 1, 1), 0), 0),\
         if({status.get}, "mod", ""),\
         if(\
           {current_mode.get} == mode1 ||\
@@ -188,11 +188,11 @@ instance = s2i(sub({diff.get}, 0, 1), 0) + 1
         (impulse() == "key.{mode}" && {current_mode.get} == mode2) ||\
         contains({diff.get}, "O"),\
         if(\
-          impulse() == "game.newround",\
-          s2i(sub({diff.get}, 2, 2), 1),\
-          index(difficulty_list, sub({diff.get}, 2, 2), 0)\
+          impulse() == "game.newround" && sub({diff.get}, 1, 1) == "1",\
+          s2i(sub({diff.get}, 3, 2), 1),\
+          index(difficulty_list, sub({diff.get}, 3, 2), 0)\
         ),\
-        2\
+        3\
       ),\
       7\
     )\
@@ -366,7 +366,7 @@ enter_towertesting:
 ; diff.get has a 1-character instance counter, 1-character progress counter,
 ; a length-2 position and the difficulty string of 5 characters
 ; canvas.rect(\
-  {pos.relative(395.0 / 800.0, s2d(sub({diff.get}, 4, 5), 0.0) / 450.0, 0.0, 1.0)},\
+  {pos.relative(395.0 / 800.0, s2d(sub({diff.get}, 5, 5), 0.0) / 450.0, 0.0, 1.0)},\
   vec(5.0, 5.0),\
   "#FFF"\
 )
@@ -374,6 +374,8 @@ enter_towertesting:
 
 ; Launch a round of towertesting
 {click.relative(162.0 / 800.0, 97.0/450.0, 0.0, 1.0)}
+
+{diff.set(sub({diff.get}, 0, 1) . "1" . sub({diff.get}, 2, 8))}
 
 gotoif(if({status.get}, loop, end), isTowerTesting() || not({status.get}))
 
